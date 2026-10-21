@@ -14,6 +14,17 @@ export function todayInBeirut(now = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: TIMEZONE }).format(now)
 }
 
+// Current date and time in Beirut: { date: "YYYY-MM-DD", time: "HH:MM" }.
+export function nowInBeirut(now = new Date()) {
+  const time = new Intl.DateTimeFormat('en-GB', {
+    timeZone: TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(now)
+  return { date: todayInBeirut(now), time }
+}
+
 function toUtcDate(dateStr) {
   return new Date(`${dateStr}T00:00:00Z`)
 }

@@ -3,13 +3,14 @@ import { CalendarCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import RoleSwitch from '@/components/RoleSwitch'
 import WeekNav from '@/components/WeekNav'
-import WeekView from '@/components/WeekView'
 import CounselorView from '@/components/counselor/CounselorView'
+import StudentView from '@/components/student/StudentView'
 import { useDemoStore } from '@/state/useDemoStore'
-import { addDays, startOfWeek, todayInBeirut } from '@/lib/dates'
+import { addDays, nowInBeirut, startOfWeek } from '@/lib/dates'
 
 export default function App() {
-  const today = todayInBeirut()
+  const now = nowInBeirut()
+  const today = now.date
   const currentWeek = startOfWeek(today)
 
   const [role, setRole] = useState('student')
@@ -58,13 +59,7 @@ export default function App() {
         {role === 'counselor' ? (
           <CounselorView state={state} actions={actions} weekStart={weekStart} today={today} />
         ) : (
-          // Student side: built in step 3.
-          <WeekView
-            key={weekStart}
-            weekStart={weekStart}
-            today={today}
-            slotMinutes={state.settings.slotMinutes}
-          />
+          <StudentView state={state} actions={actions} weekStart={weekStart} now={now} />
         )}
       </main>
     </div>

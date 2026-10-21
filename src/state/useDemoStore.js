@@ -53,9 +53,39 @@ function reducer(state, action) {
     case 'updateSettings':
       return { ...state, settings: { ...state.settings, ...action.changes } }
 
+    // Student books an open slot. In approval mode it becomes a request.
+    // (The screens check the time rules; this only refuses impossible bookings.)
+    case 'bookSlot': {
+      const { id, slotId, studentId, topic, createdAt } = action
+      const slot = state.slots.find((s) => s.id === slotId)
+      if (!slot || slot.kind !== 'open' || activeBookingForSlot(state.bookings, slotId)) return state
+      const status = state.settings.approvalMode ? 'pending' : 'confirmed'
+      return {
+        ...state,
+        bookings: [...state.bookings, { id, slotId, studentId, topic, status, createdAt }],
+      }
+    }
+
+    // Status change on a booking (e.g. "cancelled"). The record is kept so the
+    // student can be told what happened.
+    case 'setBookingStatus':
+      return {
+        ...state,
+        bookings: state.bookings.map((b) => (b.id === action.bookingId ? { ...b, status: action.status } : b)),
+      }
+
     default:
       throw new Error(`Unknown action: ${action.type}`)
   }
+}
+
+// The student's next booking that still holds a slot (today or later), if any.
+export function upcomingBookingFor(state, studentId, today) {
+  return state.bookings
+    .filter((b) => b.studentId === studentId && ACTIVE_BOOKING_STATUSES.includes(b.status))
+    .map((b) => ({ booking: b, slot: state.slots.find((s) => s.id === b.slotId) }))
+    .filter(({ slot }) => slot && slot.date >= today)
+    .sort((a, b) => (a.slot.date + a.slot.start).localeCompare(b.slot.date + b.slot.start))[0]
 }
 
 export function useDemoStore() {
@@ -68,6 +98,13 @@ export function useDemoStore() {
   const actions = {
     toggleCell: (date, start, kind) => dispatch({ type: 'toggleCell', date, start, kind }),
     updateSettings: (changes) => dispatch({ type: 'updateSettings', changes }),
+    // Returns the new booking's id so the screen can show its confirmation.
+    bookSlot: (slotId, studentId, topic, createdAt) => {
+      const id = newId('bk')
+      dispatch({ type: 'bookSlot', id, slotId, studentId, topic, createdAt })
+      return id
+    },
+    cancelBooking: (bookingId) => dispatch({ type: 'setBookingStatus', bookingId, status: 'cancelled' }),
   }
 
   return [state, actions]
