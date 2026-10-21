@@ -1,4 +1,4 @@
-import { CalendarCheck, CalendarX, Info } from 'lucide-react'
+import { BellRing, CalendarCheck, CalendarX, Info } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import { formatLongDate, formatTime } from '@/lib/dates'
 import { isLocked, lockMoment } from '@/lib/rules'
-import { slotMoment, topicLabel } from './messages'
+import { slotMoment, topicLabel } from '@/lib/messages'
 
 // Top of the student view: the student's next booking (with cancel), or how booking works.
-export default function MyBookingCard({ upcoming, settings, now, notice, onCancel }) {
+export default function MyBookingCard({ upcoming, settings, now, notice, onCancel, onShowReminder }) {
   if (!upcoming) {
     return (
       <Card size="sm">
@@ -80,30 +80,38 @@ export default function MyBookingCard({ upcoming, settings, now, notice, onCance
           </div>
         </div>
 
-        {!locked && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" className="h-11 md:h-9">
-                {pending ? 'Annuler la demande' : 'Annuler le rendez-vous'}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Annuler ce rendez-vous ?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Le créneau du {slotMoment(slot)} sera libéré pour un autre élève. Vous pouvez annuler
-                  jusqu’au {formatLongDate(lock.date)} à {formatTime(lock.time)}.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="h-11 md:h-9">Garder le rendez-vous</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" className="h-11 md:h-9" onClick={onCancel}>
-                  Oui, annuler
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {!pending && (
+            <Button variant="ghost" className="h-11 md:h-9" onClick={onShowReminder}>
+              <BellRing aria-hidden="true" />
+              Aperçu du rappel
+            </Button>
+          )}
+          {!locked && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="h-11 md:h-9">
+                  {pending ? 'Annuler la demande' : 'Annuler le rendez-vous'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Annuler ce rendez-vous ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Le créneau du {slotMoment(slot)} sera libéré pour un autre élève. Vous pouvez annuler
+                    jusqu’au {formatLongDate(lock.date)} à {formatTime(lock.time)}.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="h-11 md:h-9">Garder le rendez-vous</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" className="h-11 md:h-9" onClick={onCancel}>
+                    Oui, annuler
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

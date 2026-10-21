@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { CalendarCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Toaster } from '@/components/ui/sonner'
+import DemoClock from '@/components/DemoClock'
 import RoleSwitch from '@/components/RoleSwitch'
 import WeekNav from '@/components/WeekNav'
 import CounselorView from '@/components/counselor/CounselorView'
@@ -9,13 +11,22 @@ import { useDemoStore } from '@/state/useDemoStore'
 import { addDays, nowInBeirut, startOfWeek } from '@/lib/dates'
 
 export default function App() {
-  const now = nowInBeirut()
+  // Demo-only: a simulated { date, time } replaces the real Beirut clock when set.
+  const [demoNow, setDemoNow] = useState(null)
+  const now = demoNow ?? nowInBeirut()
   const today = now.date
   const currentWeek = startOfWeek(today)
 
   const [role, setRole] = useState('student')
   const [weekStart, setWeekStart] = useState(currentWeek)
   const [state, actions] = useDemoStore()
+
+  // If the screen shows "this week", keep showing it when the demo date moves.
+  function changeDemoNow(next) {
+    const target = next ?? nowInBeirut()
+    if (weekStart === currentWeek) setWeekStart(startOfWeek(target.date))
+    setDemoNow(next)
+  }
 
   return (
     <div className="min-h-svh">
@@ -42,10 +53,12 @@ export default function App() {
       </header>
 
       <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5">
+        <DemoClock now={now} simulated={demoNow !== null} onChange={changeDemoNow} />
+
         <p className="text-muted-foreground">
           {role === 'student'
             ? 'Espace élève : choisissez un créneau avec la conseillère d’orientation.'
-            : 'Espace conseillère : ouvrez vos créneaux de la semaine et protégez votre temps de travail.'}
+            : 'Espace conseillère : ouvrez vos créneaux, protégez votre temps de travail et gérez vos rendez-vous.'}
         </p>
 
         <WeekNav
@@ -57,11 +70,12 @@ export default function App() {
         />
 
         {role === 'counselor' ? (
-          <CounselorView state={state} actions={actions} weekStart={weekStart} today={today} />
+          <CounselorView state={state} actions={actions} weekStart={weekStart} now={now} />
         ) : (
           <StudentView state={state} actions={actions} weekStart={weekStart} now={now} />
         )}
       </main>
+      <Toaster position="bottom-center" containerAriaLabel="Notifications" />
     </div>
   )
 }

@@ -1,9 +1,21 @@
 import { useReducer } from 'react'
-import { initialBookings, initialSettings, initialSlots } from '@/data/mockData'
+import { initialBookings, initialSettings, initialSlots, students } from '@/data/mockData'
 import { addMinutes } from '@/lib/dates'
+import {
+  acceptedMessage,
+  cancelledByCounselorMessage,
+  confirmationMessage,
+  movedMessage,
+  refusedMessage,
+} from '@/lib/messages'
+import { lockMoment } from '@/lib/rules'
 
 // In-memory state for the demo (resets on reload). Every change goes through
 // one of the actions below, so they can later become Supabase queries.
+//
+// `messages` is a demo-only log of the automatic e-mails a student would
+// receive, so the student side can show them. The real app would send the
+// e-mail and keep no copy (minimum data, docs/rules.md).
 
 // Bookings that still hold their slot (cancelled/refused ones free it).
 export const ACTIVE_BOOKING_STATUSES = ['confirmed', 'pending']
@@ -21,6 +33,19 @@ export function slotsInCell(slots, date, start, minutes) {
 
 export function activeBookingForSlot(bookings, slotId) {
   return bookings.find((b) => b.slotId === slotId && ACTIVE_BOOKING_STATUSES.includes(b.status))
+}
+
+export const studentById = (id) => students.find((s) => s.id === id)
+
+const updateBooking = (bookings, id, changes) => bookings.map((b) => (b.id === id ? { ...b, ...changes } : b))
+
+// Adds the automatic message for `booking` to the log.
+function withMessage(state, { id, booking, at, compose, extra = {} }) {
+  const student = studentById(booking.studentId)
+  const slot = state.slots.find((s) => s.id === booking.slotId)
+  const { subject, body } = compose({ student, slot, booking, ...extra })
+  const message = { id, studentId: student.id, bookingId: booking.id, subject, body, sentAt: at }
+  return { ...state, messages: [...state.messages, message] }
 }
 
 function reducer(state, action) {
@@ -56,23 +81,55 @@ function reducer(state, action) {
     // Student books an open slot. In approval mode it becomes a request.
     // (The screens check the time rules; this only refuses impossible bookings.)
     case 'bookSlot': {
-      const { id, slotId, studentId, topic, createdAt } = action
+      const { id, messageId, slotId, studentId, topic, at } = action
       const slot = state.slots.find((s) => s.id === slotId)
       if (!slot || slot.kind !== 'open' || activeBookingForSlot(state.bookings, slotId)) return state
       const status = state.settings.approvalMode ? 'pending' : 'confirmed'
-      return {
-        ...state,
-        bookings: [...state.bookings, { id, slotId, studentId, topic, status, createdAt }],
-      }
+      const booking = { id, slotId, studentId, topic, status, createdAt: at.date }
+      const next = { ...state, bookings: [...state.bookings, booking] }
+      return withMessage(next, {
+        id: messageId,
+        booking,
+        at,
+        compose: confirmationMessage,
+        extra: { lock: lockMoment(slot.date, state.settings) },
+      })
     }
 
-    // Status change on a booking (e.g. "cancelled"). The record is kept so the
-    // student can be told what happened.
-    case 'setBookingStatus':
-      return {
-        ...state,
-        bookings: state.bookings.map((b) => (b.id === action.bookingId ? { ...b, status: action.status } : b)),
-      }
+    // Student cancels their own booking. The record is kept (status "cancelled").
+    case 'studentCancel':
+      return { ...state, bookings: updateBooking(state.bookings, action.bookingId, { status: 'cancelled' }) }
+
+    // Counselor answers a request (approval mode): "confirmed" or "refused".
+    case 'answerRequest': {
+      const booking = state.bookings.find((b) => b.id === action.bookingId)
+      if (booking?.status !== 'pending') return state
+      const changed = { ...booking, status: action.status }
+      const next = { ...state, bookings: updateBooking(state.bookings, booking.id, { status: action.status }) }
+      const compose = action.status === 'confirmed' ? acceptedMessage : refusedMessage
+      return withMessage(next, { id: action.messageId, booking: changed, at: action.at, compose })
+    }
+
+    // Counselor cancels a booking; optionally closes the slot so nobody else books it.
+    case 'counselorCancel': {
+      const booking = state.bookings.find((b) => b.id === action.bookingId)
+      if (!booking) return state
+      let next = { ...state, bookings: updateBooking(state.bookings, booking.id, { status: 'cancelled' }) }
+      next = withMessage(next, { id: action.messageId, booking, at: action.at, compose: cancelledByCounselorMessage })
+      if (action.closeSlot) next = { ...next, slots: next.slots.filter((s) => s.id !== booking.slotId) }
+      return next
+    }
+
+    // Counselor moves a booking to another free open slot; the old slot becomes free.
+    case 'moveBooking': {
+      const booking = state.bookings.find((b) => b.id === action.bookingId)
+      const from = state.slots.find((s) => s.id === booking?.slotId)
+      const to = state.slots.find((s) => s.id === action.toSlotId)
+      if (!booking || !to || to.kind !== 'open' || activeBookingForSlot(state.bookings, to.id)) return state
+      const moved = { ...booking, slotId: to.id }
+      const next = { ...state, bookings: updateBooking(state.bookings, booking.id, { slotId: to.id }) }
+      return withMessage(next, { id: action.messageId, booking: moved, at: action.at, compose: movedMessage, extra: { from, to } })
+    }
 
     default:
       throw new Error(`Unknown action: ${action.type}`)
@@ -93,18 +150,27 @@ export function useDemoStore() {
     slots: initialSlots,
     bookings: initialBookings,
     settings: initialSettings,
+    messages: [],
   })
+
+  // Actions that send a message return its id, so the screen can preview it.
+  // `at` is the (possibly simulated) current moment: { date, time }.
+  const withMessageId = (action) => {
+    const messageId = newId('msg')
+    dispatch({ ...action, messageId })
+    return messageId
+  }
 
   const actions = {
     toggleCell: (date, start, kind) => dispatch({ type: 'toggleCell', date, start, kind }),
     updateSettings: (changes) => dispatch({ type: 'updateSettings', changes }),
-    // Returns the new booking's id so the screen can show its confirmation.
-    bookSlot: (slotId, studentId, topic, createdAt) => {
-      const id = newId('bk')
-      dispatch({ type: 'bookSlot', id, slotId, studentId, topic, createdAt })
-      return id
-    },
-    cancelBooking: (bookingId) => dispatch({ type: 'setBookingStatus', bookingId, status: 'cancelled' }),
+    bookSlot: (slotId, studentId, topic, at) =>
+      withMessageId({ type: 'bookSlot', id: newId('bk'), slotId, studentId, topic, at }),
+    cancelBooking: (bookingId) => dispatch({ type: 'studentCancel', bookingId }),
+    acceptRequest: (bookingId, at) => withMessageId({ type: 'answerRequest', bookingId, status: 'confirmed', at }),
+    refuseRequest: (bookingId, at) => withMessageId({ type: 'answerRequest', bookingId, status: 'refused', at }),
+    counselorCancel: (bookingId, closeSlot, at) => withMessageId({ type: 'counselorCancel', bookingId, closeSlot, at }),
+    moveBooking: (bookingId, toSlotId, at) => withMessageId({ type: 'moveBooking', bookingId, toSlotId, at }),
   }
 
   return [state, actions]

@@ -47,7 +47,7 @@ export default function SettingsSheet({ settings, onChange }) {
               value={String(settings.slotMinutes)}
               onValueChange={(v) => onChange({ slotMinutes: Number(v) })}
             >
-              <SelectTrigger id="slot-length" className="h-11 w-full">
+              <SelectTrigger id="slot-length" className="w-full data-[size=default]:h-11 md:data-[size=default]:h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -68,7 +68,7 @@ export default function SettingsSheet({ settings, onChange }) {
           <div className="flex flex-col gap-2">
             <Label htmlFor="cutoff">Heure limite la veille</Label>
             <Select value={settings.cutoffTime} onValueChange={(v) => onChange({ cutoffTime: v })}>
-              <SelectTrigger id="cutoff" className="h-11 w-full">
+              <SelectTrigger id="cutoff" className="w-full data-[size=default]:h-11 md:data-[size=default]:h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

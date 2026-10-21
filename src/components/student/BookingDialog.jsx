@@ -15,7 +15,7 @@ import MessagePreview from '@/components/MessagePreview'
 import { TOPICS } from '@/data/mockData'
 import { formatLongDate, formatTime } from '@/lib/dates'
 import { lockMoment } from '@/lib/rules'
-import { confirmationMessage, slotMoment } from './messages'
+import { confirmationMessage, slotMoment } from '@/lib/messages'
 
 // Booking flow for one slot: pick an optional topic, confirm, see the confirmation.
 // The parent remounts it (key) for each slot, so it always starts fresh.
