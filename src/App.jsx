@@ -4,7 +4,8 @@ import { Badge } from '@/components/ui/badge'
 import RoleSwitch from '@/components/RoleSwitch'
 import WeekNav from '@/components/WeekNav'
 import WeekView from '@/components/WeekView'
-import { initialSettings } from '@/data/mockData'
+import CounselorView from '@/components/counselor/CounselorView'
+import { useDemoStore } from '@/state/useDemoStore'
 import { addDays, startOfWeek, todayInBeirut } from '@/lib/dates'
 
 export default function App() {
@@ -13,11 +14,11 @@ export default function App() {
 
   const [role, setRole] = useState('student')
   const [weekStart, setWeekStart] = useState(currentWeek)
-  const [settings] = useState(initialSettings)
+  const [state, actions] = useDemoStore()
 
   return (
     <div className="min-h-svh">
-      <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
+      <header className="sticky top-0 z-20 bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
@@ -30,13 +31,20 @@ export default function App() {
           </div>
           <RoleSwitch role={role} onChange={setRole} />
         </div>
+        {/* The four CPF colours, as on the school website. */}
+        <div className="grid h-1 grid-cols-4" aria-hidden="true">
+          <div className="bg-cpf-blue" />
+          <div className="bg-cpf-orange" />
+          <div className="bg-cpf-green" />
+          <div className="bg-cpf-yellow" />
+        </div>
       </header>
 
       <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5">
         <p className="text-muted-foreground">
           {role === 'student'
             ? 'Espace élève : choisissez un créneau avec la conseillère d’orientation.'
-            : 'Espace conseillère : gérez vos créneaux de la semaine.'}
+            : 'Espace conseillère : ouvrez vos créneaux de la semaine et protégez votre temps de travail.'}
         </p>
 
         <WeekNav
@@ -47,7 +55,17 @@ export default function App() {
           onToday={() => setWeekStart(currentWeek)}
         />
 
-        <WeekView key={weekStart} weekStart={weekStart} today={today} slotMinutes={settings.slotMinutes} />
+        {role === 'counselor' ? (
+          <CounselorView state={state} actions={actions} weekStart={weekStart} today={today} />
+        ) : (
+          // Student side: built in step 3.
+          <WeekView
+            key={weekStart}
+            weekStart={weekStart}
+            today={today}
+            slotMinutes={state.settings.slotMinutes}
+          />
+        )}
       </main>
     </div>
   )

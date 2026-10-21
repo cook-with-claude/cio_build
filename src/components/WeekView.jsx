@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   daySlotTimes,
   formatDayNumber,
@@ -13,7 +13,7 @@ import {
 } from '@/lib/dates'
 
 // Monday–Friday grid of time slots for one week.
-// On a computer all five days show side by side; on a phone, tabs pick one day.
+// On a computer all five days show side by side; on a phone, buttons pick one day.
 // `renderCell(date, time)` lets each side of the app decide what a slot shows;
 // without it the grid is empty.
 export default function WeekView({ weekStart, today, slotMinutes, renderCell }) {
@@ -26,25 +26,29 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell }) 
 
   return (
     <section className="flex flex-col gap-3">
-      {/* Phone only: one tab per day. */}
-      <Tabs value={selectedDay} onValueChange={setSelectedDay} className="md:hidden">
-        <TabsList aria-label="Jour" className="grid w-full grid-cols-5 gap-1 p-1 group-data-horizontal/tabs:h-auto">
-          {days.map((date) => (
-            <TabsTrigger
-              key={date}
-              value={date}
-              className="h-auto flex-col gap-0 py-1.5 data-active:text-primary"
-            >
-              <span className="text-xs font-normal text-muted-foreground">
-                {formatWeekdayShort(date)}
-              </span>
-              <span className={cn('text-base font-semibold', date === today && 'text-today')}>
-                {formatDayNumber(date)}
-              </span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      {/* Phone only: pick one day. */}
+      <ToggleGroup
+        type="single"
+        spacing={1}
+        value={selectedDay}
+        // Ignore clicks on the already-selected day (one day is always shown).
+        onValueChange={(value) => value && setSelectedDay(value)}
+        aria-label="Jour affiché"
+        className="grid w-full grid-cols-5 rounded-lg bg-muted p-1 md:hidden"
+      >
+        {days.map((date) => (
+          <ToggleGroupItem
+            key={date}
+            value={date}
+            className="h-auto flex-col gap-0 py-1.5 data-[state=on]:bg-background data-[state=on]:text-primary data-[state=on]:shadow-sm"
+          >
+            <span className="text-xs font-normal text-muted-foreground">{formatWeekdayShort(date)}</span>
+            <span className={cn('text-base font-semibold', date === today && 'text-today-foreground')}>
+              {formatDayNumber(date)}
+            </span>
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
 
       <div className="grid gap-3 md:grid-cols-5 md:gap-2">
         {days.map((date) => (
@@ -54,7 +58,7 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell }) 
             className={cn(
               'gap-0 py-0',
               date !== selectedDay && 'hidden md:flex',
-              date === today && 'ring-2 ring-today/60',
+              date === today && 'ring-2 ring-today',
               date < today && 'opacity-60',
             )}
           >
@@ -63,7 +67,7 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell }) 
                 {formatWeekdayLong(date)} {formatDayNumber(date)}
               </CardTitle>
               {date === today && (
-                <Badge variant="outline" className="border-today/40 text-today">
+                <Badge variant="outline" className="border-today/50 bg-today/10 text-today-foreground">
                   Aujourd’hui
                 </Badge>
               )}

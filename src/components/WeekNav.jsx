@@ -1,4 +1,5 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { formatWeekRange } from '@/lib/dates'
 
@@ -18,7 +19,7 @@ export default function WeekNav({ weekStart, isCurrentWeek, onPrevious, onNext, 
           variant="ghost"
           size="sm"
           onClick={onToday}
-          className={isCurrentWeek ? 'invisible' : 'text-primary'}
+          className={cn('h-11 md:h-8', isCurrentWeek ? 'invisible' : 'text-primary')}
           aria-hidden={isCurrentWeek}
           tabIndex={isCurrentWeek ? -1 : 0}
         >

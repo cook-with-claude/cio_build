@@ -27,7 +27,7 @@ export default function RoleSwitch({ role, onChange }) {
           <ToggleGroupItem
             key={id}
             value={id}
-            className="h-10 gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="h-11 gap-1.5 px-3 md:h-10 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
           >
             <Icon aria-hidden="true" />
             {label}
