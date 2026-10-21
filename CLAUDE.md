@@ -4,6 +4,7 @@
 A web app that lets students at Collège Protestant Français (CPF, Beirut) book orientation sessions with the school counselor ("la conseillère d'orientation") online. Today, students walk into her office to ask for a slot. This interrupts the student who is in session, and some students are not comfortable asking in person.
 
 Read these before starting any feature:
+- `docs/session-log.md`: where we left off, open questions, next steps. Read it at the start of every session; add an entry at the end.
 - `docs/vision.md`: the product vision (in French, as presented to the counselor)
 - `docs/v1-scope.md`: what to build now, and what NOT to build
 - `docs/rules.md`: hard rules (privacy, golden rule, time, Pronote)
