@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { initialSettings } from '@/data/mockData'
-import { copiableSlots, dayHasEmptyCell, dayHasFreeOpenSlot, reducer, upcomingBookingFor } from './useDemoStore.js'
+import {
+  copiableSlots,
+  dayHasEmptyCell,
+  dayHasFreeOpenSlot,
+  reducer,
+  upcomingAppointments,
+  upcomingBookingFor,
+} from './useDemoStore.js'
 
 // 2026-11-02 is a Monday; 2026-10-26 is the Monday before.
 const MON = '2026-11-02'
@@ -165,4 +172,26 @@ test('undoing a copy removes the copied slots, but not one booked since', () => 
   state = book(state, copied.id, 'bk-1')
   state = reducer(state, { type: 'undoCopy', batchId: 'copy-1' })
   assert.deepEqual(kindsOn(state, MON), ['09:00 open', '11:00 open'])
+})
+
+test("the counselor's upcoming list: confirmed bookings from today on, soonest first", () => {
+  const state = makeState({
+    slots: [
+      slot('past', LAST_MON, '09:00', '09:30'),
+      slot('b', TUE, '09:00', '09:30'),
+      slot('a', MON, '10:00', '10:30'),
+      slot('c', MON, '11:00', '11:30'),
+      slot('d', MON, '12:00', '12:30'),
+    ],
+    bookings: [
+      { id: 'b0', slotId: 'past', studentId: 'stu-1', status: 'confirmed' },
+      { id: 'b1', slotId: 'b', studentId: 'stu-1', status: 'confirmed' },
+      { id: 'b2', slotId: 'a', studentId: 'stu-2', status: 'confirmed' },
+      { id: 'b3', slotId: 'c', studentId: 'stu-3', status: 'cancelled' },
+      { id: 'b4', slotId: 'd', studentId: 'stu-4', status: 'pending' }, // shown in "Demandes en attente"
+    ],
+  })
+  const list = upcomingAppointments(state, MON)
+  assert.deepEqual(list.map((a) => a.booking.id), ['b2', 'b1'])
+  assert.equal(list[0].student.name, 'Élève Test 2')
 })

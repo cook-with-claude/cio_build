@@ -208,6 +208,20 @@ export function upcomingBookingFor(state, studentId, today) {
     .sort((a, b) => (a.slot.date + a.slot.start).localeCompare(b.slot.date + b.slot.start))[0]
 }
 
+// The counselor's confirmed bookings from `today` on, soonest first:
+// [{ booking, slot, student }]. Pending requests are listed separately.
+export function upcomingAppointments(state, today) {
+  return state.bookings
+    .filter((b) => b.status === 'confirmed')
+    .map((booking) => ({
+      booking,
+      slot: state.slots.find((s) => s.id === booking.slotId),
+      student: studentById(booking.studentId),
+    }))
+    .filter(({ slot }) => slot && slot.date >= today)
+    .sort((a, b) => (a.slot.date + a.slot.start).localeCompare(b.slot.date + b.slot.start))
+}
+
 export function useDemoStore() {
   const [state, dispatch] = useReducer(reducer, {
     slots: initialSlots,

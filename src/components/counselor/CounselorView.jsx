@@ -12,12 +12,14 @@ import {
   dayHasFreeOpenSlot,
   slotsInCell,
   studentById,
+  upcomingAppointments,
 } from '@/state/useDemoStore'
 import { addDays, formatLongDate, formatWeekRange, weekDays } from '@/lib/dates'
 import BookingDetailsDialog from './BookingDetailsDialog'
 import CounselorCell from './CounselorCell'
 import CounselorToolbar from './CounselorToolbar'
 import RequestsCard from './RequestsCard'
+import UpcomingCard from './UpcomingCard'
 
 // What one cell shows: { status, booking? }.
 // status: "closed" | "open" | "protected" | "booked" | "requested"
@@ -119,6 +121,12 @@ export default function CounselorView({ state, actions, weekStart, now }) {
         requests={requests}
         onAccept={(booking, student) => answer(booking, student, true)}
         onRefuse={(booking, student) => answer(booking, student, false)}
+        onOpen={(booking) => setOpenBookingId(booking.id)}
+      />
+
+      <UpcomingCard
+        appointments={upcomingAppointments(state, today)}
+        today={today}
         onOpen={(booking) => setOpenBookingId(booking.id)}
       />
 
