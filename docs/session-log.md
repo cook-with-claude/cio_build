@@ -24,7 +24,6 @@
 - Ask her: should Monday's slots lock on **Friday** instead of Sunday? (Kept Sunday for now, as in the docs.) Side effect today: a demo shown on a Friday can't show the 17h00 lock live, because the next school day is Monday.
 - Ask her: keep « Fermer aussi ce créneau » (ticked by default) when she cancels a booking?
 - Ask her (approval mode): a request she hasn't answered when the 17h00 cutoff passes stays « en attente » forever. Should it be accepted automatically, refused automatically, or should she get a reminder?
-- Docs vs code: `docs/v1-scope.md` (student side, item 1) says each slot shows « Disponible » or « Indisponible ». Since session 2, the student side lists **only** the bookable slots (approved by Nadim). Update the doc wording if Nadim agrees.
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day) are only checked by the screens today. The database must enforce them too.
 
@@ -43,6 +42,7 @@
 - **Fake data:** slots on the next two school days, so the 17h00 rule can be shown without changing weeks.
 - **Tests recreated:** the 15 tests mentioned in session 1 had never been committed. There are now 63 (`npm test`), covering rules, dates, the store, the student view and the fake data.
 - `CLAUDE.md`: stack line now says shadcn/ui + Tailwind; added how to run the tests.
+- `docs/v1-scope.md`: student item 1 updated to match the new student view (approved by Nadim).
 
 **Decisions**
 - Talk with Nadim in **English** from now on (the interface stays in French).

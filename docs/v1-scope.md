@@ -1,5 +1,5 @@
 # V1 scope: clickable demo
-_Last updated: 2026-10-21_
+_Last updated: 2026-10-26_
 
 **Labels**
 - **DECIDED**: agreed by Nadim. Build it.
@@ -19,7 +19,7 @@ _Last updated: 2026-10-21_
 7. **OPEN:** slot length. 30 min by default; make it a setting.
 
 ## Student side
-1. **VISION:** week view. Each slot shows only « Disponible » or « Indisponible ». Never show her activities or other students' names.
+1. **VISION:** week view. Each day lists only the slots the student can book (« Disponible ») and their own booking; times that can't be booked are simply not listed. A short note explains empty days (« Réservations closes » / « Aucun créneau disponible ») and empty weeks, with a button to the next available slot. Never show her activities or other students' names. _(Changed 2026-10-26, approved by Nadim: previously every slot showed « Disponible » or « Indisponible ».)_
 2. **VISION:** book a slot in a few clicks.
 3. **OPEN:** optional topic tag. Suggested list (to be validated with her): Parcoursup, études à l'étranger, choix de spécialités, métiers, autre.
 4. **VISION:** cancel their own booking before the cutoff.
