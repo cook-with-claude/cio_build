@@ -5,8 +5,6 @@
 // shift across daylight-saving changes.
 
 export const TIMEZONE = 'Asia/Beirut'
-export const SCHOOL_DAY_START = '08:00'
-export const SCHOOL_DAY_END = '15:30'
 
 // Today's date in Beirut, whatever the computer's own timezone is.
 export function todayInBeirut(now = new Date()) {
@@ -51,6 +49,26 @@ export function weekDays(mondayStr) {
   return [0, 1, 2, 3, 4].map((i) => addDays(mondayStr, i))
 }
 
+// True from Monday to Friday.
+export function isSchoolDay(dateStr) {
+  const day = toUtcDate(dateStr).getUTCDay()
+  return day >= 1 && day <= 5
+}
+
+// The first Monday–Friday day after dateStr (Friday -> Monday).
+export function nextSchoolDay(dateStr) {
+  let d = addDays(dateStr, 1)
+  while (!isSchoolDay(d)) d = addDays(d, 1)
+  return d
+}
+
+// The last Monday–Friday day before dateStr (Monday -> Friday).
+export function previousSchoolDay(dateStr) {
+  let d = addDays(dateStr, -1)
+  while (!isSchoolDay(d)) d = addDays(d, -1)
+  return d
+}
+
 export function timeToMinutes(time) {
   const [h, m] = time.split(':').map(Number)
   return h * 60 + m
@@ -64,17 +82,6 @@ export function minutesToTime(minutes) {
 
 export function addMinutes(time, minutes) {
   return minutesToTime(timeToMinutes(time) + minutes)
-}
-
-// Start times of every slot that fits inside the school day,
-// e.g. 08:00, 08:30 … 15:00 for 30-minute slots.
-export function daySlotTimes(slotMinutes) {
-  const times = []
-  const end = timeToMinutes(SCHOOL_DAY_END)
-  for (let t = timeToMinutes(SCHOOL_DAY_START); t + slotMinutes <= end; t += slotMinutes) {
-    times.push(minutesToTime(t))
-  }
-  return times
 }
 
 // --- French labels -------------------------------------------------------

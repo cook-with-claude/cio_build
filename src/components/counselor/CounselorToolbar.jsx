@@ -14,9 +14,10 @@ const TOOLS = [
 export default function CounselorToolbar({ tool, onToolChange, counts, settings, onSettingsChange, onCopyPreviousWeek }) {
   return (
     <Card size="sm">
-      <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      {/* Two rows: what a click does (and the week's counts), then the buttons. */}
+      <CardContent className="flex flex-col gap-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-          <span className="text-sm font-medium">Un clic sur un créneau :</span>
+          <span className="text-sm font-medium whitespace-nowrap">Un clic sur un créneau :</span>
           <ToggleGroup
             type="single"
             variant="outline"
@@ -36,13 +37,13 @@ export default function CounselorToolbar({ tool, onToolChange, counts, settings,
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 md:justify-end">
-          <p className="text-sm text-muted-foreground" aria-live="polite">
+          <p className="text-sm text-muted-foreground sm:ml-auto" aria-live="polite">
             {counts.open} ouvert{counts.open > 1 ? 's' : ''} · {counts.booked} réservé
             {counts.booked > 1 ? 's' : ''} · {counts.protected} protégé{counts.protected > 1 ? 's' : ''}
           </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 border-t pt-3">
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" className="h-11 md:h-9" onClick={onCopyPreviousWeek}>
               <Copy aria-hidden="true" />

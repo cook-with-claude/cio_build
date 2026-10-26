@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { CalendarMinus, CalendarPlus } from 'lucide-react'
+import { Bell, CalendarMinus, CalendarPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import MessageDialog from '@/components/MessageDialog'
+import MessageList from '@/components/MessageList'
 import WeekView from '@/components/WeekView'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,11 +16,13 @@ import {
   upcomingAppointments,
 } from '@/state/useDemoStore'
 import { addDays, formatLongDate, formatWeekRange, weekDays } from '@/lib/dates'
+import { bookingBlockHint } from '@/lib/messages'
+import { studentBookingBlock, weekSlotMinutes } from '@/lib/rules'
 import BookingDetailsDialog from './BookingDetailsDialog'
 import CounselorCell from './CounselorCell'
 import CounselorToolbar from './CounselorToolbar'
 import RequestsCard from './RequestsCard'
-import UpcomingCard from './UpcomingCard'
+import UpcomingDialog from './UpcomingDialog'
 
 // What one cell shows: { status, booking? }.
 // status: "closed" | "open" | "protected" | "booked" | "requested"
@@ -51,7 +54,7 @@ function DayAction({ icon: Icon, label, date, onClick }) {
     <Button
       variant="link"
       size="sm"
-      className="h-auto justify-start gap-1 p-0 text-xs"
+      className="h-auto justify-start gap-1 p-0 text-left text-xs whitespace-normal"
       aria-label={`${label} du ${formatLongDate(date)}`}
       onClick={onClick}
     >
@@ -61,13 +64,16 @@ function DayAction({ icon: Icon, label, date, onClick }) {
   )
 }
 
-export default function CounselorView({ state, actions, weekStart, now }) {
-  const { slots, bookings, settings, messages } = state
+// `showUpcoming` opens the "Prochains rendez-vous" window (its button is in App).
+export default function CounselorView({ state, actions, weekStart, now, showUpcoming, onCloseUpcoming }) {
+  const { slots, bookings, settings, messages, notifications } = state
   const [tool, setTool] = useState('open')
   const [openBookingId, setOpenBookingId] = useState(null)
   const [shownMessage, setShownMessage] = useState(null) // { messageId, to }
 
   const today = now.date
+  // This week's slot length (a prepared week keeps its own, see rules.js).
+  const slotMinutes = weekSlotMinutes(slots, weekStart, settings)
   const openBooking = bookings.find((b) => b.id === openBookingId)
 
   // Pending requests from today on, soonest first.
@@ -117,16 +123,18 @@ export default function CounselorView({ state, actions, weekStart, now }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <MessageList
+        title="Vos notifications"
+        icon={Bell}
+        messages={notifications}
+        to="la conseillère d’orientation"
+        dialogTitle="Notification"
+      />
+
       <RequestsCard
         requests={requests}
         onAccept={(booking, student) => answer(booking, student, true)}
         onRefuse={(booking, student) => answer(booking, student, false)}
-        onOpen={(booking) => setOpenBookingId(booking.id)}
-      />
-
-      <UpcomingCard
-        appointments={upcomingAppointments(state, today)}
-        today={today}
         onOpen={(booking) => setOpenBookingId(booking.id)}
       />
 
@@ -143,10 +151,11 @@ export default function CounselorView({ state, actions, weekStart, now }) {
         key={weekStart}
         weekStart={weekStart}
         today={today}
-        slotMinutes={settings.slotMinutes}
+        slotMinutes={slotMinutes}
+        showLunch
         renderDayExtra={(date) => {
           if (date < today) return null
-          const canOpen = dayHasEmptyCell(slots, date, settings.slotMinutes)
+          const canOpen = dayHasEmptyCell(slots, date, slotMinutes)
           const canClose = dayHasFreeOpenSlot(state, date)
           return (
             (canOpen || canClose) && (
@@ -172,7 +181,9 @@ export default function CounselorView({ state, actions, weekStart, now }) {
           )
         }}
         renderCell={(date, time) => {
-          const cell = cellFor(slotsInCell(slots, date, time, settings.slotMinutes), bookings)
+          const cell = cellFor(slotsInCell(slots, date, time, slotMinutes), bookings)
+          // Open, but students can't book it right now: say why.
+          const block = cell.status === 'open' && date >= today && studentBookingBlock(date, now, settings)
           return (
             <CounselorCell
               status={cell.status}
@@ -182,12 +193,23 @@ export default function CounselorView({ state, actions, weekStart, now }) {
               time={time}
               dayLabel={formatLongDate(date)}
               disabled={date < today}
+              blockHint={block ? bookingBlockHint(block, date, settings) : null}
               onToggle={() => actions.toggleCell(date, time, tool)}
               onOpenBooking={() => setOpenBookingId(cell.booking.id)}
             />
           )
         }}
       />
+
+      {/* Hidden while a booking from the list is open, then shown again. */}
+      {showUpcoming && !openBooking && (
+        <UpcomingDialog
+          appointments={upcomingAppointments(state, today)}
+          today={today}
+          onOpen={(booking) => setOpenBookingId(booking.id)}
+          onClose={onCloseUpcoming}
+        />
+      )}
 
       {openBooking && (
         <BookingDetailsDialog

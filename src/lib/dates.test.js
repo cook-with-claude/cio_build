@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { addDays, daySlotTimes, formatTime, formatWeekRange, nowInBeirut, startOfWeek } from './dates.js'
+import {
+  addDays,
+  formatTime,
+  formatWeekRange,
+  nextSchoolDay,
+  nowInBeirut,
+  previousSchoolDay,
+  startOfWeek,
+} from './dates.js'
 
 test('addDays crosses month and year ends', () => {
   assert.equal(addDays('2026-10-31', 1), '2026-11-01')
@@ -14,15 +22,15 @@ test('startOfWeek gives the Monday, also from a Sunday', () => {
   assert.equal(startOfWeek('2026-11-08'), '2026-11-02') // Sunday
 })
 
-test('30-minute slots fill the school day, 8h00 to 15h30', () => {
-  const times = daySlotTimes(30)
-  assert.equal(times.length, 15)
-  assert.equal(times[0], '08:00')
-  assert.equal(times.at(-1), '15:00')
-})
+// Slot times inside her hours are tested in rules.test.js.
 
-test('slots never run past the end of the school day', () => {
-  assert.equal(daySlotTimes(45).at(-1), '14:45') // 14h45 + 45 min = 15h30
+test('school days skip the weekend in both directions', () => {
+  assert.equal(nextSchoolDay('2026-11-02'), '2026-11-03') // Monday -> Tuesday
+  assert.equal(nextSchoolDay('2026-11-06'), '2026-11-09') // Friday -> Monday
+  assert.equal(nextSchoolDay('2026-11-07'), '2026-11-09') // Saturday -> Monday
+  assert.equal(previousSchoolDay('2026-11-09'), '2026-11-06') // Monday -> Friday
+  assert.equal(previousSchoolDay('2026-11-08'), '2026-11-06') // Sunday -> Friday
+  assert.equal(previousSchoolDay('2026-11-04'), '2026-11-03') // Wednesday -> Tuesday
 })
 
 test('times and weeks read the French way', () => {

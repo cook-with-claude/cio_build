@@ -1,8 +1,8 @@
 // What the student side shows, computed from the demo state. Shared by the
 // student week view and the week title (in App), so both always agree.
 
-import { daySlotTimes, weekDays } from '@/lib/dates'
-import { isLocked, isWithinHorizon } from '@/lib/rules'
+import { weekDays } from '@/lib/dates'
+import { daySlotTimes, isLocked, isWithinHorizon, slotMinutesOn } from '@/lib/rules'
 import { activeBookingForSlot, slotsInCell } from '@/state/useDemoStore'
 
 // True when a student could book `slot` right now.
@@ -19,7 +19,7 @@ function isBookable(state, now, slot) {
 // What the student sees in one cell, and which slot a click would book.
 // status: "available" | "unavailable" | "mine-confirmed" | "mine-pending"
 export function studentCell(state, studentId, now, date, time) {
-  const inCell = slotsInCell(state.slots, date, time, state.settings.slotMinutes)
+  const inCell = slotsInCell(state.slots, date, time, slotMinutesOn(state.slots, date, state.settings))
   for (const s of inCell) {
     const b = activeBookingForSlot(state.bookings, s.id)
     if (b?.studentId === studentId) {
@@ -38,7 +38,7 @@ export function nextAvailableSlot(state, now) {
 }
 
 function dayStatuses(state, studentId, now, date) {
-  return daySlotTimes(state.settings.slotMinutes).map(
+  return daySlotTimes(slotMinutesOn(state.slots, date, state.settings)).map(
     (time) => studentCell(state, studentId, now, date, time).status,
   )
 }

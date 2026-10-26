@@ -22,7 +22,7 @@ import {
 import MessagePreview from '@/components/MessagePreview'
 import { formatLongDate, formatTime } from '@/lib/dates'
 import { reminderMessage, topicLabel } from '@/lib/messages'
-import { lockMoment } from '@/lib/rules'
+import { reminderMoment } from '@/lib/rules'
 import { activeBookingForSlot, studentById } from '@/state/useDemoStore'
 
 const slotLabel = (s) => `${formatLongDate(s.date)}, ${formatTime(s.start)}–${formatTime(s.end)}`
@@ -35,7 +35,7 @@ export default function BookingDetailsDialog({ booking, state, actions, now, onC
   const [closeSlot, setCloseSlot] = useState(true)
   const [sent, setSent] = useState(null) // { title, messageId }
 
-  const { slots, bookings, settings, messages } = state
+  const { slots, bookings, messages } = state
   const student = studentById(booking.studentId)
   // Remembered, so the dialog still works if the slot is closed after a cancellation.
   const [slotSnapshot] = useState(() => slots.find((s) => s.id === booking.slotId))
@@ -43,7 +43,7 @@ export default function BookingDetailsDialog({ booking, state, actions, now, onC
   const topic = topicLabel(booking.topic)
   const pending = booking.status === 'pending'
   const past = slot.date < now.date
-  const lock = lockMoment(slot.date, settings)
+  const reminder = reminderMoment(slot)
 
   // Free open slots she can move the booking to (from tomorrow on).
   const freeSlots = slots
@@ -142,8 +142,8 @@ export default function BookingDetailsDialog({ booking, state, actions, now, onC
             {view === 'reminder' && (
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-muted-foreground">
-                  Envoyé automatiquement le {formatLongDate(lock.date)} à {formatTime(lock.time)}, quand les
-                  rendez-vous du lendemain sont arrêtés.
+                  Envoyé automatiquement à l’élève le {formatLongDate(reminder.date)} à{' '}
+                  {formatTime(reminder.time)}, le matin du rendez-vous.
                 </p>
                 <MessagePreview to={student.email} {...reminderMessage({ student, slot, booking })} />
               </div>

@@ -116,7 +116,8 @@ export default function BookingDialog({ slot, student, settings, existing, onCon
                 {approval
                   ? 'La conseillère doit accepter votre demande. '
                   : ''}
-                Vous pourrez annuler jusqu’au {formatLongDate(lock.date)} à {formatTime(lock.time)}.
+                Vous pourrez annuler librement jusqu’au {formatLongDate(lock.date)} à {formatTime(lock.time)}, puis
+                jusqu’au début du rendez-vous en indiquant un motif.
               </span>
             </p>
 

@@ -1,17 +1,17 @@
-import { CalendarX, Lock } from 'lucide-react'
+import { CalendarX, Lock, Mail } from 'lucide-react'
 import { useState } from 'react'
 import MessageDialog from '@/components/MessageDialog'
+import MessageList from '@/components/MessageList'
 import WeekView from '@/components/WeekView'
 import { DEMO_STUDENT_ID, students } from '@/data/mockData'
 import { formatLongDate, formatTime } from '@/lib/dates'
 import { reminderMessage } from '@/lib/messages'
-import { lockMoment } from '@/lib/rules'
+import { reminderMoment, weekSlotMinutes } from '@/lib/rules'
 import { upcomingBookingFor } from '@/state/useDemoStore'
 import { studentCell, studentDayNote } from './availability'
 import BookingDialog from './BookingDialog'
 import MyBookingCard from './MyBookingCard'
 import StudentCell from './StudentCell'
-import StudentMessages from './StudentMessages'
 
 // In the demo there is no login: the student side acts as one fake student.
 const student = students.find((s) => s.id === DEMO_STUDENT_ID)
@@ -25,9 +25,14 @@ export default function StudentView({ state, actions, weekStart, now }) {
   const upcoming = upcomingBookingFor(state, student.id, now.date)
   const myMessages = state.messages.filter((m) => m.studentId === student.id)
 
-  function cancel() {
-    actions.cancelBooking(upcoming.booking.id)
-    setNotice('Votre rendez-vous a été annulé.')
+  // `reason` is only given after the cutoff (late cancellation).
+  function cancel(reason) {
+    actions.cancelBooking(upcoming.booking.id, now, reason)
+    setNotice(
+      reason
+        ? 'Votre rendez-vous a été annulé. La conseillère d’orientation a été prévenue.'
+        : 'Votre rendez-vous a été annulé.',
+    )
   }
 
   return (
@@ -41,13 +46,13 @@ export default function StudentView({ state, actions, weekStart, now }) {
         onShowReminder={() => setShowReminder(true)}
       />
 
-      <StudentMessages messages={myMessages} email={student.email} />
+      <MessageList title="Vos messages" icon={Mail} messages={myMessages} to={student.email} dialogTitle="Message reçu" />
 
       <WeekView
         key={weekStart}
         weekStart={weekStart}
         today={now.date}
-        slotMinutes={settings.slotMinutes}
+        slotMinutes={weekSlotMinutes(state.slots, weekStart, settings)}
         // Only list what the student can act on; the day note explains empty days.
         isTimeShown={(date, time) => studentCell(state, student.id, now, date, time).status !== 'unavailable'}
         renderDayExtra={(date) => {
@@ -92,7 +97,7 @@ export default function StudentView({ state, actions, weekStart, now }) {
       {showReminder && upcoming && (
         <MessageDialog
           title="Aperçu du rappel"
-          description={`Envoyé automatiquement le ${formatLongDate(lockMoment(upcoming.slot.date, settings).date)} à ${formatTime(settings.cutoffTime)}.`}
+          description={`Envoyé automatiquement le ${formatLongDate(reminderMoment(upcoming.slot).date)} à ${formatTime(reminderMoment(upcoming.slot).time)}, le matin du rendez-vous.`}
           message={reminderMessage({ student, slot: upcoming.slot, booking: upcoming.booking })}
           to={student.email}
           onClose={() => setShowReminder(false)}

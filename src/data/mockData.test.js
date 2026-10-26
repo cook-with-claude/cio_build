@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { addDays } from '@/lib/dates'
-import { isLocked } from '@/lib/rules'
+import { addDays, isSchoolDay } from '@/lib/dates'
+import { daySlotTimes, isLocked } from '@/lib/rules'
 import { buildSchedule, initialSettings } from './mockData.js'
 
 // Monday 2 to Sunday 8 November 2026: the demo can be shown on any of them.
@@ -18,11 +18,18 @@ for (const today of DAYS) {
     }
   })
 
-  test(`fake data shown on ${today}: the 17h00 rule can be shown live`, () => {
+  test(`fake data shown on ${today}: every slot fits her hours`, () => {
+    const starts = daySlotTimes(initialSettings.slotMinutes)
+    for (const s of slots) assert.ok(starts.includes(s.start) && s.end <= '15:00', `${s.id} at ${s.start}–${s.end}`)
+  })
+
+  test(`fake data shown on ${today}: the 15h00 rule can be shown live`, () => {
     const soon = slots.filter((s) => s.id === 'slot-11' || s.id === 'slot-13')
     const [first, second] = soon.map((s) => s.date)
-    assert.equal(isLocked(first, { date: today, time: '16:59' }, initialSettings), false)
-    assert.equal(isLocked(first, { date: today, time: '17:00' }, initialSettings), first === addDays(today, 1))
+    // On a school day, the next school day locks at 15h00 today. At the
+    // weekend, Monday already locked on Friday.
+    assert.equal(isLocked(first, { date: today, time: '14:59' }, initialSettings), !isSchoolDay(today))
+    assert.equal(isLocked(first, { date: today, time: '15:00' }, initialSettings), true)
     assert.equal(isLocked(second, { date: today, time: '21:30' }, initialSettings), false)
   })
 

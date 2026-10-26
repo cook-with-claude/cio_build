@@ -58,9 +58,7 @@ export default function SettingsSheet({ settings, onChange }) {
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-sm text-muted-foreground">
-              Les créneaux déjà ouverts restent visibles.
-            </p>
+            <p className="text-sm text-muted-foreground">S’applique aux semaines pas encore préparées.</p>
           </div>
 
           <Separator />
@@ -80,9 +78,9 @@ export default function SettingsSheet({ settings, onChange }) {
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground">
-              Les rendez-vous du lendemain sont arrêtés la veille à{' '}
-              {formatTime(settings.cutoffTime)} : plus de réservation ni d’annulation par les élèves
-              après cette heure.
+              Les rendez-vous d’un jour sont arrêtés la veille (le vendredi pour le lundi) à{' '}
+              {formatTime(settings.cutoffTime)} : après cette heure, les élèves ne peuvent plus réserver,
+              et ne peuvent annuler qu’en indiquant un motif.
             </p>
           </div>
 

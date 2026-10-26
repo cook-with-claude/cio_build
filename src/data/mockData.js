@@ -14,7 +14,7 @@
 // Dates are generated relative to "this week", so the demo never shows
 // stale dates whenever it is presented.
 
-import { addDays, startOfWeek, todayInBeirut, weekDays } from '../lib/dates.js'
+import { addDays, nextSchoolDay, startOfWeek, todayInBeirut } from '../lib/dates.js'
 
 // Topics a student may optionally attach to a booking.
 export const TOPICS = [
@@ -38,18 +38,11 @@ export const DEMO_STUDENT_ID = 'stu-1'
 
 // settings: one set of options chosen by the counselor.
 export const initialSettings = {
-  slotMinutes: 30, // OPEN in v1-scope: length of one slot
-  cutoffTime: '17:00', // next day's bookings lock the day before at this time
+  slotMinutes: 30, // length of one slot, for weeks not prepared yet
+  cutoffTime: '15:00', // a day's bookings lock on the previous school day at this time
   approvalMode: false, // when on, bookings are requests she accepts or refuses
   bookingHorizonWeeks: 2, // OPEN: how many weeks ahead students can book
   oneUpcomingBookingPerStudent: true, // OPEN: limit to one upcoming booking
-}
-
-// The first Monday–Friday day after `date`.
-function nextSchoolDay(date) {
-  let d = addDays(date, 1)
-  while (!weekDays(startOfWeek(d)).includes(d)) d = addDays(d, 1)
-  return d
 }
 
 // Builds the slots and bookings around `today` (exported for the tests).
@@ -58,8 +51,9 @@ export function buildSchedule(today = todayInBeirut()) {
   const nextMonday = addDays(thisMonday, 7)
   const day = (offset) => addDays(nextMonday, offset) // 0 = next Monday … 4 = next Friday
   // The next two school days, whatever day the demo is shown: the first
-  // locks at the cutoff today, the second stays bookable, so the 17h00 rule
-  // can be shown live. Their times (14h00–15h30) are free all next week.
+  // locks at the cutoff today (on a Friday, Monday locks at 15h00), the second
+  // stays bookable, so the 15h00 rule can be shown live. Their times
+  // (14h00–15h00) are free all next week.
   const soon1 = nextSchoolDay(today)
   const soon2 = nextSchoolDay(soon1)
 
@@ -81,13 +75,15 @@ export function buildSchedule(today = todayInBeirut()) {
     { id: 'slot-11', date: soon1, start: '14:00', end: '14:30', kind: 'open' },
     { id: 'slot-12', date: soon1, start: '14:30', end: '15:00', kind: 'open' },
     { id: 'slot-13', date: soon2, start: '14:00', end: '14:30', kind: 'open' },
-    { id: 'slot-14', date: soon2, start: '15:00', end: '15:30', kind: 'protected' },
+    { id: 'slot-14', date: soon2, start: '14:30', end: '15:00', kind: 'protected' },
   ]
 
   // bookings: id, slotId, studentId, topic (a TOPICS id, or null), status, createdAt
   //   status "confirmed" -> booked
   //   status "pending"   -> waiting for her answer (approval mode)
   //   status "refused" / "cancelled" -> kept so the student can be informed
+  //   autoDeclined: true -> refused because she hadn't answered by the cutoff
+  //   lateReason (a LATE_CANCEL_REASONS id) -> cancelled by the student after the cutoff
   const bookings = [
     { id: 'bk-1', slotId: 'slot-2', studentId: 'stu-2', topic: 'parcoursup', status: 'confirmed', createdAt: thisMonday },
     { id: 'bk-2', slotId: 'slot-8', studentId: 'stu-3', topic: null, status: 'confirmed', createdAt: thisMonday },
