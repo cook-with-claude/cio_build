@@ -26,6 +26,8 @@
 - Ask her (approval mode): a request she hasn't answered when the 17h00 cutoff passes stays « en attente » forever. Should it be accepted automatically, refused automatically, or should she get a reminder?
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day) are only checked by the screens today. The database must enforce them too.
+- `docs/rules.md` (privacy) still says students « only ever see Disponible / Indisponible ». Still true in spirit (they now see even less); reword only if Nadim wants.
+- [PROPOSAL] On phones, mark which days of the week have a free slot in the day picker (e.g. a small dot), so students don't tap through empty days.
 
 ---
 
@@ -43,6 +45,7 @@
 - **Tests recreated:** the 15 tests mentioned in session 1 had never been committed. There are now 63 (`npm test`), covering rules, dates, the store, the student view and the fake data.
 - `CLAUDE.md`: stack line now says shadcn/ui + Tailwind; added how to run the tests.
 - `docs/v1-scope.md`: student item 1 updated to match the new student view (approved by Nadim).
+- **Git:** 9 commits, `7b9f139` → this log update. The first 7 were pushed during the session; if `git status` says "ahead", run `git push`.
 
 **Decisions**
 - Talk with Nadim in **English** from now on (the interface stays in French).
