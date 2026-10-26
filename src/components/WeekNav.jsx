@@ -1,9 +1,10 @@
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarDays, CalendarX, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { formatWeekRange } from '@/lib/dates'
 
-export default function WeekNav({ weekStart, isCurrentWeek, onPrevious, onNext, onToday }) {
+// `note` is an optional short line under the week's title.
+export default function WeekNav({ weekStart, isCurrentWeek, note, onPrevious, onNext, onToday }) {
   return (
     <nav aria-label="Navigation par semaine" className="flex items-center justify-between gap-3">
       <Button variant="outline" size="icon-lg" className="size-11 rounded-full" onClick={onPrevious} aria-label="Semaine précédente">
@@ -14,6 +15,12 @@ export default function WeekNav({ weekStart, isCurrentWeek, onPrevious, onNext, 
         <h2 className="text-base font-semibold tracking-tight text-balance sm:text-lg">
           {formatWeekRange(weekStart)}
         </h2>
+        {note && (
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <CalendarX className="size-4 shrink-0" aria-hidden="true" />
+            {note}
+          </p>
+        )}
         {/* Keep the line's height when hidden, so the layout doesn't jump. */}
         <Button
           variant="ghost"

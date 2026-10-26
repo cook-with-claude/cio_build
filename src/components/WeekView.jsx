@@ -15,8 +15,9 @@ import {
 // Monday–Friday grid of time slots for one week.
 // On a computer all five days show side by side; on a phone, buttons pick one day.
 // `renderCell(date, time)` lets each side of the app decide what a slot shows;
-// without it the grid is empty.
-export default function WeekView({ weekStart, today, slotMinutes, renderCell }) {
+// without it the grid is empty. `renderDayExtra(date)` optionally adds a short
+// line or button under the day's name.
+export default function WeekView({ weekStart, today, slotMinutes, renderCell, renderDayExtra }) {
   const days = weekDays(weekStart)
   const times = daySlotTimes(slotMinutes)
 
@@ -63,9 +64,12 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell }) 
             )}
           >
             <CardHeader className="flex items-center justify-between border-b py-3">
-              <CardTitle className="text-sm">
-                {formatWeekdayLong(date)} {formatDayNumber(date)}
-              </CardTitle>
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <CardTitle className="text-sm">
+                  {formatWeekdayLong(date)} {formatDayNumber(date)}
+                </CardTitle>
+                {renderDayExtra?.(date)}
+              </div>
               {date === today && (
                 <Badge variant="outline" className="border-today/50 bg-today/10 text-today-foreground">
                   Aujourd’hui

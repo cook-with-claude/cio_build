@@ -1,4 +1,5 @@
-import { CircleCheck, Lock } from 'lucide-react'
+import { CircleCheck, Copy, Lock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import SettingsSheet from './SettingsSheet'
@@ -8,8 +9,9 @@ const TOOLS = [
   { id: 'protected', label: 'Temps protégé', icon: Lock },
 ]
 
-// Pick what a click on a slot does, see the week at a glance, open the settings.
-export default function CounselorToolbar({ tool, onToolChange, counts, settings, onSettingsChange }) {
+// Pick what a click on a slot does, see the week at a glance, copy last week,
+// open the settings.
+export default function CounselorToolbar({ tool, onToolChange, counts, settings, onSettingsChange, onCopyPreviousWeek }) {
   return (
     <Card size="sm">
       <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -36,12 +38,18 @@ export default function CounselorToolbar({ tool, onToolChange, counts, settings,
           </ToggleGroup>
         </div>
 
-        <div className="flex items-center justify-between gap-3 md:justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-3 md:justify-end">
           <p className="text-sm text-muted-foreground" aria-live="polite">
             {counts.open} ouvert{counts.open > 1 ? 's' : ''} · {counts.booked} réservé
             {counts.booked > 1 ? 's' : ''} · {counts.protected} protégé{counts.protected > 1 ? 's' : ''}
           </p>
-          <SettingsSheet settings={settings} onChange={onSettingsChange} />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" className="h-11 md:h-9" onClick={onCopyPreviousWeek}>
+              <Copy aria-hidden="true" />
+              Copier la semaine précédente
+            </Button>
+            <SettingsSheet settings={settings} onChange={onSettingsChange} />
+          </div>
         </div>
       </CardContent>
     </Card>

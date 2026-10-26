@@ -36,9 +36,9 @@ export default function MyBookingCard({ upcoming, settings, now, notice, onCance
           <p className="flex gap-2 text-sm text-muted-foreground">
             <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>
-              Réservation jusqu’à la veille à {formatTime(settings.cutoffTime)}, et jusqu’à{' '}
-              {settings.bookingHorizonWeeks} semaines à l’avance. Vous pouvez aussi toujours passer au
-              bureau du CIO.
+              Vous pouvez réserver jusqu’à {formatTime(settings.cutoffTime)} la veille du rendez-vous, et
+              jusqu’à {settings.bookingHorizonWeeks} semaines à l’avance. Vous pouvez aussi toujours passer
+              au bureau du CIO.
             </span>
           </p>
         </CardContent>
@@ -74,7 +74,8 @@ export default function MyBookingCard({ upcoming, settings, now, notice, onCance
             </div>
             {locked && (
               <p className="text-sm text-muted-foreground">
-                Ce rendez-vous est arrêté. En cas d’empêchement, prévenez la conseillère d’orientation.
+                Il n’est plus possible d’annuler en ligne. En cas d’empêchement, prévenez la conseillère
+                d’orientation.
               </p>
             )}
           </div>

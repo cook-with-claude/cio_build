@@ -1,9 +1,17 @@
 import { useState } from 'react'
+import { CalendarPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import MessageDialog from '@/components/MessageDialog'
 import WeekView from '@/components/WeekView'
-import { activeBookingForSlot, slotsInCell, studentById } from '@/state/useDemoStore'
-import { formatLongDate, weekDays } from '@/lib/dates'
+import { Button } from '@/components/ui/button'
+import {
+  activeBookingForSlot,
+  copiableSlots,
+  dayHasEmptyCell,
+  slotsInCell,
+  studentById,
+} from '@/state/useDemoStore'
+import { addDays, formatLongDate, formatWeekRange, weekDays } from '@/lib/dates'
 import BookingDetailsDialog from './BookingDetailsDialog'
 import CounselorCell from './CounselorCell'
 import CounselorToolbar from './CounselorToolbar'
@@ -58,6 +66,19 @@ export default function CounselorView({ state, actions, weekStart, now }) {
     })
   }
 
+  function copyPreviousWeek() {
+    const count = copiableSlots(slots, weekStart, today).length
+    const from = formatWeekRange(addDays(weekStart, -7)).toLowerCase()
+    if (count === 0) {
+      toast.info('Rien à copier', { description: `Aucun créneau à reprendre de la ${from}.` })
+      return
+    }
+    actions.copyPreviousWeek(weekStart, today)
+    toast.success(`${count} créneau${count > 1 ? 'x' : ''} copié${count > 1 ? 's' : ''}`, {
+      description: `Repris de la ${from}. Ce qui était déjà réglé cette semaine n’a pas changé.`,
+    })
+  }
+
   const shown = shownMessage && messages.find((m) => m.id === shownMessage.messageId)
 
   return (
@@ -75,6 +96,7 @@ export default function CounselorView({ state, actions, weekStart, now }) {
         counts={weekCounts(slots, bookings, weekStart)}
         settings={settings}
         onSettingsChange={actions.updateSettings}
+        onCopyPreviousWeek={copyPreviousWeek}
       />
 
       <WeekView
@@ -82,6 +104,21 @@ export default function CounselorView({ state, actions, weekStart, now }) {
         weekStart={weekStart}
         today={today}
         slotMinutes={settings.slotMinutes}
+        renderDayExtra={(date) =>
+          date >= today &&
+          dayHasEmptyCell(slots, date, settings.slotMinutes) && (
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto justify-start gap-1 p-0 text-xs"
+              aria-label={`Ouvrir toute la journée du ${formatLongDate(date)}`}
+              onClick={() => actions.openDay(date)}
+            >
+              <CalendarPlus className="size-3" aria-hidden="true" />
+              Ouvrir toute la journée
+            </Button>
+          )
+        }
         renderCell={(date, time) => {
           const cell = cellFor(slotsInCell(slots, date, time, settings.slotMinutes), bookings)
           return (

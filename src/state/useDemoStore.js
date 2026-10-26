@@ -1,6 +1,6 @@
 import { useReducer } from 'react'
 import { initialBookings, initialSettings, initialSlots, students } from '@/data/mockData'
-import { addMinutes } from '@/lib/dates'
+import { addDays, addMinutes, daySlotTimes, timeToMinutes, weekDays } from '@/lib/dates'
 import {
   acceptedMessage,
   cancelledByCounselorMessage,
@@ -36,6 +36,22 @@ export function activeBookingForSlot(bookings, slotId) {
 }
 
 export const studentById = (id) => students.find((s) => s.id === id)
+
+// Last week's slots that "Copier la semaine précédente" would add to the week
+// starting `weekStart`: those landing on an empty time, from `today` on.
+export function copiableSlots(slots, weekStart, today) {
+  const lastWeek = weekDays(addDays(weekStart, -7))
+  return slots.filter((s) => {
+    if (!lastWeek.includes(s.date)) return false
+    const date = addDays(s.date, 7)
+    return date >= today && slotsInCell(slots, date, s.start, timeToMinutes(s.end) - timeToMinutes(s.start)).length === 0
+  })
+}
+
+// True when "Ouvrir toute la journée" would open at least one cell.
+export function dayHasEmptyCell(slots, date, minutes) {
+  return daySlotTimes(minutes).some((start) => slotsInCell(slots, date, start, minutes).length === 0)
+}
 
 const updateBooking = (bookings, id, changes) => bookings.map((b) => (b.id === id ? { ...b, ...changes } : b))
 
@@ -73,6 +89,29 @@ function reducer(state, action) {
         slots.push({ id: newId('slot'), date, start, end, kind })
       }
       return { ...state, slots }
+    }
+
+    // Counselor opens a whole day in one click: every empty cell becomes open.
+    // Protected time and existing slots are left as they are.
+    case 'openDay': {
+      const { date } = action
+      const minutes = state.settings.slotMinutes
+      const added = daySlotTimes(minutes)
+        .filter((start) => slotsInCell(state.slots, date, start, minutes).length === 0)
+        .map((start) => ({ id: newId('slot'), date, start, end: addMinutes(start, minutes), kind: 'open' }))
+      return { ...state, slots: [...state.slots, ...added] }
+    }
+
+    // Counselor copies last week's open and protected slots into this week.
+    // Only fills empty time: nothing already set this week is changed, and
+    // days before `today` are skipped.
+    case 'copyPreviousWeek': {
+      const added = copiableSlots(state.slots, action.weekStart, action.today).map((s) => ({
+        ...s,
+        id: newId('slot'),
+        date: addDays(s.date, 7),
+      }))
+      return { ...state, slots: [...state.slots, ...added] }
     }
 
     case 'updateSettings':
@@ -163,6 +202,8 @@ export function useDemoStore() {
 
   const actions = {
     toggleCell: (date, start, kind) => dispatch({ type: 'toggleCell', date, start, kind }),
+    openDay: (date) => dispatch({ type: 'openDay', date }),
+    copyPreviousWeek: (weekStart, today) => dispatch({ type: 'copyPreviousWeek', weekStart, today }),
     updateSettings: (changes) => dispatch({ type: 'updateSettings', changes }),
     bookSlot: (slotId, studentId, topic, at) =>
       withMessageId({ type: 'bookSlot', id: newId('bk'), slotId, studentId, topic, at }),

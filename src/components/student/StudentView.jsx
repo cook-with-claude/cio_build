@@ -1,11 +1,13 @@
+import { CalendarX, Lock } from 'lucide-react'
 import { useState } from 'react'
 import MessageDialog from '@/components/MessageDialog'
 import WeekView from '@/components/WeekView'
 import { DEMO_STUDENT_ID, students } from '@/data/mockData'
 import { formatLongDate, formatTime } from '@/lib/dates'
 import { reminderMessage } from '@/lib/messages'
-import { isLocked, isWithinHorizon, lockMoment } from '@/lib/rules'
-import { activeBookingForSlot, slotsInCell, upcomingBookingFor } from '@/state/useDemoStore'
+import { lockMoment } from '@/lib/rules'
+import { upcomingBookingFor } from '@/state/useDemoStore'
+import { studentCell, studentDayNote } from './availability'
 import BookingDialog from './BookingDialog'
 import MyBookingCard from './MyBookingCard'
 import StudentCell from './StudentCell'
@@ -15,29 +17,13 @@ import StudentMessages from './StudentMessages'
 const student = students.find((s) => s.id === DEMO_STUDENT_ID)
 
 export default function StudentView({ state, actions, weekStart, now }) {
-  const { slots, bookings, settings } = state
+  const { settings } = state
   const [bookingSlot, setBookingSlot] = useState(null) // slot being booked (dialog open)
   const [notice, setNotice] = useState('')
   const [showReminder, setShowReminder] = useState(false)
 
   const upcoming = upcomingBookingFor(state, student.id, now.date)
   const myMessages = state.messages.filter((m) => m.studentId === student.id)
-
-  // What the student sees in one cell, and which slot a click would book.
-  function cellFor(date, time) {
-    const inCell = slotsInCell(slots, date, time, settings.slotMinutes)
-    for (const s of inCell) {
-      const b = activeBookingForSlot(bookings, s.id)
-      if (b?.studentId === student.id) {
-        return { status: b.status === 'pending' ? 'mine-pending' : 'mine-confirmed' }
-      }
-    }
-    const bookable =
-      !isLocked(date, now, settings) && isWithinHorizon(date, now, settings)
-        ? inCell.find((s) => s.kind === 'open' && !activeBookingForSlot(bookings, s.id))
-        : null
-    return bookable ? { status: 'available', slot: bookable } : { status: 'unavailable' }
-  }
 
   function cancel() {
     actions.cancelBooking(upcoming.booking.id)
@@ -62,8 +48,19 @@ export default function StudentView({ state, actions, weekStart, now }) {
         weekStart={weekStart}
         today={now.date}
         slotMinutes={settings.slotMinutes}
+        renderDayExtra={(date) => {
+          const note = studentDayNote(state, student.id, now, date)
+          if (!note) return null
+          const Icon = note === 'closed' ? Lock : CalendarX
+          return (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Icon className="size-3 shrink-0" aria-hidden="true" />
+              {note === 'closed' ? 'Réservations closes' : 'Aucun créneau disponible'}
+            </span>
+          )
+        }}
         renderCell={(date, time) => {
-          const cell = cellFor(date, time)
+          const cell = studentCell(state, student.id, now, date, time)
           return (
             <StudentCell
               status={cell.status}

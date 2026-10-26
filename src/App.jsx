@@ -7,6 +7,8 @@ import RoleSwitch from '@/components/RoleSwitch'
 import WeekNav from '@/components/WeekNav'
 import CounselorView from '@/components/counselor/CounselorView'
 import StudentView from '@/components/student/StudentView'
+import { weekHasNoAvailableSlot } from '@/components/student/availability'
+import { DEMO_STUDENT_ID } from '@/data/mockData'
 import { useDemoStore } from '@/state/useDemoStore'
 import { addDays, nowInBeirut, startOfWeek } from '@/lib/dates'
 
@@ -64,6 +66,11 @@ export default function App() {
         <WeekNav
           weekStart={weekStart}
           isCurrentWeek={weekStart === currentWeek}
+          note={
+            role === 'student' && weekHasNoAvailableSlot(state, DEMO_STUDENT_ID, now, weekStart)
+              ? 'Aucun créneau disponible cette semaine'
+              : null
+          }
           onPrevious={() => setWeekStart(addDays(weekStart, -7))}
           onNext={() => setWeekStart(addDays(weekStart, 7))}
           onToday={() => setWeekStart(currentWeek)}
