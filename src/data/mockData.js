@@ -14,7 +14,7 @@
 // Dates are generated relative to "this week", so the demo never shows
 // stale dates whenever it is presented.
 
-import { addDays, startOfWeek, todayInBeirut } from '../lib/dates.js'
+import { addDays, startOfWeek, todayInBeirut, weekDays } from '../lib/dates.js'
 
 // Topics a student may optionally attach to a booking.
 export const TOPICS = [
@@ -45,11 +45,23 @@ export const initialSettings = {
   oneUpcomingBookingPerStudent: true, // OPEN: limit to one upcoming booking
 }
 
-// Builds the slots and bookings around the current week.
-function buildSchedule() {
-  const thisMonday = startOfWeek(todayInBeirut())
+// The first Monday–Friday day after `date`.
+function nextSchoolDay(date) {
+  let d = addDays(date, 1)
+  while (!weekDays(startOfWeek(d)).includes(d)) d = addDays(d, 1)
+  return d
+}
+
+// Builds the slots and bookings around `today` (exported for the tests).
+export function buildSchedule(today = todayInBeirut()) {
+  const thisMonday = startOfWeek(today)
   const nextMonday = addDays(thisMonday, 7)
   const day = (offset) => addDays(nextMonday, offset) // 0 = next Monday … 4 = next Friday
+  // The next two school days, whatever day the demo is shown: the first
+  // locks at the cutoff today, the second stays bookable, so the 17h00 rule
+  // can be shown live. Their times (14h00–15h30) are free all next week.
+  const soon1 = nextSchoolDay(today)
+  const soon2 = nextSchoolDay(soon1)
 
   // slots: id, date, start, end, kind
   //   kind "open"      -> students can book it
@@ -66,6 +78,10 @@ function buildSchedule() {
     { id: 'slot-8', date: day(3), start: '13:00', end: '13:30', kind: 'open' },
     { id: 'slot-9', date: day(3), start: '13:30', end: '14:00', kind: 'open' },
     { id: 'slot-10', date: day(4), start: '10:00', end: '10:30', kind: 'open' },
+    { id: 'slot-11', date: soon1, start: '14:00', end: '14:30', kind: 'open' },
+    { id: 'slot-12', date: soon1, start: '14:30', end: '15:00', kind: 'open' },
+    { id: 'slot-13', date: soon2, start: '14:00', end: '14:30', kind: 'open' },
+    { id: 'slot-14', date: soon2, start: '15:00', end: '15:30', kind: 'protected' },
   ]
 
   // bookings: id, slotId, studentId, topic (a TOPICS id, or null), status, createdAt
@@ -75,6 +91,7 @@ function buildSchedule() {
   const bookings = [
     { id: 'bk-1', slotId: 'slot-2', studentId: 'stu-2', topic: 'parcoursup', status: 'confirmed', createdAt: thisMonday },
     { id: 'bk-2', slotId: 'slot-8', studentId: 'stu-3', topic: null, status: 'confirmed', createdAt: thisMonday },
+    { id: 'bk-3', slotId: 'slot-12', studentId: 'stu-4', topic: 'specialites', status: 'confirmed', createdAt: today },
   ]
 
   return { slots, bookings }
