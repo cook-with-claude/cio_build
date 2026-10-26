@@ -64,7 +64,8 @@ function withMessage(state, { id, booking, at, compose, extra = {} }) {
   return { ...state, messages: [...state.messages, message] }
 }
 
-function reducer(state, action) {
+// Exported for the tests.
+export function reducer(state, action) {
   switch (action.type) {
     // Counselor clicks a cell with a tool ("open" or "protected"):
     // a cell already of that kind is closed again, otherwise it becomes that kind.
