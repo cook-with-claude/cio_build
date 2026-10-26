@@ -53,6 +53,12 @@ export function dayHasEmptyCell(slots, date, minutes) {
   return daySlotTimes(minutes).some((start) => slotsInCell(slots, date, start, minutes).length === 0)
 }
 
+// Open slots of `date` that nobody has booked: what "Fermer toute la journée" closes.
+const freeOpenSlots = (state, date) =>
+  state.slots.filter((s) => s.date === date && s.kind === 'open' && !activeBookingForSlot(state.bookings, s.id))
+
+export const dayHasFreeOpenSlot = (state, date) => freeOpenSlots(state, date).length > 0
+
 const updateBooking = (bookings, id, changes) => bookings.map((b) => (b.id === id ? { ...b, ...changes } : b))
 
 // Adds the automatic message for `booking` to the log.
@@ -103,16 +109,33 @@ export function reducer(state, action) {
       return { ...state, slots: [...state.slots, ...added] }
     }
 
+    // Counselor closes a whole day in one click (e.g. she is away).
+    // Booked slots stay: cancelling a booking is a separate, explicit step.
+    // Protected time stays too: it is already closed to students.
+    case 'closeDay': {
+      const ids = new Set(freeOpenSlots(state, action.date).map((s) => s.id))
+      return { ...state, slots: state.slots.filter((s) => !ids.has(s.id)) }
+    }
+
     // Counselor copies last week's open and protected slots into this week.
     // Only fills empty time: nothing already set this week is changed, and
-    // days before `today` are skipped.
+    // days before `today` are skipped. The copies share `batchId` in their
+    // ids, so the copy can be undone.
     case 'copyPreviousWeek': {
-      const added = copiableSlots(state.slots, action.weekStart, action.today).map((s) => ({
+      const added = copiableSlots(state.slots, action.weekStart, action.today).map((s, i) => ({
         ...s,
-        id: newId('slot'),
+        id: `${action.batchId}-${i}`,
         date: addDays(s.date, 7),
       }))
       return { ...state, slots: [...state.slots, ...added] }
+    }
+
+    // "Annuler" right after a copy: removes the copied slots, except any a
+    // student has booked in the meantime.
+    case 'undoCopy': {
+      const prefix = `${action.batchId}-`
+      const slots = state.slots.filter((s) => !s.id.startsWith(prefix) || activeBookingForSlot(state.bookings, s.id))
+      return { ...state, slots }
     }
 
     case 'updateSettings':
@@ -204,7 +227,14 @@ export function useDemoStore() {
   const actions = {
     toggleCell: (date, start, kind) => dispatch({ type: 'toggleCell', date, start, kind }),
     openDay: (date) => dispatch({ type: 'openDay', date }),
-    copyPreviousWeek: (weekStart, today) => dispatch({ type: 'copyPreviousWeek', weekStart, today }),
+    closeDay: (date) => dispatch({ type: 'closeDay', date }),
+    // Returns the copy's id, to undo it with undoCopy.
+    copyPreviousWeek: (weekStart, today) => {
+      const batchId = newId('copy')
+      dispatch({ type: 'copyPreviousWeek', weekStart, today, batchId })
+      return batchId
+    },
+    undoCopy: (batchId) => dispatch({ type: 'undoCopy', batchId }),
     updateSettings: (changes) => dispatch({ type: 'updateSettings', changes }),
     bookSlot: (slotId, studentId, topic, at) =>
       withMessageId({ type: 'bookSlot', id: newId('bk'), slotId, studentId, topic, at }),

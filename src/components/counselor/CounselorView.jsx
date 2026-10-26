@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { CalendarPlus } from 'lucide-react'
+import { CalendarMinus, CalendarPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import MessageDialog from '@/components/MessageDialog'
 import WeekView from '@/components/WeekView'
 import { Button } from '@/components/ui/button'
 import {
+  ACTIVE_BOOKING_STATUSES,
   activeBookingForSlot,
   copiableSlots,
   dayHasEmptyCell,
+  dayHasFreeOpenSlot,
   slotsInCell,
   studentById,
 } from '@/state/useDemoStore'
@@ -39,6 +41,22 @@ function weekCounts(slots, bookings, weekStart) {
     else counts.open++
   }
   return counts
+}
+
+// A small link-style button under a day's name.
+function DayAction({ icon: Icon, label, date, onClick }) {
+  return (
+    <Button
+      variant="link"
+      size="sm"
+      className="h-auto justify-start gap-1 p-0 text-xs"
+      aria-label={`${label} du ${formatLongDate(date)}`}
+      onClick={onClick}
+    >
+      <Icon className="size-3" aria-hidden="true" />
+      {label}
+    </Button>
+  )
 }
 
 export default function CounselorView({ state, actions, weekStart, now }) {
@@ -73,10 +91,24 @@ export default function CounselorView({ state, actions, weekStart, now }) {
       toast.info('Rien à copier', { description: `Aucun créneau à reprendre de la ${from}.` })
       return
     }
-    actions.copyPreviousWeek(weekStart, today)
+    const batchId = actions.copyPreviousWeek(weekStart, today)
     toast.success(`${count} créneau${count > 1 ? 'x' : ''} copié${count > 1 ? 's' : ''}`, {
       description: `Repris de la ${from}. Ce qui était déjà réglé cette semaine n’a pas changé.`,
+      action: { label: 'Annuler', onClick: () => actions.undoCopy(batchId) },
     })
+  }
+
+  // Booked slots stay open: say so, since she may want to cancel them too.
+  function closeDay(date) {
+    const kept = bookings.filter(
+      (b) => ACTIVE_BOOKING_STATUSES.includes(b.status) && slots.find((s) => s.id === b.slotId)?.date === date,
+    ).length
+    actions.closeDay(date)
+    if (kept > 0) {
+      toast.info('Journée fermée', {
+        description: `${kept} rendez-vous ${kept > 1 ? 'restent prévus' : 'reste prévu'} ce jour-là. Cliquez dessus pour l’annuler ou le déplacer.`,
+      })
+    }
   }
 
   const shown = shownMessage && messages.find((m) => m.id === shownMessage.messageId)
@@ -104,21 +136,33 @@ export default function CounselorView({ state, actions, weekStart, now }) {
         weekStart={weekStart}
         today={today}
         slotMinutes={settings.slotMinutes}
-        renderDayExtra={(date) =>
-          date >= today &&
-          dayHasEmptyCell(slots, date, settings.slotMinutes) && (
-            <Button
-              variant="link"
-              size="sm"
-              className="h-auto justify-start gap-1 p-0 text-xs"
-              aria-label={`Ouvrir toute la journée du ${formatLongDate(date)}`}
-              onClick={() => actions.openDay(date)}
-            >
-              <CalendarPlus className="size-3" aria-hidden="true" />
-              Ouvrir toute la journée
-            </Button>
+        renderDayExtra={(date) => {
+          if (date < today) return null
+          const canOpen = dayHasEmptyCell(slots, date, settings.slotMinutes)
+          const canClose = dayHasFreeOpenSlot(state, date)
+          return (
+            (canOpen || canClose) && (
+              <div className="flex flex-col items-start gap-1">
+                {canOpen && (
+                  <DayAction
+                    icon={CalendarPlus}
+                    label="Ouvrir toute la journée"
+                    date={date}
+                    onClick={() => actions.openDay(date)}
+                  />
+                )}
+                {canClose && (
+                  <DayAction
+                    icon={CalendarMinus}
+                    label="Fermer toute la journée"
+                    date={date}
+                    onClick={() => closeDay(date)}
+                  />
+                )}
+              </div>
+            )
           )
-        }
+        }}
         renderCell={(date, time) => {
           const cell = cellFor(slotsInCell(slots, date, time, settings.slotMinutes), bookings)
           return (

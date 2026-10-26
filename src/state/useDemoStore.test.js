@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { initialSettings } from '@/data/mockData'
-import { copiableSlots, dayHasEmptyCell, reducer, upcomingBookingFor } from './useDemoStore.js'
+import { copiableSlots, dayHasEmptyCell, dayHasFreeOpenSlot, reducer, upcomingBookingFor } from './useDemoStore.js'
 
 // 2026-11-02 is a Monday; 2026-10-26 is the Monday before.
 const MON = '2026-11-02'
@@ -137,4 +137,32 @@ test("a student's next booking ignores past and cancelled ones", () => {
     ],
   })
   assert.equal(upcomingBookingFor(state, 'stu-1', at.date).booking.id, 'b2')
+})
+
+test('"Fermer toute la journée" closes free open slots only', () => {
+  const state = makeState({
+    slots: [
+      slot('a', MON, '08:00', '08:30'),
+      slot('b', MON, '08:30', '09:00'), // booked: kept
+      slot('p', MON, '09:00', '09:30', 'protected'), // her own time: kept
+      slot('t', TUE, '08:00', '08:30'), // another day: kept
+    ],
+    bookings: [{ id: 'bk', slotId: 'b', studentId: 'stu-1', status: 'confirmed' }],
+  })
+  assert.equal(dayHasFreeOpenSlot(state, MON), true)
+  const next = reducer(state, { type: 'closeDay', date: MON })
+  assert.deepEqual(kindsOn(next, MON), ['08:30 open', '09:00 protected'])
+  assert.deepEqual(kindsOn(next, TUE), ['08:00 open'])
+  assert.equal(dayHasFreeOpenSlot(next, MON), false)
+})
+
+test('undoing a copy removes the copied slots, but not one booked since', () => {
+  let state = makeState({
+    slots: [slot('l1', LAST_MON, '09:00', '09:30'), slot('l2', LAST_MON, '09:30', '10:00'), slot('m', MON, '11:00', '11:30')],
+  })
+  state = reducer(state, { type: 'copyPreviousWeek', weekStart: MON, today: at.date, batchId: 'copy-1' })
+  const copied = state.slots.filter((s) => s.date === MON && s.start === '09:00')[0]
+  state = book(state, copied.id, 'bk-1')
+  state = reducer(state, { type: 'undoCopy', batchId: 'copy-1' })
+  assert.deepEqual(kindsOn(state, MON), ['09:00 open', '11:00 open'])
 })
