@@ -4,6 +4,16 @@
 @import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
+/* `hover:` applies only once a mouse or trackpad has been used (main.jsx adds
+   .has-mouse). Replaces Tailwind's default (hover: hover) check, which some
+   touchscreen laptops fail even with a trackpad. */
+@custom-variant hover (&:hover:where(.has-mouse, .has-mouse *));
+
+/* Motion curve for every hover, press and pop-up: starts fast, settles softly
+   (gives the `ease-snappy` class). Not "inline", so var(--ease-snappy) works below. */
+@theme {
+    --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+}
 
 @theme inline {
     --font-heading: var(--font-sans);
@@ -33,6 +43,8 @@
     --color-secondary: var(--secondary);
     --color-primary-foreground: var(--primary-foreground);
     --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-cpf-orange-hover: var(--cpf-orange-hover);
     --color-popover-foreground: var(--popover-foreground);
     --color-popover: var(--popover);
     --color-card-foreground: var(--card-foreground);
@@ -79,6 +91,10 @@
     --popover-foreground: oklch(0.22 0.03 250);
     --primary: var(--cpf-blue-deep);
     --primary-foreground: oklch(0.985 0 0);
+    /* Hover tones: a slightly deeper shade of the same colour (more contrast
+       with white text, never paler). */
+    --primary-hover: color-mix(in oklch, var(--cpf-blue-deep), black 14%);
+    --cpf-orange-hover: color-mix(in oklch, var(--cpf-orange-text), black 12%);
     --secondary: oklch(0.955 0.02 240);
     --secondary-foreground: oklch(0.36 0.1 250);
     --muted: oklch(0.965 0.006 240);
@@ -158,6 +174,51 @@
     @apply font-sans;
     }
 }
+/* How clickable things react, in one place (tune the numbers here).
+   - press:   colours fade, and it sinks a little while pressed. For joined
+              switches, where growing would overlap the neighbour.
+   - lift:    press + grows slightly under the mouse. For buttons.
+   - lift-sm: same, gentler. For the slots of the week grid.
+   Growing needs a mouse or trackpad (.has-mouse, see main.jsx), so phones
+   never get a "stuck" hover; movement is skipped for people who ask for less
+   motion. */
+@utility press {
+  transition-property: color, background-color, border-color, box-shadow, opacity, scale;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-snappy);
+  @media (prefers-reduced-motion: no-preference) {
+    &:active:not(:disabled) {
+      scale: 0.97;
+    }
+  }
+}
+@utility lift {
+  transition-property: color, background-color, border-color, box-shadow, opacity, scale;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-snappy);
+  @media (prefers-reduced-motion: no-preference) {
+    &:hover:not(:disabled):where(.has-mouse *) {
+      scale: 1.03;
+    }
+    &:active:not(:disabled) {
+      scale: 0.97;
+    }
+  }
+}
+@utility lift-sm {
+  transition-property: color, background-color, border-color, box-shadow, opacity, scale;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-snappy);
+  @media (prefers-reduced-motion: no-preference) {
+    &:hover:not(:disabled):where(.has-mouse *) {
+      scale: 1.02;
+    }
+    &:active:not(:disabled) {
+      scale: 0.97;
+    }
+  }
+}
+
 @layer base {
   /* Respect users who ask their device for less motion. */
   @media (prefers-reduced-motion: reduce) {

@@ -36,7 +36,8 @@ export default function StudentView({ state, actions, weekStart, now }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    // Fades in when switching to the student side.
+    <div className="flex animate-in flex-col gap-4 duration-200 fade-in-0">
       <MyBookingCard
         upcoming={upcoming}
         settings={settings}

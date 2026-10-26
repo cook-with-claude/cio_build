@@ -29,7 +29,7 @@ export default function MessageList({ title, icon: Icon, messages, to, dialogTit
               <button
                 type="button"
                 onClick={() => setShown(m)}
-                className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="group flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <span className="flex flex-col">
                   <span className="font-medium">{m.subject}</span>
@@ -37,7 +37,10 @@ export default function MessageList({ title, icon: Icon, messages, to, dialogTit
                     {formatLongDate(m.sentAt.date)} à {formatTime(m.sentAt.time)}
                   </span>
                 </span>
-                <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <ChevronRight
+                  className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 ease-snappy group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
               </button>
             </li>
           ))}

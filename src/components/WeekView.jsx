@@ -31,7 +31,8 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell, re
   )
 
   return (
-    <section className="flex flex-col gap-3">
+    // Fades in when the week changes (the parent re-creates it, see above).
+    <section className="flex animate-in flex-col gap-3 duration-200 ease-snappy fade-in-0 slide-in-from-bottom-1">
       {/* Phone only: pick one day. */}
       <ToggleGroup
         type="single"

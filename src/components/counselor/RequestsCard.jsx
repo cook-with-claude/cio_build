@@ -26,7 +26,7 @@ export default function RequestsCard({ requests, onAccept, onRefuse, onOpen }) {
                 <button
                   type="button"
                   onClick={() => onOpen(booking)}
-                  className="flex min-h-11 flex-col justify-center rounded-md text-left text-sm hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  className="flex min-h-11 flex-col justify-center rounded-md text-left text-sm transition-colors hover:text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
                   <span className="font-medium">
                     {student.name} · {student.className}

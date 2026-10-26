@@ -16,7 +16,7 @@ export default function StudentCell({ status, time, dayLabel, onBook }) {
         aria-label={`${dayLabel}, ${formatTime(time)} : Disponible. Réserver ce créneau.`}
         className={cn(
           'flex h-11 w-full items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2 text-left text-sm font-medium text-success-foreground md:h-9',
-          'transition-colors duration-150 hover:bg-success/20 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
+          'lift-sm hover:border-success/60 hover:bg-success/20 hover:shadow-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
         )}
       >
         <CircleCheck className="size-4 shrink-0" aria-hidden="true" />

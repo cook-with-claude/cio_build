@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { CalendarCheck } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import DemoClock from '@/components/DemoClock'
+import Logo from '@/components/Logo'
 import RoleSwitch from '@/components/RoleSwitch'
 import WeekNav from '@/components/WeekNav'
 import CounselorShortcuts from '@/components/counselor/CounselorShortcuts'
@@ -26,6 +27,16 @@ export default function App() {
   const [state, actions] = useDemoStore()
   // Counselor side: the "Prochains rendez-vous" window.
   const [showUpcoming, setShowUpcoming] = useState(false)
+
+  // Once the page is scrolled, the header gets a soft shadow so it reads as
+  // floating above the calendar.
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   // Student side: when the shown week has nothing to book, point to the next slot.
   const weekIsEmptyForStudent = role === 'student' && weekHasNoAvailableSlot(state, DEMO_STUDENT_ID, now, weekStart)
@@ -50,11 +61,16 @@ export default function App() {
     // A short delay, so tooltips don't flash while the mouse crosses the grid.
     <TooltipProvider delayDuration={300}>
       <div className="min-h-svh">
-        <header className="sticky top-0 z-20 bg-background/90 backdrop-blur">
+        <header
+          className={cn(
+            'sticky top-0 z-20 bg-background/90 backdrop-blur transition-shadow duration-200',
+            scrolled && 'shadow-md shadow-foreground/5',
+          )}
+        >
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <CalendarCheck className="size-5" aria-hidden="true" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-card shadow-sm ring-1 ring-foreground/10">
+                <Logo className="size-7" />
               </div>
               <div className="flex flex-col">
                 <span className="leading-tight font-semibold">Rendez-vous d’orientation</span>

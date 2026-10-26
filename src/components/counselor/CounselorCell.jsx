@@ -20,7 +20,7 @@ const LOOK = {
   open: {
     label: 'Disponible',
     icon: CircleCheck,
-    className: 'border border-success/30 bg-success/10 font-medium text-success-foreground hover:bg-success/15',
+    className: 'border border-success/30 bg-success/10 font-medium text-success-foreground hover:border-success/60 hover:bg-success/20',
   },
   protected: {
     label: 'Temps protégé',
@@ -31,7 +31,7 @@ const LOOK = {
   booked: {
     label: 'Réservé',
     icon: UserCheck,
-    className: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    className: 'bg-primary text-primary-foreground hover:bg-primary-hover',
   },
   requested: {
     label: 'Demande',
@@ -66,7 +66,7 @@ export default function CounselorCell({
         onClick={onOpenBooking}
         aria-label={`${dayLabel}, ${formatTime(time)} : ${look.label}, ${student.name}, ${student.className}${topic ? `, ${topic}` : ''}. Voir le détail.`}
         className={cn(
-          'flex min-h-11 w-full flex-col items-start justify-center rounded-md px-2 py-1 text-left text-sm transition-colors duration-150 md:min-h-9',
+          'flex min-h-11 w-full flex-col items-start justify-center rounded-md px-2 py-1 text-left text-sm lift-sm hover:shadow-sm md:min-h-9',
           'focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
           look.className,
         )}
@@ -94,7 +94,7 @@ export default function CounselorCell({
       onClick={onToggle}
       aria-label={`${dayLabel}, ${formatTime(time)} : ${look.label}. ${blockHint ? `${blockHint} ` : ''}${hint}`}
       className={cn(
-        'flex h-11 w-full items-center gap-1.5 rounded-md px-2 text-left text-sm transition-colors duration-150 md:h-9',
+        'flex h-11 w-full items-center gap-1.5 rounded-md px-2 text-left text-sm lift-sm enabled:hover:shadow-sm md:h-9',
         'focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
         'disabled:cursor-default',
         disabled && 'opacity-60 hover:bg-transparent',

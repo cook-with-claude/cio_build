@@ -12,9 +12,9 @@ export default function CounselorShortcuts({ upcomingCount, onShowUpcoming, summ
   const [showSummary, setShowSummary] = useState(false)
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex animate-in flex-wrap items-center gap-2 duration-200 fade-in-0">
       {/* Orange, so it isn't mistaken for the blue "selected" look of the switches. */}
-      <Button className="h-11 bg-cpf-orange-text text-white hover:bg-cpf-orange-text/90 md:h-9" onClick={onShowUpcoming}>
+      <Button className="h-11 bg-cpf-orange-text text-white hover:bg-cpf-orange-hover md:h-9" onClick={onShowUpcoming}>
         <CalendarCheck aria-hidden="true" />
         Prochains rendez-vous ({upcomingCount})
       </Button>
