@@ -8,7 +8,7 @@
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
-- **Tests:** `npm test` (63 tests, Node's built-in test runner).
+- **Tests:** `npm test` (89 tests, Node's built-in test runner).
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
 
 ## Next steps
@@ -21,15 +21,42 @@
 ## Open questions
 
 - [PROPOSAL] Switch to the Poppins font (used on the CPF website)?
-- Ask her: should Monday's slots lock on **Friday** instead of Sunday? (Kept Sunday for now, as in the docs.) Side effect today: a demo shown on a Friday can't show the 17h00 lock live, because the next school day is Monday.
 - Ask her: keep « Fermer aussi ce créneau » (ticked by default) when she cancels a booking?
-- Ask her (approval mode): a request she hasn't answered when the 17h00 cutoff passes stays « en attente » forever. Should it be accepted automatically, refused automatically, or should she get a reminder?
+- The auto-decline reuses the usual refusal text (« ne peut malheureusement pas vous recevoir »), which suggests she refused. Reword it for automatic declines?
+- No school holidays yet: a day before a holiday is treated like any school day (e.g. a Monday holiday still makes Tuesday lock on Monday).
+- « Résumé de demain » is sent at the cutoff, but a cancellation only becomes "late" after it, so its « Annulations tardives » section would always be empty in a real e-mail (« Vos notifications » covers them). Drop the section, or add a morning update?
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day) are only checked by the screens today. The database must enforce them too.
 - `docs/rules.md` (privacy) still says students « only ever see Disponible / Indisponible ». Still true in spirit (they now see even less); reword only if Nadim wants.
 - [PROPOSAL] On phones, mark which days of the week have a free slot in the day picker (e.g. a small dot), so students don't tap through empty days.
 
 ---
+
+## 2026-10-26 · Session 3: her hours, new cutoff, late cancellation
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** a briefing of everything built (for Nadim's Claude Chat project), two UI fixes, then the decisions of 2026-10-24/26 (10 items).
+
+**Done**
+- **UI fixes:** « Aujourd'hui » no longer overlaps the day links. « Prochains rendez-vous » is now an orange button (where the intro sentence was) that opens the full list (full screen on phones). The two intro sentences are removed.
+- **Docs:** `rules.md` (hours, cutoff, late-cancel reason in the privacy list) and `v1-scope.md` (all 10 decisions, including "no weekly template").
+- **Her hours:** 7:30–12:00 and 12:30–15:00; « Pause déjeuner » row on her side only.
+- **Slot length:** a prepared week keeps its length; the partial-cell bug is gone.
+- **Cutoff:** 15:00 on the previous school day (Monday locks on Friday).
+- **Late cancellation** with a reason; « Vos notifications » on her side.
+- **Auto-decline** of unanswered requests at the cutoff; « Résumé de demain » preview; reminder at 7:00 on the morning of the session; lock icon + tooltip on open slots students can't book yet; messages signed « La conseillère d'orientation ».
+- **Tests:** 63 → 89, all passing. Every flow was checked in Chrome (computer and phone sizes).
+- **Lint:** `npm run lint` now runs on Nadim's PC: 0 errors, 3 warnings, all in shadcn's generated files (`badge`, `button`, `toggle`).
+
+**Decisions**
+- Tooltip added with shadcn's own installer (`npx shadcn add tooltip`). It is built on `radix-ui`, already installed, so no new library.
+- The hour constants moved from `dates.js` to `rules.js` (all rules in one place).
+
+**Where things are (new)**
+- Her hours, slot rows, per-week slot length, cancellation rule, reminder time: `src/lib/rules.js`
+- Shared message list (« Vos messages » / « Vos notifications »): `src/components/MessageList.jsx`
+- Top of the counselor side (orange button + « Résumé de demain »): `src/components/counselor/CounselorShortcuts.jsx`
 
 ## 2026-10-26 · Session 2: Nadim's walkthrough and feedback round 1
 
