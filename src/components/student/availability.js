@@ -5,22 +5,36 @@ import { daySlotTimes, weekDays } from '@/lib/dates'
 import { isLocked, isWithinHorizon } from '@/lib/rules'
 import { activeBookingForSlot, slotsInCell } from '@/state/useDemoStore'
 
+// True when a student could book `slot` right now.
+function isBookable(state, now, slot) {
+  const { bookings, settings } = state
+  return (
+    slot.kind === 'open' &&
+    !activeBookingForSlot(bookings, slot.id) &&
+    !isLocked(slot.date, now, settings) &&
+    isWithinHorizon(slot.date, now, settings)
+  )
+}
+
 // What the student sees in one cell, and which slot a click would book.
 // status: "available" | "unavailable" | "mine-confirmed" | "mine-pending"
 export function studentCell(state, studentId, now, date, time) {
-  const { slots, bookings, settings } = state
-  const inCell = slotsInCell(slots, date, time, settings.slotMinutes)
+  const inCell = slotsInCell(state.slots, date, time, state.settings.slotMinutes)
   for (const s of inCell) {
-    const b = activeBookingForSlot(bookings, s.id)
+    const b = activeBookingForSlot(state.bookings, s.id)
     if (b?.studentId === studentId) {
       return { status: b.status === 'pending' ? 'mine-pending' : 'mine-confirmed' }
     }
   }
-  const bookable =
-    !isLocked(date, now, settings) && isWithinHorizon(date, now, settings)
-      ? inCell.find((s) => s.kind === 'open' && !activeBookingForSlot(bookings, s.id))
-      : null
+  const bookable = inCell.find((s) => isBookable(state, now, s))
   return bookable ? { status: 'available', slot: bookable } : { status: 'unavailable' }
+}
+
+// The soonest slot a student could book, or undefined.
+export function nextAvailableSlot(state, now) {
+  return state.slots
+    .filter((s) => isBookable(state, now, s))
+    .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start))[0]
 }
 
 function dayStatuses(state, studentId, now, date) {

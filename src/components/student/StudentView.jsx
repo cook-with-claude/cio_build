@@ -48,6 +48,8 @@ export default function StudentView({ state, actions, weekStart, now }) {
         weekStart={weekStart}
         today={now.date}
         slotMinutes={settings.slotMinutes}
+        // Only list what the student can act on; the day note explains empty days.
+        isTimeShown={(date, time) => studentCell(state, student.id, now, date, time).status !== 'unavailable'}
         renderDayExtra={(date) => {
           const note = studentDayNote(state, student.id, now, date)
           if (!note) return null

@@ -16,14 +16,21 @@ import {
 // On a computer all five days show side by side; on a phone, buttons pick one day.
 // `renderCell(date, time)` lets each side of the app decide what a slot shows;
 // without it the grid is empty. `renderDayExtra(date)` optionally adds a short
-// line or button under the day's name.
-export default function WeekView({ weekStart, today, slotMinutes, renderCell, renderDayExtra }) {
+// line or button under the day's name. `isTimeShown(date, time)` optionally
+// hides rows (the student side only lists what they can act on).
+export default function WeekView({ weekStart, today, slotMinutes, renderCell, renderDayExtra, isTimeShown }) {
   const days = weekDays(weekStart)
   const times = daySlotTimes(slotMinutes)
+  const shownTimes = (date) => (isTimeShown ? times.filter((time) => isTimeShown(date, time)) : times)
 
-  // On phones, start on today if it is in this week, otherwise on Monday.
+  // On phones, start on the first day with something listed (when rows are
+  // filtered), else on today if it is in this week, otherwise on Monday.
   // (The parent remounts this component when the week changes.)
-  const [selectedDay, setSelectedDay] = useState(days.includes(today) ? today : days[0])
+  const [selectedDay, setSelectedDay] = useState(
+    () =>
+      (isTimeShown && days.find((date) => shownTimes(date).length > 0)) ||
+      (days.includes(today) ? today : days[0]),
+  )
 
   return (
     <section className="flex flex-col gap-3">
@@ -63,7 +70,9 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell, re
               date < today && 'opacity-60',
             )}
           >
-            <CardHeader className="flex items-center justify-between border-b py-3">
+            <CardHeader
+              className={cn('flex items-center justify-between py-3', shownTimes(date).length > 0 && 'border-b')}
+            >
               <div className="flex min-w-0 flex-col gap-0.5">
                 <CardTitle className="text-sm">
                   {formatWeekdayLong(date)} {formatDayNumber(date)}
@@ -78,7 +87,7 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell, re
             </CardHeader>
             <CardContent className="p-0">
               <ul className="divide-y">
-                {times.map((time) => (
+                {shownTimes(date).map((time) => (
                   <li
                     key={time}
                     className="flex min-h-12 items-center gap-3 px-3 py-1.5 md:flex-col md:items-stretch md:gap-0.5 md:px-2"

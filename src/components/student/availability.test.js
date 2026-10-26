@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { initialSettings } from '@/data/mockData'
-import { studentCell, studentDayNote, weekHasNoAvailableSlot } from './availability.js'
+import { nextAvailableSlot, studentCell, studentDayNote, weekHasNoAvailableSlot } from './availability.js'
 
 // 2026-11-02 is a Monday.
 const MON = '2026-11-02'
@@ -56,4 +56,23 @@ test('the week note appears only when nothing in the week can be booked', () => 
   const empty = makeState({ slots: [slot('a', TUE, '09:00', '09:30')] })
   assert.equal(weekHasNoAvailableSlot(empty, ME, mondayEvening, MON), true)
   assert.equal(weekHasNoAvailableSlot(empty, ME, mondayMorning, MON), false)
+})
+
+test('the next available slot skips locked, booked and protected ones', () => {
+  const state = makeState({
+    slots: [
+      slot('locked', TUE, '09:00', '09:30'),
+      slot('taken', WED, '08:00', '08:30'),
+      slot('prot', WED, '08:30', '09:00', 'protected'),
+      slot('later', '2026-11-10', '10:00', '10:30'),
+      slot('next', WED, '14:00', '14:30'),
+    ],
+    bookings: [{ id: 'b', slotId: 'taken', studentId: 'stu-2', status: 'confirmed' }],
+  })
+  assert.equal(nextAvailableSlot(state, mondayEvening).id, 'next')
+})
+
+test('no next available slot when nothing can be booked', () => {
+  const state = makeState({ slots: [slot('far', '2026-12-01', '09:00', '09:30')] }) // beyond 2 weeks
+  assert.equal(nextAvailableSlot(state, mondayEvening), undefined)
 })

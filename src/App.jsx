@@ -7,10 +7,10 @@ import RoleSwitch from '@/components/RoleSwitch'
 import WeekNav from '@/components/WeekNav'
 import CounselorView from '@/components/counselor/CounselorView'
 import StudentView from '@/components/student/StudentView'
-import { weekHasNoAvailableSlot } from '@/components/student/availability'
+import { nextAvailableSlot, weekHasNoAvailableSlot } from '@/components/student/availability'
 import { DEMO_STUDENT_ID } from '@/data/mockData'
 import { useDemoStore } from '@/state/useDemoStore'
-import { addDays, nowInBeirut, startOfWeek } from '@/lib/dates'
+import { addDays, formatLongDate, nowInBeirut, startOfWeek } from '@/lib/dates'
 
 export default function App() {
   // Demo-only: a simulated { date, time } replaces the real Beirut clock when set.
@@ -22,6 +22,10 @@ export default function App() {
   const [role, setRole] = useState('student')
   const [weekStart, setWeekStart] = useState(currentWeek)
   const [state, actions] = useDemoStore()
+
+  // Student side: when the shown week has nothing to book, point to the next slot.
+  const weekIsEmptyForStudent = role === 'student' && weekHasNoAvailableSlot(state, DEMO_STUDENT_ID, now, weekStart)
+  const nextSlot = weekIsEmptyForStudent ? nextAvailableSlot(state, now) : undefined
 
   // If the screen shows "this week", keep showing it when the demo date moves.
   function changeDemoNow(next) {
@@ -66,9 +70,13 @@ export default function App() {
         <WeekNav
           weekStart={weekStart}
           isCurrentWeek={weekStart === currentWeek}
-          note={
-            role === 'student' && weekHasNoAvailableSlot(state, DEMO_STUDENT_ID, now, weekStart)
-              ? 'Aucun créneau disponible cette semaine'
+          note={weekIsEmptyForStudent ? 'Aucun créneau disponible cette semaine' : null}
+          noteAction={
+            weekIsEmptyForStudent && nextSlot
+              ? {
+                  label: `Prochain créneau : ${formatLongDate(nextSlot.date)}`,
+                  onClick: () => setWeekStart(startOfWeek(nextSlot.date)),
+                }
               : null
           }
           onPrevious={() => setWeekStart(addDays(weekStart, -7))}
