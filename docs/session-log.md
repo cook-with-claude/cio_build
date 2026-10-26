@@ -7,6 +7,7 @@
 ## Current state (updated 2026-10-26)
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
+- **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
 - **Tests:** `npm test` (90 tests, Node's built-in test runner).
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
@@ -30,6 +31,33 @@
 - [PROPOSAL] On phones, mark which days of the week have a free slot in the day picker (e.g. a small dot), so students don't tap through empty days.
 
 ---
+
+## 2026-10-26 · Session 4: how the site feels (hover, press, motion)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** make the demo feel more alive and polished, without changing colours, font, layout or wording.
+
+**Done**
+- **Hover:** buttons grow slightly (×1.03) and their colour gets a little deeper (blue and orange darken, never fade). The week's slots grow more gently (×1.02) with a shadow and a stronger border.
+- **Press:** everything clickable sinks a little (×0.97) while pressed, phones included.
+- **Joined switches** (Élève / Conseillère, Ouvrir aux élèves / Temps protégé, phone day picker): colour fade and press only, no growing (they would overlap).
+- **Fades:** the calendar fades in when the week or the role changes.
+- **Pop-ups:** dialogs, the side panel, menus and tooltips open more softly (0.2–0.3 s) and close faster than they open.
+- **Header:** a soft shadow appears once the page is scrolled.
+- **New logo:** a calendar with a check mark; its top band uses the four CPF colours, the outline is CPF logo blue, the check is CPF green. Shown on a white tile in the header (`src/components/Logo.jsx`).
+- **New favicon:** the same drawing without the tile, cropped tight (`public/favicon.svg`). It replaces Vite's default purple lightning bolt.
+- **Checked in Chrome** (computer and phone sizes): Lighthouse accessibility 100, best practices 100. 90 tests pass; lint unchanged (the same 3 shadcn warnings).
+- **Git:** 2 commits (code, then this log), pushed to `main`.
+
+**Decisions**
+- All "feel" numbers live in one place: the `press`, `lift`, `lift-sm` utilities and `--ease-snappy` in `src/index.css`.
+- Hover tones are `--primary-hover` and `--cpf-orange-hover` (the same CPF colours, a bit darker).
+- **Hover effects switch on when a mouse or trackpad moves** (`main.jsx` adds `has-mouse`; the `hover` variant in `index.css`). Nadim's touchscreen laptop tells Chrome it has *no* mouse, so Tailwind's usual check hid every hover effect there, old ones included. Phones never send mouse moves, so they don't get "stuck" hovers.
+- People who ask their device for less motion get no growing, sliding or fading.
+
+**Known issues / notes**
+- Dialogs that the app removes as soon as they close (e.g. « Résumé de demain », « Aperçu du rappel ») close instantly, without their exit animation. This was already the case; fine for the demo.
 
 ## 2026-10-26 · Session 3: her hours, new cutoff, late cancellation
 
