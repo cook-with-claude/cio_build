@@ -52,9 +52,15 @@
 **Decisions**
 - Tooltip added with shadcn's own installer (`npx shadcn add tooltip`). It is built on `radix-ui`, already installed, so no new library.
 - The hour constants moved from `dates.js` to `rules.js` (all rules in one place).
+- Messages to students and to her are separate functions in `messages.js`; the automatic decline never reuses her refusal text.
+
+**Known issues / notes**
+- **A blinking text cursor in plain text** is the browser's "caret browsing" mode (toggled by F7, or `chrome://settings/accessibility`), not the app or localhost: the page has no editable text. Nadim chose not to hide it from inside the app, since that would override an accessibility setting.
+- **The briefing for Nadim's Claude Chat project** (everything built + where the rules were bent) is a local file outside the repo, kept up to date through the end of session 3.
+- **The Windows Smart App Control note from session 1 no longer applies:** lint runs.
 
 **Where things are (new)**
-- Her hours, slot rows, per-week slot length, cancellation rule, reminder time: `src/lib/rules.js`
+- Her hours, slot rows, per-week slot length, cancellation rule, reminder time, « Résumé de demain » timing: `src/lib/rules.js`
 - Shared message list (« Vos messages » / « Vos notifications »): `src/components/MessageList.jsx`
 - Top of the counselor side (orange button + « Résumé de demain »): `src/components/counselor/CounselorShortcuts.jsx`
 
