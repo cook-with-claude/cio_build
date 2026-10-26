@@ -41,7 +41,7 @@ _Last updated: 2026-10-26_
 
 ## NOT in V1 (don't build, even partially)
 - **Google Calendar sync** (DECIDED 2026-10-21: not in V1). Her calendar is incomplete, and the sync is the hardest part.
-- Real login and database (Supabase), hosting (Netlify), real emails. These are the next phase, after her feedback.
+- Real login and database (Supabase), hosting the real app (Vercel; the demo is already there), real emails. These are the next phase, after her feedback.
 - Matching with student timetables.
 - Statistics dashboard (planned later with Bklit UI).
 - Counselor announcements.

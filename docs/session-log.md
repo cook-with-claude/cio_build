@@ -48,7 +48,7 @@
 - Hosting is **Vercel**, not Netlify (Nadim's call).
 
 **Known issues / notes**
-- `CLAUDE.md` (Stack) and `docs/v1-scope.md` still say "Netlify (hosting)". Not edited; update them if Nadim wants.
+- `CLAUDE.md` (Stack) and `docs/v1-scope.md` now say Vercel instead of Netlify (approved by Nadim).
 - Vercel is not linked to GitHub, so a push does not update the site. Redeploy with `vercel deploy --prod`, or connect it with `vercel git connect` [PROPOSAL].
 - The Netlify CLI on this PC is still linked to another project (`the-goal-zone-kits`). Harmless here.
 

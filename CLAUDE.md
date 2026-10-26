@@ -25,7 +25,7 @@ Read these before starting any feature:
 ## Stack
 - **Vite + React + shadcn/ui + Tailwind** (shadcn/ui and Tailwind approved by Nadim, 2026-10-21). Ask Nadim before adding any other library (UI kit, CSS framework, date library, etc.), and explain the trade-off.
 - **Tests:** `npm test` runs Node's built-in test runner (no extra library). Test files sit next to the code (`*.test.js`). Run them after every change.
-- **Later phases, not now:** Supabase (database + Google sign-in restricted to the CPF school domain) and Netlify (hosting).
+- **Later phases, not now:** Supabase (database + Google sign-in restricted to the CPF school domain) and Vercel (hosting). The demo is already online at https://cio-cpf.vercel.app.
 - Don't rely on memory for library versions or compatibility. Check the current docs.
 - **The folder already contains `CLAUDE.md` and `docs/`.** When you scaffold the Vite app, never delete or overwrite them. If a tool asks to "remove existing files", choose the option that keeps them.
 
