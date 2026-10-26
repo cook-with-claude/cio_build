@@ -10,14 +10,15 @@
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
 - **Tests:** `npm test` (90 tests, Node's built-in test runner).
+- **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). It does **not** update by itself when we push to GitHub: redeploy with `vercel deploy --prod`.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
 
 ## Next steps
 
-1. Decide: present from a laptop, or put the demo online (Netlify, free) and share a link?
+1. ~~Put the demo online~~ Done: https://cio-cpf.vercel.app
 2. Show the demo to the conseillère and write down her feedback (here or in `docs/`).
 3. Answer the open questions below.
-4. Then the next phase: Supabase (database + CPF Google sign-in) and Netlify. Not before her feedback.
+4. Then the next phase: Supabase (database + CPF Google sign-in), hosted on Vercel. Not before her feedback.
 
 ## Open questions
 
@@ -31,6 +32,25 @@
 - [PROPOSAL] On phones, mark which days of the week have a free slot in the day picker (e.g. a small dot), so students don't tap through empty days.
 
 ---
+
+## 2026-10-26 · Session 5: hosting moved from Netlify to Vercel
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** take the demo off Netlify and put it on Vercel instead.
+
+**Done**
+- **Vercel:** created the project `cio-cpf` (team "Synforge corp", free plan) and deployed `main`. Live at https://cio-cpf.vercel.app (checked: loads, public, no login needed).
+- **Netlify:** deleted the `cio-cpf` site; https://cio-cpf.netlify.app now returns "not found". Removed the leftover local `.netlify` folder.
+- 90 tests pass before deploying.
+
+**Decisions**
+- Hosting is **Vercel**, not Netlify (Nadim's call).
+
+**Known issues / notes**
+- `CLAUDE.md` (Stack) and `docs/v1-scope.md` still say "Netlify (hosting)". Not edited; update them if Nadim wants.
+- Vercel is not linked to GitHub, so a push does not update the site. Redeploy with `vercel deploy --prod`, or connect it with `vercel git connect` [PROPOSAL].
+- The Netlify CLI on this PC is still linked to another project (`the-goal-zone-kits`). Harmless here.
 
 ## 2026-10-26 · Session 4: how the site feels (hover, press, motion)
 
