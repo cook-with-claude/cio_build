@@ -76,6 +76,21 @@ export function refusedMessage({ student, slot }) {
   }
 }
 
+// A request still waiting for her answer when its day locks. Worded around
+// the booking process, not as her refusal (docs/rules.md, wording).
+export function autoDeclinedMessage({ student, slot }) {
+  return {
+    subject: 'Votre demande de rendez-vous d’orientation',
+    body: [
+      `Bonjour ${student.name},`,
+      `Votre demande de rendez-vous du ${slotMoment(slot)} n’a pas pu être validée à temps : les réservations pour ce jour sont maintenant closes.`,
+      'Nous vous invitons à choisir un autre créneau sur le site. Vous pouvez aussi passer au bureau du CIO.',
+      'Merci de votre compréhension.',
+      ...signature,
+    ],
+  }
+}
+
 export function cancelledByCounselorMessage({ student, slot }) {
   return {
     subject: 'Annulation de votre rendez-vous d’orientation',

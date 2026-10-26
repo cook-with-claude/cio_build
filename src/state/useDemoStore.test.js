@@ -288,7 +288,7 @@ test('before the cutoff, requests keep waiting', () => {
   assert.equal(tick(state, { date: MON, time: '14:59' }), state)
 })
 
-test('at the cutoff, requests for that day are declined, with the polite refusal', () => {
+test('at the cutoff, requests for that day are declined, with a message about the timing', () => {
   const next = tick(requestState(), { date: MON, time: '15:00' })
   const [r1, r2] = next.bookings
   assert.equal(r1.status, 'refused')
@@ -296,7 +296,10 @@ test('at the cutoff, requests for that day are declined, with the polite refusal
   assert.equal(r2.status, 'pending', 'the Wednesday request still waits')
   assert.equal(next.messages.length, 1)
   assert.equal(next.messages[0].studentId, 'stu-1')
-  assert.ok(next.messages[0].body.some((line) => line.includes('choisir un autre créneau')))
+  const body = next.messages[0].body.join(' ')
+  assert.ok(body.includes('n’a pas pu être validée à temps'))
+  assert.ok(body.includes('choisir un autre créneau'))
+  assert.ok(!body.includes('ne peut malheureusement pas'), 'not worded as her refusal')
   assert.deepEqual(kindsOn(next, TUE), ['10:00 open'], 'the slot itself stays')
 })
 
@@ -329,7 +332,7 @@ test('« Résumé de demain » lists confirmed bookings, declined requests and l
   state = cancel(state, now, 'controle')
   const summary = tomorrowSummary(state, now)
   assert.equal(summary.date, TUE)
-  assert.deepEqual(summary.sentAt, { date: MON, time: '15:00' })
+  assert.deepEqual(summary.sentAt, { date: MON, time: '15:05' })
   assert.deepEqual(summary.confirmed.map((c) => c.slot.start), ['09:00', '13:00'])
   assert.deepEqual(summary.declined.map((d) => d.student.name), ['Élève Test 4'])
   assert.deepEqual(summary.lateCancellations.map((l) => [l.slot.start, l.reason]), [['11:00', 'controle']])

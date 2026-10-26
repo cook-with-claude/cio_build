@@ -8,7 +8,7 @@
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
-- **Tests:** `npm test` (89 tests, Node's built-in test runner).
+- **Tests:** `npm test` (90 tests, Node's built-in test runner).
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
 
 ## Next steps
@@ -22,9 +22,8 @@
 
 - [PROPOSAL] Switch to the Poppins font (used on the CPF website)?
 - Ask her: keep « Fermer aussi ce créneau » (ticked by default) when she cancels a booking?
-- The auto-decline reuses the usual refusal text (« ne peut malheureusement pas vous recevoir »), which suggests she refused. Reword it for automatic declines?
 - No school holidays yet: a day before a holiday is treated like any school day (e.g. a Monday holiday still makes Tuesday lock on Monday).
-- « Résumé de demain » is sent at the cutoff, but a cancellation only becomes "late" after it, so its « Annulations tardives » section would always be empty in a real e-mail (« Vos notifications » covers them). Drop the section, or add a morning update?
+- « Résumé de demain » now goes out at 15:05, so its « Annulations tardives » section only catches cancellations made between 15:00 and 15:05. Later ones (evening, morning) reach her through « Vos notifications ». Fine as is, or add a short morning update?
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day) are only checked by the screens today. The database must enforce them too.
 - `docs/rules.md` (privacy) still says students « only ever see Disponible / Indisponible ». Still true in spirit (they now see even less); reword only if Nadim wants.
@@ -48,6 +47,7 @@
 - **Auto-decline** of unanswered requests at the cutoff; « Résumé de demain » preview; reminder at 7:00 on the morning of the session; lock icon + tooltip on open slots students can't book yet; messages signed « La conseillère d'orientation ».
 - **Tests:** 63 → 89, all passing. Every flow was checked in Chrome (computer and phone sizes).
 - **Lint:** `npm run lint` now runs on Nadim's PC: 0 errors, 3 warnings, all in shadcn's generated files (`badge`, `button`, `toggle`).
+- **After the push (Nadim's answers):** « Résumé de demain » is sent at 15:05 (cutoff + 5 min, in `rules.js`), after the automatic declines. The automatic decline has its own message (`autoDeclinedMessage`), about the timing, not her refusal. 90 tests.
 
 **Decisions**
 - Tooltip added with shadcn's own installer (`npx shadcn add tooltip`). It is built on `radix-ui`, already installed, so no new library.

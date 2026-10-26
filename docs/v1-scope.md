@@ -14,14 +14,14 @@ _Last updated: 2026-10-26_
 2. **VISION:** block time for her own work ("temps protégé") in one click, with no reason required. Students can never book it.
 3. **VISION:** see her bookings: student name, class, and topic if the student gave one.
 4. **VISION:** cancel or move a booking. The student gets an automatic, courteous message. In the demo, show the message on screen.
-5. **VISION:** approval mode (on/off switch). When on, bookings become requests that she accepts or refuses. Off by default. **DECIDED (2026-10-24/26):** when the cutoff passes, any request still pending for that day is declined automatically. The student gets the usual polite refusal message, which invites them to choose another slot.
+5. **VISION:** approval mode (on/off switch). When on, bookings become requests that she accepts or refuses. Off by default. **DECIDED (2026-10-24/26):** when the cutoff passes, any request still pending for that day is declined automatically. The student gets a polite message worded around the timing, not as her refusal (« n'a pas pu être validée à temps : les réservations pour ce jour sont maintenant closes »), which invites them to choose another slot. _(Reworded 2026-10-26, Nadim.)_
 6. **VISION:** cutoff. **DECIDED (2026-10-24/26):** a day's bookings lock on the **previous school day** at an hour she chooses (setting « Heure limite la veille », default 15:00). Monday locks on Friday.
 7. **DECIDED (2026-10-24/26):** slot length stays a setting (« Durée d'un créneau »), default 30 min.
    - Slots are generated inside each bookable window separately. Leftover time at the end of a window, when the length doesn't divide it evenly, is not a slot.
    - A new length only applies to weeks she hasn't prepared yet. A week that already has slots or bookings keeps its length. The setting says so: « S'applique aux semaines pas encore préparées. »
 8. **DECIDED (2026-10-24/26):** her hours. The grid shows 7:30–12:00 and 12:30–15:00 every day. Lunch (12:00–12:30) shows as « Pause déjeuner » on her side: not clickable, never bookable.
 9. **DECIDED (2026-10-24/26):** « Vos notifications »: she is told immediately when a student cancels after the cutoff, with the reason.
-10. **DECIDED (2026-10-24/26):** « Résumé de demain »: a preview of the summary she receives at the cutoff. It lists tomorrow's confirmed bookings (time, name, class, topic), requests declined automatically, and late cancellations. In the demo, show it on screen.
+10. **DECIDED (2026-10-24/26):** « Résumé de demain »: a preview of the summary she receives **5 minutes after the cutoff (15:05 by default)**, once requests are declined automatically. _(15:05 decided 2026-10-26, Nadim.)_ It lists tomorrow's confirmed bookings (time, name, class, topic), requests declined automatically, and late cancellations. In the demo, show it on screen.
 11. **DECIDED (2026-10-24/26):** open slots that students can't book right now (past the cutoff, or beyond the booking horizon) show a small lock icon and a tooltip saying why.
 
 ## Student side

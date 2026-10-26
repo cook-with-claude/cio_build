@@ -3,6 +3,7 @@
 
 import {
   addDays,
+  addMinutes,
   minutesToTime,
   nextSchoolDay,
   previousSchoolDay,
@@ -116,6 +117,13 @@ export function studentBookingBlock(date, now, settings) {
 export const REMINDER_TIME = '07:00'
 export const reminderMoment = (slot) => ({ date: slot.date, time: REMINDER_TIME })
 
-// The day covered by « Résumé de demain »: the next school day. She receives
-// it when that day locks (the cutoff, on the previous school day).
+// The day covered by « Résumé de demain »: the next school day.
 export const summaryDate = (now) => nextSchoolDay(now.date)
+
+// She receives it a few minutes after that day locks (15h05 with the default
+// 15h00 cutoff), so requests declined at the cutoff are already final.
+export const SUMMARY_DELAY_MINUTES = 5
+export function summaryMoment(date, settings) {
+  const lock = lockMoment(date, settings)
+  return { date: lock.date, time: addMinutes(lock.time, SUMMARY_DELAY_MINUTES) }
+}

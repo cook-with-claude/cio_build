@@ -13,6 +13,7 @@ import {
   reminderMoment,
   studentBookingBlock,
   summaryDate,
+  summaryMoment,
   weekSlotMinutes,
 } from './rules.js'
 
@@ -155,4 +156,10 @@ test('the reminder goes out at 7h00 on the morning of the session', () => {
 test('« Résumé de demain » covers the next school day (Monday, from a Friday)', () => {
   assert.equal(summaryDate(at(MON, '10:00')), TUE)
   assert.equal(summaryDate(at(LAST_FRI, '10:00')), MON)
+})
+
+test('« Résumé de demain » is sent 5 minutes after the cutoff (15h05)', () => {
+  assert.deepEqual(summaryMoment(TUE, settings), { date: MON, time: '15:05' })
+  assert.deepEqual(summaryMoment(MON, settings), { date: LAST_FRI, time: '15:05' })
+  assert.deepEqual(summaryMoment(TUE, { ...settings, cutoffTime: '17:00' }), { date: MON, time: '17:05' })
 })

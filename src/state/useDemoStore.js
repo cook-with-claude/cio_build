@@ -4,13 +4,22 @@ import { addDays, addMinutes, timeToMinutes, weekDays } from '@/lib/dates'
 import {
   LATE_CANCEL_REASONS,
   acceptedMessage,
+  autoDeclinedMessage,
   cancelledByCounselorMessage,
   confirmationMessage,
   lateCancellationNotice,
   movedMessage,
   refusedMessage,
 } from '@/lib/messages'
-import { cancellationKind, daySlotTimes, isLocked, lockMoment, slotMinutesOn, summaryDate } from '@/lib/rules'
+import {
+  cancellationKind,
+  daySlotTimes,
+  isLocked,
+  lockMoment,
+  slotMinutesOn,
+  summaryDate,
+  summaryMoment,
+} from '@/lib/rules'
 
 // In-memory state for the demo (resets on reload). Every change goes through
 // one of the actions below, so they can later become Supabase queries.
@@ -209,7 +218,12 @@ export function reducer(state, action) {
         if (booking.status !== 'pending' || !slot || !isLocked(slot.date, at, state.settings)) continue
         const changes = { status: 'refused', autoDeclined: true }
         next = { ...next, bookings: updateBooking(next.bookings, booking.id, changes) }
-        next = withMessage(next, { id: `msg-auto-${booking.id}`, booking: { ...booking, ...changes }, at, compose: refusedMessage })
+        next = withMessage(next, {
+          id: `msg-auto-${booking.id}`,
+          booking: { ...booking, ...changes },
+          at,
+          compose: autoDeclinedMessage,
+        })
       }
       return next
     }
@@ -275,7 +289,7 @@ export function upcomingAppointments(state, today) {
 
 // What « Résumé de demain » would contain if sent now: the next school day's
 // confirmed bookings, its requests declined automatically (those still pending
-// are declined when the summary is sent, at the cutoff) and its late
+// are declined at the cutoff, before the summary is sent) and its late
 // cancellations. Each list is [{ slot, student, … }], sorted by time.
 export function tomorrowSummary(state, now) {
   const date = summaryDate(now)
@@ -292,7 +306,7 @@ export function tomorrowSummary(state, now) {
       .sort(byTime)
   return {
     date,
-    sentAt: lockMoment(date, state.settings),
+    sentAt: summaryMoment(date, state.settings),
     confirmed: onDate((b) => b.status === 'confirmed'),
     declined: onDate((b) => b.status === 'pending' || b.autoDeclined),
     lateCancellations: state.notifications
