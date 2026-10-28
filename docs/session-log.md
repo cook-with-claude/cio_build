@@ -4,18 +4,19 @@
 
 ---
 
-## Current state (updated 2026-10-26)
+## Current state (updated 2026-10-28)
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
-- **Tests:** `npm test` (90 tests, Node's built-in test runner).
-- **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). It does **not** update by itself when we push to GitHub: redeploy with `vercel deploy --prod`.
+- **Tests:** `npm test` (103 tests, Node's built-in test runner).
+- **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
+- **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
 
 ## Next steps
 
-1. ~~Put the demo online~~ Done: https://cio-cpf.vercel.app
+1. ~~Put the demo online~~ Done: https://cio-cpf.vercel.app, updated on every push to `main` (session 6).
 2. Show the demo to the conseillère and write down her feedback (here or in `docs/`).
 3. Answer the open questions below.
 4. Then the next phase: Supabase (database + CPF Google sign-in), hosted on Vercel. Not before her feedback.
@@ -23,15 +24,37 @@
 ## Open questions
 
 - [PROPOSAL] Switch to the Poppins font (used on the CPF website)?
-- Ask her: keep « Fermer aussi ce créneau » (ticked by default) when she cancels a booking?
-- No school holidays yet: a day before a holiday is treated like any school day (e.g. a Monday holiday still makes Tuesday lock on Monday).
-- « Résumé de demain » now goes out at 15:05, so its « Annulations tardives » section only catches cancellations made between 15:00 and 15:05. Later ones (evening, morning) reach her through « Vos notifications ». Fine as is, or add a short morning update?
+- Ask her: keep « Fermer aussi ce créneau aux autres élèves » (ticked by default) when she cancels a booking?
+- Check against the paper calendar: last day of school assumed 30 June 2027; Mon 23 Nov 2026 is a normal school day (Independence Day falls on Sunday 22); the winter break starts Sat 13 Feb 2027.
+- Lunar holidays (Fitr, Adha, Hégire, Achoura) may move by a day once announced: correct them in `schoolCalendar.js` when that happens.
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
-- For the Supabase phase: the time rules (cutoff, horizon, no same-day) are only checked by the screens today. The database must enforce them too.
-- `docs/rules.md` (privacy) still says students « only ever see Disponible / Indisponible ». Still true in spirit (they now see even less); reword only if Nadim wants.
-- [PROPOSAL] On phones, mark which days of the week have a free slot in the day picker (e.g. a small dot), so students don't tap through empty days.
+- For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
 
 ---
+
+## 2026-10-28 · Session 6: school calendar, phone dots, decisions
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** connect Vercel to GitHub, fix the privacy wording in `rules.md`, settle the open questions, add school holidays and the phone day-picker dot.
+
+**Done**
+- **School calendar:** new file `src/data/schoolCalendar.js` with the official 2026-2027 CPF calendar (from Nadim's photo). Holidays and breaks are not school days: nothing can be opened or booked on them, « Copier la semaine précédente » skips them, and the cutoff falls on the last school day before (e.g. Monday 2 November locks on Friday 23 October). Both sides show the holiday's name instead of slots.
+- **Phone dot:** in the student's day picker, a small green dot marks days with a slot they can book.
+- **Docs:** `rules.md` privacy line reworded to match the student view; holidays added to the time rules. `v1-scope.md`: one booking per student and the 2-week horizon are now DECIDED; holidays and the dot added.
+- **Tests:** 90 → 103. The older rule tests moved two weeks later (to 9 Nov–15 Dec 2026), because their dates now fall in the mid-term break.
+- **Vercel ↔ GitHub:** this folder is linked to the project (`vercel link`). `vercel git connect` failed from the terminal, so Claude connected `cook-with-claude/cio_build` from the Vercel dashboard in Nadim's Chrome (Settings → Git → GitHub → Connect). The Vercel GitHub app was already installed with access to all repos; nothing was changed on GitHub. Production branch: `main`.
+- Checked in Chrome: the holiday week (both sides), the dots (phone size).
+
+**Decisions**
+- One upcoming booking per student; 2-week horizon (Nadim).
+- « Résumé de demain » at 15:05 stays as is (Nadim).
+- If next year's calendar hasn't been added, weekdays count as school days, so the app keeps working (only holidays go unprotected). The summer between two listed years is a holiday.
+- Lunar holidays are marked `lunar: true` in the file, since their date may move.
+
+**Known issues / notes**
+- `vercel link` created `.env.local` (a Vercel token) and added `.vercel` and `.env*` to `.gitignore`. Both stay out of git; `!.env.example` was added so the example file can still be committed.
+- The school calendar is real school data in a public repo. It is the calendar sent to every family, with no personal data in it.
 
 ## 2026-10-26 · Session 5: hosting moved from Netlify to Vercel
 
