@@ -15,7 +15,7 @@ import {
   studentById,
   upcomingAppointments,
 } from '@/state/useDemoStore'
-import { addDays, formatLongDate, formatWeekRange, weekDays } from '@/lib/dates'
+import { addDays, formatLongDate, formatWeekRange, isSchoolDay, weekDays } from '@/lib/dates'
 import { bookingBlockHint } from '@/lib/messages'
 import { studentBookingBlock, weekSlotMinutes } from '@/lib/rules'
 import BookingDetailsDialog from './BookingDetailsDialog'
@@ -154,6 +154,9 @@ export default function CounselorView({ state, actions, weekStart, now, showUpco
         today={today}
         slotMinutes={slotMinutes}
         showLunch
+        // A holiday shows its name instead of the grid, unless a slot was set
+        // on it before the calendar said so: then she still sees it to act on it.
+        isDayOff={(date) => !isSchoolDay(date) && !slots.some((s) => s.date === date)}
         renderDayExtra={(date) => {
           if (date < today) return null
           const canOpen = dayHasEmptyCell(slots, date, slotMinutes)

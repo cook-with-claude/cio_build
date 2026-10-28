@@ -1,5 +1,5 @@
 # V1 scope: clickable demo
-_Last updated: 2026-10-26_
+_Last updated: 2026-10-28_
 
 **Labels**
 - **DECIDED**: agreed by Nadim. Build it.
@@ -25,7 +25,7 @@ _Last updated: 2026-10-26_
 11. **DECIDED (2026-10-24/26):** open slots that students can't book right now (past the cutoff, or beyond the booking horizon) show a small lock icon and a tooltip saying why.
 
 ## Student side
-1. **VISION:** week view. Each day lists only the slots the student can book (« Disponible ») and their own booking; times that can't be booked are simply not listed. A short note explains empty days (« Réservations closes » / « Aucun créneau disponible ») and empty weeks, with a button to the next available slot. Never show her activities or other students' names. _(Changed 2026-10-26, approved by Nadim: previously every slot showed « Disponible » or « Indisponible ».)_
+1. **VISION:** week view. Each day lists only the slots the student can book (« Disponible ») and their own booking; times that can't be booked are simply not listed. A short note explains empty days (« Réservations closes » / « Aucun créneau disponible ») and empty weeks, with a button to the next available slot. Never show her activities or other students' names. _(Changed 2026-10-26, approved by Nadim: previously every slot showed « Disponible » or « Indisponible ».)_ **DECIDED (2026-10-28):** on phones, a small dot under a day in the day picker marks days with a slot the student can book. Holidays show their name instead of slots.
 2. **VISION:** book a slot in a few clicks.
 3. **OPEN:** optional topic tag. Suggested list (to be validated with her): Parcoursup, études à l'étranger, choix de spécialités, métiers, autre.
 4. **VISION:** cancel their own booking before the cutoff. **DECIDED (2026-10-24/26), late cancellation:** after the cutoff and until the session starts, the student can still cancel, but must pick a reason from a dropdown with no free text: « Malade », « Contrôle ou examen », « Conflit avec un cours », « Autre ». The slot is not reopened; it becomes closed (her free time). The counselor is notified immediately with the reason.
@@ -36,8 +36,9 @@ _Last updated: 2026-10-26_
 - **DECIDED:** no same-day bookings.
 - **DECIDED:** times are in Asia/Beirut. **(Updated 2026-10-24/26)** Bookable windows are 7:30–12:00 and 12:30–15:00, every school day (Monday–Friday). See `rules.md` for her full hours.
 - **DECIDED (2026-10-24/26):** automatic messages are signed « La conseillère d'orientation ». « le bureau du CIO » stays when referring to the office.
-- **OPEN:** one upcoming booking per student.
-- **OPEN:** booking horizon, i.e. how many weeks ahead students can book (e.g. 2).
+- **DECIDED (2026-10-28):** one upcoming booking per student.
+- **DECIDED (2026-10-28):** booking horizon of 2 weeks ahead.
+- **DECIDED (2026-10-28):** school holidays and breaks come from the official CPF calendar, kept in `src/data/schoolCalendar.js` and updated every year. Nothing can be opened or booked on them; she can still close a slot that was set before.
 
 ## NOT in V1 (don't build, even partially)
 - **Google Calendar sync** (DECIDED 2026-10-21: not in V1). Her calendar is incomplete, and the sync is the hardest part.

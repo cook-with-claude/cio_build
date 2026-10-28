@@ -1,12 +1,18 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { initialSettings } from '@/data/mockData'
-import { nextAvailableSlot, studentCell, studentDayNote, weekHasNoAvailableSlot } from './availability.js'
+import {
+  dayHasAvailableSlot,
+  nextAvailableSlot,
+  studentCell,
+  studentDayNote,
+  weekHasNoAvailableSlot,
+} from './availability.js'
 
-// 2026-11-02 is a Monday.
-const MON = '2026-11-02'
-const TUE = '2026-11-03'
-const WED = '2026-11-04'
+// 2026-11-16 is a Monday.
+const MON = '2026-11-16'
+const TUE = '2026-11-17'
+const WED = '2026-11-18'
 const ME = 'stu-1'
 const mondayEvening = { date: MON, time: '21:30' }
 const mondayMorning = { date: MON, time: '10:00' }
@@ -64,7 +70,7 @@ test('the next available slot skips locked, booked and protected ones', () => {
       slot('locked', TUE, '09:00', '09:30'),
       slot('taken', WED, '08:00', '08:30'),
       slot('prot', WED, '08:30', '09:00', 'protected'),
-      slot('later', '2026-11-10', '10:00', '10:30'),
+      slot('later', '2026-11-24', '10:00', '10:30'),
       slot('next', WED, '14:00', '14:30'),
     ],
     bookings: [{ id: 'b', slotId: 'taken', studentId: 'stu-2', status: 'confirmed' }],
@@ -73,6 +79,14 @@ test('the next available slot skips locked, booked and protected ones', () => {
 })
 
 test('no next available slot when nothing can be booked', () => {
-  const state = makeState({ slots: [slot('far', '2026-12-01', '09:00', '09:30')] }) // beyond 2 weeks
+  const state = makeState({ slots: [slot('far', '2026-12-15', '09:00', '09:30')] }) // beyond 2 weeks
   assert.equal(nextAvailableSlot(state, mondayEvening), undefined)
+})
+
+test('the phone day picker dot marks only days with a slot the student can book', () => {
+  const state = makeState({
+    slots: [slot('a', WED, '09:00', '09:30'), slot('p', TUE, '09:00', '09:30', 'protected'), slot('late', TUE, '10:00', '10:30')],
+  })
+  assert.equal(dayHasAvailableSlot(state, ME, mondayEvening, WED), true)
+  assert.equal(dayHasAvailableSlot(state, ME, mondayEvening, TUE), false) // protected, and Tuesday is locked
 })

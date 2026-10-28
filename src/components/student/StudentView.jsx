@@ -4,11 +4,11 @@ import MessageDialog from '@/components/MessageDialog'
 import MessageList from '@/components/MessageList'
 import WeekView from '@/components/WeekView'
 import { DEMO_STUDENT_ID, students } from '@/data/mockData'
-import { formatLongDate, formatTime } from '@/lib/dates'
+import { formatLongDate, formatTime, isSchoolDay } from '@/lib/dates'
 import { reminderMessage } from '@/lib/messages'
 import { reminderMoment, weekSlotMinutes } from '@/lib/rules'
 import { upcomingBookingFor } from '@/state/useDemoStore'
-import { studentCell, studentDayNote } from './availability'
+import { dayHasAvailableSlot, studentCell, studentDayNote } from './availability'
 import BookingDialog from './BookingDialog'
 import MyBookingCard from './MyBookingCard'
 import StudentCell from './StudentCell'
@@ -56,6 +56,8 @@ export default function StudentView({ state, actions, weekStart, now }) {
         slotMinutes={weekSlotMinutes(state.slots, weekStart, settings)}
         // Only list what the student can act on; the day note explains empty days.
         isTimeShown={(date, time) => studentCell(state, student.id, now, date, time).status !== 'unavailable'}
+        isDayOff={(date) => !isSchoolDay(date)}
+        hasDot={(date) => dayHasAvailableSlot(state, student.id, now, date)}
         renderDayExtra={(date) => {
           const note = studentDayNote(state, student.id, now, date)
           if (!note) return null

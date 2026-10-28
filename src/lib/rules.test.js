@@ -17,12 +17,13 @@ import {
   weekSlotMinutes,
 } from './rules.js'
 
-// 2026-11-02 is a Monday.
-const MON = '2026-11-02'
-const TUE = '2026-11-03'
-const WED = '2026-11-04'
-const LAST_FRI = '2026-10-30'
-const NEXT_MON = '2026-11-09'
+// 2026-11-16 is a Monday. These weeks have no holiday, so the rules show
+// on their own; holidays are tested in data/schoolCalendar.test.js.
+const MON = '2026-11-16'
+const TUE = '2026-11-17'
+const WED = '2026-11-18'
+const LAST_FRI = '2026-11-13'
+const NEXT_MON = '2026-11-23'
 const at = (date, time) => ({ date, time })
 const slot = (date, start, end, kind = 'open') => ({ id: `${date}-${start}`, date, start, end, kind })
 
@@ -93,7 +94,7 @@ test("Monday's bookings lock on Friday, not Sunday", () => {
   assert.deepEqual(lockMoment(MON, settings), { date: LAST_FRI, time: '15:00' })
   assert.equal(isLocked(MON, at(LAST_FRI, '14:59'), settings), false)
   assert.equal(isLocked(MON, at(LAST_FRI, '15:00'), settings), true)
-  assert.equal(isLocked(MON, at('2026-11-01', '10:00'), settings), true) // Sunday
+  assert.equal(isLocked(MON, at('2026-11-15', '10:00'), settings), true) // Sunday
 })
 
 test('tomorrow is still bookable just before the cutoff, locked at it', () => {
@@ -135,10 +136,10 @@ test('a student cancels freely before the cutoff, late after it, not once starte
 
 test('students can book up to the horizon (2 weeks), not beyond', () => {
   const now = at(MON, '10:00')
-  assert.equal(lastBookableDate(now, settings), '2026-11-16')
-  assert.equal(isWithinHorizon('2026-11-16', now, settings), true)
-  assert.equal(isWithinHorizon('2026-11-17', now, settings), false)
-  assert.equal(firstVisibleDate('2026-11-17', settings), '2026-11-03')
+  assert.equal(lastBookableDate(now, settings), '2026-11-30')
+  assert.equal(isWithinHorizon('2026-11-30', now, settings), true)
+  assert.equal(isWithinHorizon('2026-12-01', now, settings), false)
+  assert.equal(firstVisibleDate('2026-12-01', settings), '2026-11-17')
 })
 
 test('why students cannot book an open slot: closed, too far, or nothing', () => {
@@ -146,7 +147,7 @@ test('why students cannot book an open slot: closed, too far, or nothing', () =>
   assert.equal(studentBookingBlock(MON, now, settings), 'closed') // today
   assert.equal(studentBookingBlock(TUE, now, settings), 'closed') // past the cutoff
   assert.equal(studentBookingBlock(WED, now, settings), null)
-  assert.equal(studentBookingBlock('2026-11-17', now, settings), 'too-far')
+  assert.equal(studentBookingBlock('2026-12-01', now, settings), 'too-far')
 })
 
 test('the reminder goes out at 7h00 on the morning of the session', () => {

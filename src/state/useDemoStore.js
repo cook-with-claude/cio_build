@@ -1,6 +1,6 @@
 import { useMemo, useReducer } from 'react'
 import { initialBookings, initialSettings, initialSlots, students } from '@/data/mockData'
-import { addDays, addMinutes, timeToMinutes, weekDays } from '@/lib/dates'
+import { addDays, addMinutes, isSchoolDay, timeToMinutes, weekDays } from '@/lib/dates'
 import {
   LATE_CANCEL_REASONS,
   acceptedMessage,
@@ -50,7 +50,8 @@ export const studentById = (id) => students.find((s) => s.id === id)
 const slotLength = (s) => timeToMinutes(s.end) - timeToMinutes(s.start)
 
 // Last week's slots that "Copier la semaine précédente" would add to the week
-// starting `weekStart`: those landing on an empty time, from `today` on.
+// starting `weekStart`: those landing on an empty time of a school day (not a
+// holiday), from `today` on.
 // If this week already has slots, only those of the same length are copied
 // (a prepared week keeps its length, see weekSlotMinutes in rules.js).
 export function copiableSlots(slots, weekStart, today) {
@@ -61,13 +62,13 @@ export function copiableSlots(slots, weekStart, today) {
     if (!lastWeek.includes(s.date)) return false
     if (existing && slotLength(s) !== slotLength(existing)) return false
     const date = addDays(s.date, 7)
-    return date >= today && slotsInCell(slots, date, s.start, timeToMinutes(s.end) - timeToMinutes(s.start)).length === 0
+    return date >= today && isSchoolDay(date) && slotsInCell(slots, date, s.start, timeToMinutes(s.end) - timeToMinutes(s.start)).length === 0
   })
 }
 
 // True when "Ouvrir toute la journée" would open at least one cell.
 export function dayHasEmptyCell(slots, date, minutes) {
-  return daySlotTimes(minutes).some((start) => slotsInCell(slots, date, start, minutes).length === 0)
+  return isSchoolDay(date) && daySlotTimes(minutes).some((start) => slotsInCell(slots, date, start, minutes).length === 0)
 }
 
 // Open slots of `date` that nobody has booked: what "Fermer toute la journée" closes.
@@ -94,6 +95,7 @@ export function reducer(state, action) {
     // a cell already of that kind is closed again, otherwise it becomes that kind.
     // Cells holding an active booking are never changed here.
     // Cells use the week's own slot length, so they always match her slots.
+    // Nothing new can be opened or protected on a holiday (closing still works).
     case 'toggleCell': {
       const { date, start, kind } = action
       const minutes = slotMinutesOn(state.slots, date, state.settings)
@@ -101,6 +103,7 @@ export function reducer(state, action) {
       if (inCell.some((s) => activeBookingForSlot(state.bookings, s.id))) return state
 
       const alreadyThisKind = inCell.length > 0 && inCell.every((s) => s.kind === kind)
+      if (!alreadyThisKind && !isSchoolDay(date)) return state
       const end = addMinutes(start, minutes)
       const ids = new Set(inCell.map((s) => s.id))
       const slots = state.slots.filter((s) => !ids.has(s.id))
@@ -114,6 +117,7 @@ export function reducer(state, action) {
     // Protected time and existing slots are left as they are.
     case 'openDay': {
       const { date } = action
+      if (!isSchoolDay(date)) return state
       const minutes = slotMinutesOn(state.slots, date, state.settings)
       const added = daySlotTimes(minutes)
         .filter((start) => slotsInCell(state.slots, date, start, minutes).length === 0)

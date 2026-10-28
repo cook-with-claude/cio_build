@@ -4,8 +4,9 @@ import { addDays, isSchoolDay } from '@/lib/dates'
 import { daySlotTimes, isLocked } from '@/lib/rules'
 import { buildSchedule, initialSettings } from './mockData.js'
 
-// Monday 2 to Sunday 8 November 2026: the demo can be shown on any of them.
-const DAYS = [0, 1, 2, 3, 4, 5, 6].map((i) => addDays('2026-11-02', i))
+// Monday 16 to Sunday 22 November 2026 (Monday to Friday are all school days, see
+// schoolCalendar.test.js for the demo during holidays): any day can be shown.
+const DAYS = [0, 1, 2, 3, 4, 5, 6].map((i) => addDays('2026-11-16', i))
 
 for (const today of DAYS) {
   const { slots, bookings } = buildSchedule(today)

@@ -4,6 +4,8 @@
 // columns later). Arithmetic is done on UTC-midnight Date objects, which never
 // shift across daylight-saving changes.
 
+import { SCHOOL_YEARS } from '../data/schoolCalendar.js'
+
 export const TIMEZONE = 'Asia/Beirut'
 
 // Today's date in Beirut, whatever the computer's own timezone is.
@@ -49,20 +51,31 @@ export function weekDays(mondayStr) {
   return [0, 1, 2, 3, 4].map((i) => addDays(mondayStr, i))
 }
 
-// True from Monday to Friday.
-export function isSchoolDay(dateStr) {
-  const day = toUtcDate(dateStr).getUTCDay()
-  return day >= 1 && day <= 5
+// The holiday or break `dateStr` falls in, as a French label (« Vacances de
+// Noël »), or null. Weekends are not listed here. See data/schoolCalendar.js.
+export function dayOffLabel(dateStr, years = SCHOOL_YEARS) {
+  for (const year of years) {
+    const off = year.daysOff.find((d) => d.from <= dateStr && dateStr <= (d.to ?? d.from))
+    if (off) return off.label
+  }
+  const summer = years.some((year, i) => i > 0 && years[i - 1].lastDay < dateStr && dateStr < year.firstDay)
+  return summer ? 'Vacances d’été' : null
 }
 
-// The first Monday–Friday day after dateStr (Friday -> Monday).
+// True from Monday to Friday, except holidays and breaks.
+export function isSchoolDay(dateStr) {
+  const day = toUtcDate(dateStr).getUTCDay()
+  return day >= 1 && day <= 5 && !dayOffLabel(dateStr)
+}
+
+// The first school day after dateStr (Friday -> Monday, skipping holidays).
 export function nextSchoolDay(dateStr) {
   let d = addDays(dateStr, 1)
   while (!isSchoolDay(d)) d = addDays(d, 1)
   return d
 }
 
-// The last Monday–Friday day before dateStr (Monday -> Friday).
+// The last school day before dateStr (Monday -> Friday, skipping holidays).
 export function previousSchoolDay(dateStr) {
   let d = addDays(dateStr, -1)
   while (!isSchoolDay(d)) d = addDays(d, -1)

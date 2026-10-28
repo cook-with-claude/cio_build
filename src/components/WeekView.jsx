@@ -1,10 +1,17 @@
 import { useState } from 'react'
-import { Utensils } from 'lucide-react'
+import { CalendarOff, Utensils } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { formatDayNumber, formatTime, formatWeekdayLong, formatWeekdayShort, weekDays } from '@/lib/dates'
+import {
+  dayOffLabel,
+  formatDayNumber,
+  formatTime,
+  formatWeekdayLong,
+  formatWeekdayShort,
+  weekDays,
+} from '@/lib/dates'
 import { dayRows } from '@/lib/rules'
 
 // Monday–Friday grid of time slots for one week (her hours, see rules.js).
@@ -14,11 +21,26 @@ import { dayRows } from '@/lib/rules'
 // line or button under the day's name. `isTimeShown(date, time)` optionally
 // hides rows (the student side only lists what they can act on).
 // `showLunch` adds the « Pause déjeuner » row (counselor side only).
-export default function WeekView({ weekStart, today, slotMinutes, renderCell, renderDayExtra, isTimeShown, showLunch }) {
+// `isDayOff(date)` marks holidays: the day shows its name (« Vacances de
+// Noël ») instead of rows. `hasDot(date)` puts a dot under the day in the
+// phone day picker (the student side marks days with a free slot).
+export default function WeekView({
+  weekStart,
+  today,
+  slotMinutes,
+  renderCell,
+  renderDayExtra,
+  isTimeShown,
+  showLunch,
+  isDayOff,
+  hasDot,
+}) {
   const days = weekDays(weekStart)
   const rows = dayRows(slotMinutes)
   const shownRows = (date) =>
-    rows.filter((row) => (row.kind === 'lunch' ? showLunch : !isTimeShown || isTimeShown(date, row.start)))
+    isDayOff?.(date)
+      ? []
+      : rows.filter((row) => (row.kind === 'lunch' ? showLunch : !isTimeShown || isTimeShown(date, row.start)))
   const hasSlotRow = (date) => shownRows(date).some((row) => row.kind === 'slot')
 
   // On phones, start on the first day with something listed (when rows are
@@ -50,9 +72,21 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell, re
             className="h-auto flex-col gap-0 py-1.5 data-[state=on]:bg-background data-[state=on]:text-primary data-[state=on]:shadow-sm"
           >
             <span className="text-xs font-normal text-muted-foreground">{formatWeekdayShort(date)}</span>
-            <span className={cn('text-base font-semibold', date === today && 'text-today-foreground')}>
+            <span
+              className={cn(
+                'text-base font-semibold',
+                isDayOff?.(date) && 'font-normal text-muted-foreground',
+                date === today && 'text-today-foreground',
+              )}
+            >
               {formatDayNumber(date)}
             </span>
+            {/* Always takes its room, so days with and without a dot line up. */}
+            <span
+              className={cn('size-1.5 rounded-full', hasDot?.(date) ? 'bg-success' : 'bg-transparent')}
+              aria-hidden="true"
+            />
+            {hasDot?.(date) && <span className="sr-only">créneau disponible</span>}
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
@@ -82,7 +116,14 @@ export default function WeekView({ weekStart, today, slotMinutes, renderCell, re
                   </Badge>
                 )}
               </div>
-              {renderDayExtra?.(date)}
+              {isDayOff?.(date) ? (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <CalendarOff className="size-3 shrink-0" aria-hidden="true" />
+                  {dayOffLabel(date)}
+                </span>
+              ) : (
+                renderDayExtra?.(date)
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <ul className="divide-y">

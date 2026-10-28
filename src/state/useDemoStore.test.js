@@ -11,13 +11,13 @@ import {
   upcomingBookingFor,
 } from './useDemoStore.js'
 
-// 2026-11-02 is a Monday; 2026-10-26 is the Monday before.
-const MON = '2026-11-02'
-const TUE = '2026-11-03'
-const WED = '2026-11-04'
-const LAST_MON = '2026-10-26'
-const LAST_TUE = '2026-10-27'
-const at = { date: '2026-10-28', time: '10:00' }
+// 2026-11-16 is a Monday; 2026-11-09 is the Monday before.
+const MON = '2026-11-16'
+const TUE = '2026-11-17'
+const WED = '2026-11-18'
+const LAST_MON = '2026-11-09'
+const LAST_TUE = '2026-11-10'
+const at = { date: '2026-11-11', time: '10:00' }
 
 const slot = (id, date, start, end, kind = 'open') => ({ id, date, start, end, kind })
 const makeState = ({ slots = [], bookings = [], settings = {} } = {}) => ({
@@ -89,7 +89,7 @@ test('copying twice adds nothing the second time', () => {
 
 test('copying skips days that are already past', () => {
   const state = makeState({ slots: [slot('l1', LAST_MON, '09:00', '09:30'), slot('l2', LAST_TUE, '09:00', '09:30')] })
-  // "Today" is Tuesday 3 November: Monday 2 is past, Tuesday 3 is not.
+  // "Today" is Tuesday 17 November: Monday 16 is past, Tuesday 17 is not.
   const next = reducer(state, { type: 'copyPreviousWeek', weekStart: MON, today: TUE })
   assert.deepEqual(kindsOn(next, MON), [])
   assert.deepEqual(kindsOn(next, TUE), ['09:00 open'])

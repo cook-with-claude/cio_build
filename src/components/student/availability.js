@@ -1,7 +1,7 @@
 // What the student side shows, computed from the demo state. Shared by the
 // student week view and the week title (in App), so both always agree.
 
-import { weekDays } from '@/lib/dates'
+import { isSchoolDay, weekDays } from '@/lib/dates'
 import { daySlotTimes, isLocked, isWithinHorizon, slotMinutesOn } from '@/lib/rules'
 import { activeBookingForSlot, slotsInCell } from '@/state/useDemoStore'
 
@@ -10,6 +10,7 @@ function isBookable(state, now, slot) {
   const { bookings, settings } = state
   return (
     slot.kind === 'open' &&
+    isSchoolDay(slot.date) &&
     !activeBookingForSlot(bookings, slot.id) &&
     !isLocked(slot.date, now, settings) &&
     isWithinHorizon(slot.date, now, settings)
@@ -53,9 +54,13 @@ export function studentDayNote(state, studentId, now, date) {
   return 'none-available'
 }
 
+// True when the student could book at least one slot on `date` (the dot in
+// the phone day picker).
+export function dayHasAvailableSlot(state, studentId, now, date) {
+  return dayStatuses(state, studentId, now, date).includes('available')
+}
+
 // True when not a single slot of the week can be booked.
 export function weekHasNoAvailableSlot(state, studentId, now, weekStart) {
-  return weekDays(weekStart).every(
-    (date) => !dayStatuses(state, studentId, now, date).includes('available'),
-  )
+  return weekDays(weekStart).every((date) => !dayHasAvailableSlot(state, studentId, now, date))
 }

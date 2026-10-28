@@ -14,3 +14,10 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Private real data for local testing only (real timetables of minors). NEVER commit.
+private-samples/
+
+.vercel
+.env*
+!.env.example

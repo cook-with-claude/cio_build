@@ -14,7 +14,7 @@
 // Dates are generated relative to "this week", so the demo never shows
 // stale dates whenever it is presented.
 
-import { addDays, nextSchoolDay, startOfWeek, todayInBeirut } from '../lib/dates.js'
+import { addDays, isSchoolDay, nextSchoolDay, startOfWeek, todayInBeirut, weekDays } from '../lib/dates.js'
 
 // Topics a student may optionally attach to a booking.
 export const TOPICS = [
@@ -41,16 +41,19 @@ export const initialSettings = {
   slotMinutes: 30, // length of one slot, for weeks not prepared yet
   cutoffTime: '15:00', // a day's bookings lock on the previous school day at this time
   approvalMode: false, // when on, bookings are requests she accepts or refuses
-  bookingHorizonWeeks: 2, // OPEN: how many weeks ahead students can book
-  oneUpcomingBookingPerStudent: true, // OPEN: limit to one upcoming booking
+  bookingHorizonWeeks: 2, // how many weeks ahead students can book
+  oneUpcomingBookingPerStudent: true, // limit to one upcoming booking
 }
 
 // Builds the slots and bookings around `today` (exported for the tests).
 export function buildSchedule(today = todayInBeirut()) {
   const thisMonday = startOfWeek(today)
-  const nextMonday = addDays(thisMonday, 7)
-  const day = (offset) => addDays(nextMonday, offset) // 0 = next Monday … 4 = next Friday
-  // The next two school days, whatever day the demo is shown: the first
+  // The next week with no holiday (see schoolCalendar.js), so every slot
+  // below lands on a school day.
+  let nextMonday = addDays(thisMonday, 7)
+  while (!weekDays(nextMonday).every(isSchoolDay)) nextMonday = addDays(nextMonday, 7)
+  const day = (offset) => addDays(nextMonday, offset) // 0 = that Monday … 4 = that Friday
+  // The next two school days (holidays skipped), whatever day the demo is shown: the first
   // locks at the cutoff today (on a Friday, Monday locks at 15h00), the second
   // stays bookable, so the 15h00 rule can be shown live. Their times
   // (14h00–15h00) are free all next week.
