@@ -45,6 +45,7 @@
 - **Tests:** 90 → 103. The older rule tests moved two weeks later (to 9 Nov–15 Dec 2026), because their dates now fall in the mid-term break.
 - **Vercel ↔ GitHub:** this folder is linked to the project (`vercel link`). `vercel git connect` failed from the terminal, so Claude connected `cook-with-claude/cio_build` from the Vercel dashboard in Nadim's Chrome (Settings → Git → GitHub → Connect). The Vercel GitHub app was already installed with access to all repos; nothing was changed on GitHub. Production branch: `main`.
 - Checked in Chrome: the holiday week (both sides), the dots (phone size).
+- **Git:** 2 commits (`d559881` code, `0b156ff` log) pushed to `main`. The push triggered the first automatic Vercel deploy (Ready in 11 s); the live site serves the new build.
 
 **Decisions**
 - One upcoming booking per student; 2-week horizon (Nadim).
@@ -55,6 +56,8 @@
 **Known issues / notes**
 - `vercel link` created `.env.local` (a Vercel token) and added `.vercel` and `.env*` to `.gitignore`. Both stay out of git; `!.env.example` was added so the example file can still be committed.
 - The school calendar is real school data in a public repo. It is the calendar sent to every family, with no personal data in it.
+- `docs/edt-import-spec.md` is in the folder but not committed (not written in this session; Nadim to decide if it goes in the public repo).
+- The Vercel GitHub app can see all of Nadim's GitHub repos; it only needs `cio_build`. Left as is (other Vercel projects may use it). Narrow it in GitHub → Settings → Applications → Vercel if wanted.
 
 ## 2026-10-26 · Session 5: hosting moved from Netlify to Vercel
 
