@@ -1,4 +1,4 @@
-import { CalendarCheck, CircleCheck, Hourglass, UserCheck } from 'lucide-react'
+import { Check, CircleCheck, Hourglass, UserCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatTime } from '@/lib/dates'
 
@@ -7,11 +7,12 @@ import { formatTime } from '@/lib/dates'
 // plus their own booking.
 // status: "available" | "unavailable" | "mine-confirmed" | "mine-pending"
 // fits (timetable experiment): true when an available slot fits the student's
-// timetable (« Compatible »), false when it doesn't, undefined without one.
+// own timetable, false when it doesn't, undefined without one. A fitting slot
+// still says « Disponible », with a « Compatible » mark: the mark is about the
+// student's classes, never about her schedule.
 
 export default function StudentCell({ status, fits, time, dayLabel, onBook }) {
   if (status === 'available') {
-    const Icon = fits ? CalendarCheck : CircleCheck
     const fitNote =
       fits === true
         ? ' Compatible avec votre emploi du temps.'
@@ -24,13 +25,22 @@ export default function StudentCell({ status, fits, time, dayLabel, onBook }) {
         onClick={onBook}
         aria-label={`${dayLabel}, ${formatTime(time)} : Disponible.${fitNote} Réserver ce créneau.`}
         className={cn(
-          'flex h-11 w-full items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2 text-left text-sm font-medium text-success-foreground md:h-9',
+          '@container flex h-11 w-full items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2 text-left text-sm font-medium text-success-foreground md:h-9',
           'lift-sm hover:border-success/60 hover:bg-success/20 hover:shadow-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
-          fits && 'border-2 border-success/70',
         )}
       >
-        <Icon className="size-4 shrink-0" aria-hidden="true" />
-        <span className="truncate">{fits ? 'Compatible' : 'Disponible'}</span>
+        <CircleCheck className="size-4 shrink-0" aria-hidden="true" />
+        <span className="truncate">Disponible</span>
+        {fits && (
+          // A narrow cell (computer, 5 days side by side) only has room for the check.
+          <span
+            className="ml-auto flex shrink-0 items-center gap-0.5 rounded-full bg-success px-1.5 py-0.5 text-xs text-white"
+            aria-hidden="true"
+          >
+            <Check className="size-3" />
+            <span className="hidden @[13rem]:inline">Compatible</span>
+          </span>
+        )}
       </button>
     )
   }

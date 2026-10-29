@@ -1,6 +1,7 @@
 // Turns the private sample timetable (private-samples/edt-sample.pdf, never
-// committed) into the nameless test data src/data/edtSampleGeometry.json:
-// times, day names, Q1/Q2 tags and shapes only (see src/lib/edtPdf.js).
+// committed) into the nameless test data src/lib/edtSampleGeometry.json:
+// times, day names and Q1/Q2 tags; other texts as points, shapes as boxes
+// that are only "white" or "coloured" (see src/lib/edtPdf.js).
 //
 // Run it again only if the sample PDF changes:
 //   node scripts/edt-fixture.mjs
@@ -10,7 +11,7 @@ import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { readTimetableGeometry } from '../src/lib/edtPdf.js'
 
 const pdf = new URL('../private-samples/edt-sample.pdf', import.meta.url)
-const out = new URL('../src/data/edtSampleGeometry.json', import.meta.url)
+const out = new URL('../src/lib/edtSampleGeometry.json', import.meta.url)
 
 const geometry = await readTimetableGeometry(pdfjs, new Uint8Array(readFileSync(pdf)))
 

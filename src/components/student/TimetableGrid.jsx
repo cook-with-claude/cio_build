@@ -1,11 +1,13 @@
 import { BookOpen, Check, TriangleAlert } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { formatTime } from '@/lib/dates'
-import { PERIODS, WEEKDAYS, WEEK_TYPES, nextCellValue, setCell } from '@/lib/timetable'
+import { formatTime, formatWeekdayLong, formatWeekdayShort, weekDays } from '@/lib/dates'
+import { PERIODS, WEEKDAYS, WEEK_TYPES, countUnsure, nextCellValue, setCell } from '@/lib/timetable'
 
-const DAY_SHORT = { 1: 'Lun', 2: 'Mar', 3: 'Mer', 4: 'Jeu', 5: 'Ven' }
-const DAY_LONG = { 1: 'Lundi', 2: 'Mardi', 3: 'Mercredi', 4: 'Jeudi', 5: 'Vendredi' }
+// Weekday names, taken from any Monday–Friday (only the names are used).
+const NAMED_WEEK = weekDays('2026-11-16')
+const DAY_SHORT = Object.fromEntries(WEEKDAYS.map((d, i) => [d, formatWeekdayShort(NAMED_WEEK[i])]))
+const DAY_LONG = Object.fromEntries(WEEKDAYS.map((d, i) => [d, formatWeekdayLong(NAMED_WEEK[i])]))
 
 const CELL = {
   busy: { label: 'Cours', icon: BookOpen, className: 'bg-muted text-foreground hover:bg-muted/70' },
@@ -20,8 +22,6 @@ const CELL = {
     className: 'bg-highlight/40 text-foreground ring-2 ring-highlight hover:bg-highlight/60',
   },
 }
-
-const unsureIn = (days) => WEEKDAYS.flatMap((d) => Object.values(days[d])).filter((v) => v === 'unsure').length
 
 // The student's timetable as a Pronote-like grid, one week type at a time:
 // each period is « Cours », « Libre » or « À vérifier »; a tap changes it
@@ -40,7 +40,7 @@ export default function TimetableGrid({ timetable, weekType, onWeekTypeChange, o
         className="grid w-full grid-cols-2 rounded-lg bg-muted p-1"
       >
         {WEEK_TYPES.map((w) => {
-          const unsure = unsureIn(timetable[w])
+          const unsure = countUnsure(timetable, [w])
           return (
             <ToggleGroupItem
               key={w}

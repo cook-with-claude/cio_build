@@ -56,7 +56,7 @@ export default function TimetableImportDialog({ mode, initial, anchor, today, on
     setReading(false)
     setDraft(result.ok ? result.timetable : blankTimetable())
     setSource(result.ok ? 'import' : 'failed')
-    showWeek('Q1')
+    setWeekType('Q1')
     setSeen(['Q1'])
     setStep('check')
   }
@@ -126,7 +126,11 @@ export default function TimetableImportDialog({ mode, initial, anchor, today, on
                 className="h-11 md:h-9"
                 disabled={reading}
                 onClick={() => {
+                  // Start from every period « Cours », even after a PDF was read.
+                  setDraft(blankTimetable())
                   setSource('manual')
+                  setWeekType('Q1')
+                  setSeen(['Q1'])
                   setStep('check')
                 }}
               >

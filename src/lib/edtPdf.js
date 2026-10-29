@@ -4,8 +4,8 @@
 //
 // Privacy: the only words kept are the time labels (« 7h45 »), the day names
 // and the « Q1 » / « Q2 » tags. Every other text (subjects, teachers, rooms,
-// the student's name) is reduced to its position, so no name ever leaves
-// this file.
+// the student's name) is reduced to the point at its centre, and colours to
+// "white" or "coloured", so no name, not even its length, leaves this file.
 //
 // `pdfjs` is the pdf.js module, passed in by the caller: the browser loads it
 // only when a student opens the import (edtPdfBrowser.js); the tests load
@@ -40,33 +40,33 @@ const multiply = (m, n) => [
   m[1] * n[4] + m[3] * n[5] + m[5],
 ]
 
-// Text items -> kept labels (with their text) and anonymous text boxes.
+// Text items -> kept labels (with their text and box) and anonymous points.
 export function textGeometry(items) {
   const labels = []
   const texts = []
   for (const item of items) {
     const text = item.str?.trim()
     if (!text) continue
-    const box = { x: round(item.transform[4]), y: round(item.transform[5]), w: round(item.width), h: round(item.height) }
-    if (KEPT_TEXT.test(text)) labels.push({ text, ...box })
-    else texts.push(box)
+    const [x, y, w, h] = [item.transform[4], item.transform[5], item.width, item.height]
+    if (KEPT_TEXT.test(text)) labels.push({ text, x: round(x), y: round(y), w: round(w), h: round(h) })
+    else texts.push({ x: round(x + w / 2), y: round(y + h / 2) })
   }
   return { labels, texts }
 }
 
-// Drawing commands -> filled shapes (with their colour) and horizontal lines.
+// Drawing commands -> filled shapes ("white" or "coloured") and horizontal lines.
 // Each shape is reduced to its bounding box: Pronote draws every class as a
 // plain rectangle.
 export function shapeGeometry(operatorList, OPS) {
   const FILLS = new Set([OPS.fill, OPS.eoFill, OPS.fillStroke, OPS.eoFillStroke, OPS.closeFillStroke, OPS.closeEOFillStroke])
   const STROKES = new Set([OPS.stroke, OPS.closeStroke])
-  // Colours set some other way (patterns, other colour spaces) are kept as
-  // "unknown": never mistaken for the white background.
+  // Colours set some other way (patterns, other colour spaces) count as
+  // coloured: never mistaken for the white background.
   const OTHER_FILL_COLOURS = new Set([OPS.setFillGray, OPS.setFillCMYKColor, OPS.setFillColor, OPS.setFillColorN, OPS.setFillColorSpace])
 
   const fills = []
   const hlines = []
-  let state = { m: [1, 0, 0, 1, 0, 0], fill: '#000000' }
+  let state = { m: [1, 0, 0, 1, 0, 0], fill: 'coloured' }
   const stack = []
   const { fnArray, argsArray } = operatorList
 
@@ -80,8 +80,9 @@ export function shapeGeometry(operatorList, OPS) {
       stack.push(state)
       if (args?.[0]) state = { ...state, m: multiply(state.m, args[0]) }
     } else if (fn === OPS.paintFormXObjectEnd) state = stack.pop() ?? state
-    else if (fn === OPS.setFillRGBColor) state = { ...state, fill: String(args[0]).toLowerCase() }
-    else if (OTHER_FILL_COLOURS.has(fn)) state = { ...state, fill: 'unknown' }
+    else if (fn === OPS.setFillRGBColor) {
+      state = { ...state, fill: String(args[0]).toLowerCase() === '#ffffff' ? 'white' : 'coloured' }
+    } else if (OTHER_FILL_COLOURS.has(fn)) state = { ...state, fill: 'coloured' }
     else if (fn === OPS.constructPath) {
       const [paintOp, , minMax] = args
       if (!minMax) continue

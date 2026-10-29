@@ -1,5 +1,5 @@
 import { CalendarX, Lock, Mail } from 'lucide-react'
-import { Suspense, lazy, useState } from 'react'
+import { useState } from 'react'
 import MessageDialog from '@/components/MessageDialog'
 import MessageList from '@/components/MessageList'
 import WeekView from '@/components/WeekView'
@@ -13,12 +13,10 @@ import BookingDialog from './BookingDialog'
 import MyBookingCard from './MyBookingCard'
 import StudentCell from './StudentCell'
 import TimetableCard from './TimetableCard'
+import TimetableImport from './TimetableImport'
 
 // In the demo there is no login: the student side acts as one fake student.
 const student = students.find((s) => s.id === DEMO_STUDENT_ID)
-
-// Timetable experiment: the import (and pdf.js behind it) only loads when opened.
-const TimetableImportDialog = lazy(() => import('./TimetableImportDialog'))
 
 // The short line under a day's name (see studentDayNote).
 const DAY_NOTES = {
@@ -123,16 +121,14 @@ export default function StudentView({ state, actions, weekStart, now }) {
       )}
 
       {timetableMode && (
-        <Suspense fallback={null}>
-          <TimetableImportDialog
-            mode={timetableMode}
-            initial={state.timetable?.days}
-            anchor={state.timetable?.anchor}
-            today={now.date}
-            onSave={actions.setTimetable}
-            onClose={() => setTimetableMode(null)}
-          />
-        </Suspense>
+        <TimetableImport
+          mode={timetableMode}
+          initial={state.timetable?.days}
+          anchor={state.timetable?.anchor}
+          today={now.date}
+          onSave={actions.setTimetable}
+          onClose={() => setTimetableMode(null)}
+        />
       )}
 
       {showReminder && upcoming && (

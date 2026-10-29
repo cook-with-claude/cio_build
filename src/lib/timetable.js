@@ -51,8 +51,9 @@ export function setCell(timetable, weekType, weekday, start, value) {
 // « Cours » (the safe choice), then « Cours » and « Libre » alternate.
 export const nextCellValue = (value) => (value === 'busy' ? 'free' : 'busy')
 
-export const countUnsure = (timetable) =>
-  WEEK_TYPES.flatMap((w) => WEEKDAYS.flatMap((d) => Object.values(timetable[w][d]))).filter((v) => v === 'unsure')
+// « À vérifier » cells left, in all week types or only those given.
+export const countUnsure = (timetable, weekTypes = WEEK_TYPES) =>
+  weekTypes.flatMap((w) => WEEKDAYS.flatMap((d) => Object.values(timetable[w][d]))).filter((v) => v === 'unsure')
     .length
 
 // --- Week types --------------------------------------------------------------
@@ -190,11 +191,11 @@ export function parseTimetable(geometry) {
   }
   const tags = geometry.labels.filter((l) => /^Q[12]$/i.test(l.text))
 
-  // Classes: filled, non-white rectangles inside one weekday column.
+  // Classes: filled, coloured rectangles inside one weekday column.
   const blocks = geometry.fills.filter((f) => {
     const c = { x: (f.x0 + f.x1) / 2, y: (f.y0 + f.y1) / 2 }
     return (
-      f.color !== '#ffffff' &&
+      f.color !== 'white' &&
       f.x1 - f.x0 >= (columns[0].x1 - columns[0].x0) * 0.3 &&
       f.y1 - f.y0 >= rowHeight * 0.5 &&
       c.y >= grid.y0 &&
@@ -220,9 +221,9 @@ export function parseTimetable(geometry) {
 
   // Text in the grid that no class rectangle explains (a Q tag on its own, or
   // a class drawn in a way we don't recognise): that cell needs checking.
-  const unexplained = [...tags, ...geometry.texts].filter((t) => !blocks.some((b) => inside(centre(t), b)))
-  for (const text of unexplained) {
-    const { x, y } = centre(text)
+  // (Anonymous texts are already reduced to their centre point.)
+  const unexplained = [...tags.map(centre), ...geometry.texts].filter((p) => !blocks.some((b) => inside(p, b)))
+  for (const { x, y } of unexplained) {
     const column = columnAt(x)
     const row = periodAt(y)
     if (column !== -1 && row) mark(WEEK_TYPES, column, row.start, 'unsure')

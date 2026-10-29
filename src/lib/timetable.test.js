@@ -14,7 +14,7 @@ import {
 } from './timetable.js'
 
 // Nameless geometry of the real sample timetable (scripts/edt-fixture.mjs).
-const SAMPLE = JSON.parse(readFileSync(new URL('../data/edtSampleGeometry.json', import.meta.url), 'utf8'))
+const SAMPLE = JSON.parse(readFileSync(new URL('./edtSampleGeometry.json', import.meta.url), 'utf8'))
 const sample = () => structuredClone(SAMPLE)
 
 // One string per weekday, one character per period (PERIODS order:
@@ -38,8 +38,10 @@ test('the sample geometry keeps only times, day names and Q1/Q2 as text', () => 
   for (const { text } of SAMPLE.labels) {
     assert.match(text, /^(\d{1,2}h\d{2}|lundi|mardi|mercredi|jeudi|vendredi|samedi|Q1|Q2)$/)
   }
-  // Other texts are positions only.
-  for (const t of SAMPLE.texts) assert.deepEqual(Object.keys(t).sort(), ['h', 'w', 'x', 'y'])
+  // Other texts are single points (not even their length is kept)…
+  for (const t of SAMPLE.texts) assert.deepEqual(Object.keys(t).sort(), ['x', 'y'])
+  // …and shapes are only white or coloured.
+  for (const f of SAMPLE.fills) assert.ok(['white', 'coloured'].includes(f.color))
 })
 
 // --- Reading the sample -------------------------------------------------------
@@ -56,9 +58,9 @@ test('the sample timetable is read exactly, for Q1 and Q2', () => {
 
 test('a class the reader does not recognise leaves its cell « À vérifier », not free', () => {
   const g = sample()
-  // Wednesday 11:00–11:55 (English): drawn in white, so not seen as a class.
-  const block = g.fills.find((f) => f.color === '#e4c5c5' && f.x0 > 300 && f.x0 < 320)
-  block.color = '#ffffff'
+  // The Wednesday 11:00–11:55 class, drawn in white: not seen as a class.
+  const block = g.fills.find((f) => f.x0 === 308.9 && f.y0 === 367.8 && f.color === 'coloured')
+  block.color = 'white'
   const { timetable } = parseTimetable(g)
   assert.equal(timetable.Q1[3]['11:00'], 'unsure')
   assert.equal(timetable.Q2[3]['11:00'], 'unsure')
@@ -67,7 +69,7 @@ test('a class the reader does not recognise leaves its cell « À vérifier », 
 test('a class that does not line up with the periods is « À vérifier »', () => {
   const g = sample()
   // Monday 7:45–8:40, shifted down by a third of a period.
-  const block = g.fills.find((f) => f.x0 === 56.6 && f.y1 === 529.1 && f.color !== '#ffffff')
+  const block = g.fills.find((f) => f.x0 === 56.6 && f.y1 === 529.1 && f.color === 'coloured')
   block.y0 -= 13
   block.y1 -= 13
   const { timetable } = parseTimetable(g)
@@ -78,7 +80,7 @@ test('a class that does not line up with the periods is « À vérifier »', () 
 test('a class only partly covering a period makes the whole period busy', () => {
   const g = sample()
   // Monday 10:05–11:00 is free; add a class over its top half.
-  g.fills.push({ x0: 56.6, y0: 428, y1: 448.5, x1: 182.8, color: '#abcdef' })
+  g.fills.push({ x0: 56.6, y0: 428, y1: 448.5, x1: 182.8, color: 'coloured' })
   const { timetable } = parseTimetable(g)
   assert.notEqual(timetable.Q1[1]['10:05'], 'free')
 })
@@ -110,7 +112,7 @@ test('a layout that is not the CPF one is not read at all', () => {
   assert.deepEqual(parseTimetable(twoPages), { ok: false, reason: 'pages' })
 
   const noClasses = sample()
-  noClasses.fills = noClasses.fills.filter((f) => f.color === '#ffffff')
+  noClasses.fills = noClasses.fills.filter((f) => f.color === 'white')
   assert.deepEqual(parseTimetable(noClasses), { ok: false, reason: 'no-classes' })
 })
 

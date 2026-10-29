@@ -1,4 +1,4 @@
-import { CalendarCheck, CalendarRange, FileUp, Pencil, Repeat, Trash2 } from 'lucide-react'
+import { CalendarCheck, CalendarRange, Check, FileUp, Pencil, Repeat, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -84,9 +84,12 @@ export default function TimetableCard({ timetable, weekStart, onImport, onManual
         </div>
 
         <div className="flex flex-col gap-2 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-success-foreground">« Compatible »</span> : vous n’avez pas cours
-            pendant ce créneau.
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-success px-1.5 py-0.5 text-xs font-medium text-white">
+              <Check className="size-3" aria-hidden="true" />
+              Compatible
+            </span>
+            <span>: vous n’avez pas cours pendant ce créneau.</span>
           </p>
           <div className="flex min-h-11 items-center gap-2 md:min-h-0">
             <Switch id="only-compatible" checked={timetable.onlyCompatible} onCheckedChange={onOnlyCompatible} />

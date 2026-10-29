@@ -10,7 +10,7 @@ import WeekNav from '@/components/WeekNav'
 import CounselorShortcuts from '@/components/counselor/CounselorShortcuts'
 import CounselorView from '@/components/counselor/CounselorView'
 import StudentView from '@/components/student/StudentView'
-import { nextAvailableSlot, weekHasNoAvailableSlot } from '@/components/student/availability'
+import { nextAvailableSlot, studentWeekNote } from '@/components/student/availability'
 import { DEMO_STUDENT_ID } from '@/data/mockData'
 import { tomorrowSummary, upcomingAppointments, useDemoStore } from '@/state/useDemoStore'
 import { addDays, formatLongDate, nowInBeirut, startOfWeek } from '@/lib/dates'
@@ -39,7 +39,8 @@ export default function App() {
   }, [])
 
   // Student side: when the shown week has nothing to book, point to the next slot.
-  const weekIsEmptyForStudent = role === 'student' && weekHasNoAvailableSlot(state, DEMO_STUDENT_ID, now, weekStart)
+  const weekNote = role === 'student' ? studentWeekNote(state, DEMO_STUDENT_ID, now, weekStart) : null
+  const weekIsEmptyForStudent = weekNote !== null
   const nextSlot = weekIsEmptyForStudent ? nextAvailableSlot(state, now) : undefined
 
   // When the (demo) clock passes a cutoff, requests still waiting for that day
@@ -103,11 +104,9 @@ export default function App() {
             weekStart={weekStart}
             isCurrentWeek={weekStart === currentWeek}
             note={
-              weekIsEmptyForStudent
-                ? state.timetable?.onlyCompatible
-                  ? 'Aucun créneau compatible cette semaine'
-                  : 'Aucun créneau disponible cette semaine'
-                : null
+              weekNote === 'none-compatible'
+                ? 'Aucun créneau compatible cette semaine'
+                : weekNote && 'Aucun créneau disponible cette semaine'
             }
             noteAction={
               weekIsEmptyForStudent && nextSlot

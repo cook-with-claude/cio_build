@@ -7,6 +7,7 @@ import {
   nextAvailableSlot,
   studentCell,
   studentDayNote,
+  studentWeekNote,
   weekHasNoAvailableSlot,
 } from './availability.js'
 
@@ -130,4 +131,17 @@ test('with the switch on, a day whose slots all clash says so', () => {
   assert.equal(dayHasAvailableSlot(state, ME, mondayEvening, WED), false)
   assert.equal(nextAvailableSlot(state, mondayEvening), undefined)
   assert.equal(weekHasNoAvailableSlot(state, ME, mondayEvening, MON), true)
+})
+
+test('the week note says « compatible » only when the switch hides slots', () => {
+  const clash = { ...makeState({ slots: [slot('clash', WED, '11:00', '11:30')] }), timetable: wednesdayMorningFree(true) }
+  assert.equal(studentWeekNote(clash, ME, mondayEvening, MON), 'none-compatible')
+
+  // Switch on, but nothing open at all that week: nothing is hidden.
+  const empty = { ...makeState(), timetable: wednesdayMorningFree(true) }
+  assert.equal(studentWeekNote(empty, ME, mondayEvening, MON), 'none-available')
+
+  // Something to book: no note.
+  const fit = { ...makeState({ slots: [slot('fit', WED, '09:00', '09:30')] }), timetable: wednesdayMorningFree(true) }
+  assert.equal(studentWeekNote(fit, ME, mondayEvening, MON), null)
 })

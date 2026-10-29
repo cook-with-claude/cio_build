@@ -83,3 +83,12 @@ export function dayHasAvailableSlot(state, studentId, now, date) {
 export function weekHasNoAvailableSlot(state, studentId, now, weekStart) {
   return weekDays(weekStart).every((date) => !dayHasAvailableSlot(state, studentId, now, date))
 }
+
+// The note under the week's title when nothing can be booked, or null:
+// 'none-compatible' only if the compatible-only switch hides a day's slots,
+// otherwise 'none-available' (same rule as the day notes).
+export function studentWeekNote(state, studentId, now, weekStart) {
+  if (!weekHasNoAvailableSlot(state, studentId, now, weekStart)) return null
+  const hidden = weekDays(weekStart).some((date) => studentDayNote(state, studentId, now, date) === 'none-compatible')
+  return hidden ? 'none-compatible' : 'none-available'
+}

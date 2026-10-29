@@ -39,24 +39,25 @@
 **Goal of the session:** build the experiment in `docs/edt-import-spec.md` on its own branch: a student uploads their Pronote timetable PDF and sees which of the counselor's slots fit their free time. `main` and the live site are untouched.
 
 **Done**
-- **Branch** `experiment/edt-import` (2 commits: the spec, then the code). Not pushed.
-- **Reading the PDF:** the Pronote PDF is drawn (text + coloured rectangles), not a photo. pdf.js (`pdfjs-dist` 6.4, approved by Nadim) reads it **in the browser**: nothing is uploaded. It only downloads when a student picks a file. Only the times, day names and Q1/Q2 tags are kept; every other text becomes a position with no words (`src/lib/edtPdf.js`).
+- **Branch** `experiment/edt-import` (the spec, the code, this log, then the review fixes). Not pushed.
+- **Reading the PDF:** the Pronote PDF is drawn (text + coloured rectangles), not a photo. pdf.js (`pdfjs-dist` 6.4, approved by Nadim) reads it **in the browser**: nothing is uploaded. It only downloads when a student picks a file. Only the times, day names and Q1/Q2 tags are kept; every other text becomes a single point, and colours only "white" or "coloured" (`src/lib/edtPdf.js`).
 - **From drawing to timetable** (`src/lib/timetable.js`): rows come from the tick marks of the time axis (Pronote draws every period the same height, and recesses as a line). A class covering part of a period makes it busy. Anything odd (misaligned box, unexplained text in a cell, two Q tags) makes the cell « À vérifier », which counts as busy; an unknown layout fails the reading.
-- **Screens (student side only):** card « Votre emploi du temps » (Importer / Saisir à la main / Modifier / Retirer); a check grid, Q1 then Q2, one tap per period; nothing is used until « C'est correct ». If reading fails, the same grid starts with every period « Cours ». Then « Cette semaine, c'est une semaine Q1 ou Q2 ? »; during a break it asks about the week school starts again. Matching slots say « Compatible »; the « Seulement les créneaux compatibles » switch hides the others (day notes, phone dot and week title follow).
-- **Test data:** `src/data/edtSampleGeometry.json`, a nameless copy of the sample's geometry, made by `node scripts/edt-fixture.mjs`. A test checks it has no words other than times, days and Q1/Q2.
-- **Tests:** 103 → 126. One test reads the real PDF, only on a computer that has `private-samples/` (skipped elsewhere).
+- **Screens (student side only):** card « Votre emploi du temps » (Importer / Saisir à la main / Modifier / Retirer); a check grid, Q1 then Q2, one tap per period; nothing is used until « C'est correct ». If reading fails, the same grid starts with every period « Cours ». Then « Cette semaine, c'est une semaine Q1 ou Q2 ? »; during a break it asks about the week school starts again. Matching slots still say « Disponible », with a « Compatible » mark; the « Seulement les créneaux compatibles » switch hides the others (day notes, phone dot, week title and « Prochain créneau » follow).
+- **Test data:** `src/lib/edtSampleGeometry.json`, a nameless copy of the sample's geometry, made by `node scripts/edt-fixture.mjs`. A test checks it has no words other than times, days and Q1/Q2, no text lengths and no class colours.
+- **Code review** (`/code-review`, then fixes approved by Nadim): the import shows a message instead of a blank page if it can't load (offline, or after a redeploy); the week title only says « Aucun créneau compatible » when the switch really hides slots; « Saisir à la main » always starts from a blank grid; read failures are logged in the console with their reason (`[EDT]`); the cell keeps « Disponible » (as `rules.md` says) with a « Compatible » mark; the fixture was shrunk (see above) and moved next to its tests; small duplicates removed. Not done: the Q1/Q2 question in summer before next year's calendar is added (edge case); speed tweaks (not needed at this size).
+- **Tests:** 103 → 127. One test reads the real PDF, only on a computer that has `private-samples/` (skipped elsewhere).
 - **Checked in Chrome** (computer and phone): the real PDF reads correctly for Q1 and Q2; correction, unreadable file → manual entry, week question during the break, alternation and its correction, the switch. No console errors. `main` still runs its 103 tests.
 
 **Decisions**
 - pdf.js approved (Nadim). Q1/Q2 alternate every calendar week, holidays included, until we know better (Nadim). The spec is committed on the branch only. The « Seulement les compatibles » switch: yes; example-timetable button: no.
-- Before 7:45 counts as not free (the school day starts at 7:45). Lunch (12:50–13:35) is free unless the student marks a class there.
+- Before 7:45 counts as not free (the school day starts at 7:45), so a 7:30 slot is never « Compatible ». Kept as is after the review; the student is not told yet. Lunch (12:50–13:35) is free unless the student marks a class there.
 
 **Known issues / notes**
 - **Not mergeable as is:** `v1-scope.md` lists "matching with student timetables" and "Pronote integration" as NOT in V1. Merging needs a scope decision first.
 - **To check with the school:** that reading a PDF exported with Pronote's own button is fine (we use no API, no scraping, no reverse engineering: rule 3), and how Q1/Q2 behave across holidays.
 - **Privacy:** a timetable is data beyond the list in `rules.md`. Here it stays in the browser and disappears on reload. Storing it in the database phase would need a decision.
 - Only tested on one real PDF. Other classes' PDFs (other periods, Saturday classes, two pages) may fail to read; they then fall back to manual entry.
-- The main JS file is now 508.6 kB (was 496.6 kB). Vite prints its "over 500 kB" hint. Harmless; pdf.js itself is in separate files.
+- The main JS file is now 509.9 kB (was 496.6 kB). Vite prints its "over 500 kB" hint. Harmless; pdf.js itself is in separate files.
 - pdf.js brings `@napi-rs/canvas` as an optional package for Node only; it is not part of the website.
 
 ## 2026-10-28 · Session 6: school calendar, phone dots, decisions
