@@ -337,3 +337,29 @@ test('« Résumé de demain » lists confirmed bookings, declined requests and l
   assert.deepEqual(summary.declined.map((d) => d.student.name), ['Élève Test 4'])
   assert.deepEqual(summary.lateCancellations.map((l) => [l.slot.start, l.reason]), [['11:00', 'controle']])
 })
+
+// --- Timetable experiment (docs/edt-import-spec.md) -------------------------
+
+test('the student’s timetable is saved, its week type corrected, and removed', () => {
+  const days = { Q1: {}, Q2: {} }
+  let state = reducer(makeState(), { type: 'setTimetable', days, anchor: { weekStart: MON, type: 'Q1' } })
+  assert.deepEqual(state.timetable, { days, anchor: { weekStart: MON, type: 'Q1' }, onlyCompatible: false })
+
+  state = reducer(state, { type: 'setOnlyCompatible', value: true })
+  state = reducer(state, { type: 'setWeekType', anchor: { weekStart: MON, type: 'Q2' } })
+  assert.deepEqual(state.timetable.anchor, { weekStart: MON, type: 'Q2' })
+  assert.equal(state.timetable.onlyCompatible, true)
+
+  // Importing again keeps the switch as it was.
+  state = reducer(state, { type: 'setTimetable', days, anchor: { weekStart: MON, type: 'Q1' } })
+  assert.equal(state.timetable.onlyCompatible, true)
+
+  state = reducer(state, { type: 'clearTimetable' })
+  assert.equal(state.timetable, null)
+})
+
+test('week type and switch do nothing without a timetable', () => {
+  const state = makeState()
+  assert.equal(reducer(state, { type: 'setWeekType', anchor: { weekStart: MON, type: 'Q2' } }), state)
+  assert.equal(reducer(state, { type: 'setOnlyCompatible', value: true }), state)
+})

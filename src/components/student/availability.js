@@ -3,6 +3,7 @@
 
 import { isSchoolDay, weekDays } from '@/lib/dates'
 import { daySlotTimes, isLocked, isWithinHorizon, slotMinutesOn } from '@/lib/rules'
+import { slotFits } from '@/lib/timetable'
 import { activeBookingForSlot, slotsInCell } from '@/state/useDemoStore'
 
 // True when a student could book `slot` right now.
@@ -17,8 +18,23 @@ function isBookable(state, now, slot) {
   )
 }
 
+// Timetable experiment: true / false when the student has given their
+// timetable (the slot fits it or not), undefined otherwise.
+export function slotFitsStudent(state, slot) {
+  const { timetable } = state
+  return timetable ? slotFits(timetable.days, timetable.anchor, slot) : undefined
+}
+
+const onlyCompatible = (state) => Boolean(state.timetable?.onlyCompatible)
+
+// Bookable, and not hidden by « Seulement les créneaux compatibles ».
+function isListed(state, now, slot) {
+  return isBookable(state, now, slot) && !(onlyCompatible(state) && !slotFitsStudent(state, slot))
+}
+
 // What the student sees in one cell, and which slot a click would book.
 // status: "available" | "unavailable" | "mine-confirmed" | "mine-pending"
+// `fits` (available cells only): see slotFitsStudent.
 export function studentCell(state, studentId, now, date, time) {
   const inCell = slotsInCell(state.slots, date, time, slotMinutesOn(state.slots, date, state.settings))
   for (const s of inCell) {
@@ -27,14 +43,14 @@ export function studentCell(state, studentId, now, date, time) {
       return { status: b.status === 'pending' ? 'mine-pending' : 'mine-confirmed' }
     }
   }
-  const bookable = inCell.find((s) => isBookable(state, now, s))
-  return bookable ? { status: 'available', slot: bookable } : { status: 'unavailable' }
+  const listed = inCell.find((s) => isListed(state, now, s))
+  return listed ? { status: 'available', slot: listed, fits: slotFitsStudent(state, listed) } : { status: 'unavailable' }
 }
 
 // The soonest slot a student could book, or undefined.
 export function nextAvailableSlot(state, now) {
   return state.slots
-    .filter((s) => isBookable(state, now, s))
+    .filter((s) => isListed(state, now, s))
     .sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start))[0]
 }
 
@@ -46,12 +62,15 @@ function dayStatuses(state, studentId, now, date) {
 
 // The short line under a day's name, or null.
 // Built only from what the cells already show, so it reveals nothing more
-// about her schedule (docs/rules.md, privacy).
+// about her schedule (docs/rules.md, privacy). 'none-compatible': the
+// compatible-only switch hides every slot of the day.
 export function studentDayNote(state, studentId, now, date) {
   if (isLocked(date, now, state.settings)) return 'closed'
   const statuses = dayStatuses(state, studentId, now, date)
   if (statuses.includes('available') || statuses.some((s) => s.startsWith('mine'))) return null
-  return 'none-available'
+  const hiddenByFilter =
+    onlyCompatible(state) && state.slots.some((s) => s.date === date && isBookable(state, now, s))
+  return hiddenByFilter ? 'none-compatible' : 'none-available'
 }
 
 // True when the student could book at least one slot on `date` (the dot in

@@ -102,7 +102,13 @@ export default function App() {
           <WeekNav
             weekStart={weekStart}
             isCurrentWeek={weekStart === currentWeek}
-            note={weekIsEmptyForStudent ? 'Aucun créneau disponible cette semaine' : null}
+            note={
+              weekIsEmptyForStudent
+                ? state.timetable?.onlyCompatible
+                  ? 'Aucun créneau compatible cette semaine'
+                  : 'Aucun créneau disponible cette semaine'
+                : null
+            }
             noteAction={
               weekIsEmptyForStudent && nextSlot
                 ? {

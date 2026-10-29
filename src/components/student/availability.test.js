@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { initialSettings } from '@/data/mockData'
+import { blankTimetable, setCell } from '@/lib/timetable'
 import {
   dayHasAvailableSlot,
   nextAvailableSlot,
@@ -89,4 +90,44 @@ test('the phone day picker dot marks only days with a slot the student can book'
   })
   assert.equal(dayHasAvailableSlot(state, ME, mondayEvening, WED), true)
   assert.equal(dayHasAvailableSlot(state, ME, mondayEvening, TUE), false) // protected, and Tuesday is locked
+})
+
+// --- Timetable experiment (docs/edt-import-spec.md) -------------------------
+
+// Free all Wednesday 8:40–9:35 (+ the recess until 10:05), busy otherwise; this week is Q1.
+const wednesdayMorningFree = (onlyCompatible = false) => ({
+  days: setCell(setCell(blankTimetable(), 'Q1', 3, '08:40', 'free'), 'Q2', 3, '08:40', 'free'),
+  anchor: { weekStart: MON, type: 'Q1' },
+  onlyCompatible,
+})
+const twoWednesdaySlots = () => [slot('fit', WED, '09:00', '09:30'), slot('clash', WED, '11:00', '11:30')]
+
+test('without a timetable, available cells say nothing about fitting', () => {
+  const state = makeState({ slots: twoWednesdaySlots() })
+  assert.equal(studentCell(state, ME, mondayEvening, WED, '09:00').fits, undefined)
+})
+
+test('with a timetable, available cells say whether the slot fits the student’s free time', () => {
+  const state = { ...makeState({ slots: twoWednesdaySlots() }), timetable: wednesdayMorningFree() }
+  assert.equal(studentCell(state, ME, mondayEvening, WED, '09:00').fits, true)
+  const clash = studentCell(state, ME, mondayEvening, WED, '11:00')
+  assert.equal(clash.status, 'available') // still listed while the switch is off
+  assert.equal(clash.fits, false)
+})
+
+test('« Seulement les créneaux compatibles » hides slots that clash with a class', () => {
+  const state = { ...makeState({ slots: twoWednesdaySlots() }), timetable: wednesdayMorningFree(true) }
+  assert.equal(studentCell(state, ME, mondayEvening, WED, '09:00').status, 'available')
+  assert.equal(studentCell(state, ME, mondayEvening, WED, '11:00').status, 'unavailable')
+})
+
+test('with the switch on, a day whose slots all clash says so', () => {
+  const state = {
+    ...makeState({ slots: [slot('clash', WED, '11:00', '11:30')] }),
+    timetable: wednesdayMorningFree(true),
+  }
+  assert.equal(studentDayNote(state, ME, mondayEvening, WED), 'none-compatible')
+  assert.equal(dayHasAvailableSlot(state, ME, mondayEvening, WED), false)
+  assert.equal(nextAvailableSlot(state, mondayEvening), undefined)
+  assert.equal(weekHasNoAvailableSlot(state, ME, mondayEvening, MON), true)
 })
