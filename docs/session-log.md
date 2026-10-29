@@ -4,7 +4,7 @@
 
 ---
 
-## Current state (updated 2026-10-28)
+## Current state (updated 2026-10-29)
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
@@ -13,6 +13,7 @@
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
+- **Experiment: timetable (EDT) import** (session 7) lives only on the branch `experiment/edt-import`, pushed to GitHub, with a Vercel preview (team login needed). `main` and the live site don't have it. To try it locally: `git switch experiment/edt-import`, then `npm install`, then `npm run dev`; `git switch main` to go back. On the branch: 127 tests. This log entry is on the branch only.
 
 ## Next steps
 
@@ -20,6 +21,7 @@
 2. Show the demo to the conseillère and write down her feedback (here or in `docs/`).
 3. Answer the open questions below.
 4. Then the next phase: Supabase (database + CPF Google sign-in), hosted on Vercel. Not before her feedback.
+5. EDT experiment: try it with a few classmates' PDFs (other classes may use another layout); decide whether to show it to the conseillère. Merging into `main` first needs a change to `v1-scope.md`.
 
 ## Open questions
 
@@ -29,6 +31,9 @@
 - Lunar holidays (Fitr, Adha, Hégire, Achoura) may move by a day once announced: correct them in `schoolCalendar.js` when that happens.
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
+- EDT experiment: ask the school if reading a PDF exported with Pronote's own button is fine (rule 3), and how Q1/Q2 behave across holidays (today: they alternate every calendar week).
+- EDT experiment: should 7:30–7:45 count as free when the first period is free? (Today: no, so a 7:30 slot is never « Compatible ».)
+- EDT experiment: a timetable is data beyond the `rules.md` list. Today it never leaves the browser; keeping it in the database later would need a decision.
 
 ---
 
