@@ -2,6 +2,10 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { initialSettings as settings } from '@/data/mockData'
 import {
+  BOOKING_WINDOWS,
+  DEFAULT_SLOT_MINUTES,
+  LUNCH,
+  SLOT_LENGTHS,
   cancellationKind,
   dayRows,
   daySlotTimes,
@@ -29,37 +33,50 @@ const slot = (date, start, end, kind = 'open') => ({ id: `${date}-${start}`, dat
 
 // --- Item 1: her hours ------------------------------------------------------
 
-test('30-minute slots fill 7h30–12h00 and 12h30–15h00, with lunch in between', () => {
-  const times = daySlotTimes(30)
-  assert.equal(times.length, 14) // 9 in the morning + 5 in the afternoon
-  assert.equal(times[0], '07:30')
-  assert.equal(times.at(-1), '14:30')
-  assert.ok(!times.includes('12:00'), 'nothing starts at lunch')
-  const rows = dayRows(30)
+test('25-minute slots follow the bells, with her lunch at 11h55', () => {
+  assert.deepEqual(daySlotTimes(25), [
+    '07:45', '08:10', // 1st period
+    '08:40', '09:05', // 2nd period
+    '09:35', // récréation
+    '10:05', '10:30',
+    '11:00', '11:25',
+    '12:25', // after her lunch
+    '12:50', // pause méridienne
+    '13:35', '14:00',
+    '14:30',
+  ])
+  const rows = dayRows(25)
   const lunchAt = rows.findIndex((r) => r.kind === 'lunch')
-  assert.deepEqual(rows[lunchAt], { kind: 'lunch', start: '12:00', end: '12:30' })
-  assert.equal(rows[lunchAt - 1].start, '11:30')
-  assert.equal(rows[lunchAt + 1].start, '12:30')
+  assert.deepEqual(rows[lunchAt], { kind: 'lunch', start: '11:55', end: '12:25' })
+  assert.equal(rows[lunchAt - 1].start, '11:25')
+  assert.equal(rows[lunchAt + 1].start, '12:25')
 })
 
-test('no slot crosses lunch or runs past 15h00, whatever the length', () => {
+test('no slot crosses a bell, lunch or 15h00, whatever the length', () => {
   const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3))
-  for (const length of [15, 20, 30, 45, 60]) {
+  for (const length of SLOT_LENGTHS) {
     for (const start of daySlotTimes(length)) {
       const s = toMin(start)
       const e = s + length
-      const inMorning = s >= toMin('07:30') && e <= toMin('12:00')
-      const inAfternoon = s >= toMin('12:30') && e <= toMin('15:00')
-      assert.ok(inMorning || inAfternoon, `${length} min at ${start}`)
+      const inside = BOOKING_WINDOWS.some((w) => s >= toMin(w.start) && e <= toMin(w.end))
+      assert.ok(inside, `${length} min at ${start}`)
+      assert.ok(s >= toMin(LUNCH.end) || e <= toMin(LUNCH.start), `${length} min at ${start} crosses lunch`)
     }
   }
 })
 
-test('leftover time at the end of a window is not a slot', () => {
-  // 45 min: the morning (4h30) divides evenly; the afternoon (2h30) leaves 14h45–15h00 empty.
-  assert.deepEqual(daySlotTimes(45), ['07:30', '08:15', '09:00', '09:45', '10:30', '11:15', '12:30', '13:15', '14:00'])
-  // 60 min: 11h30–12h00 and 14h30–15h00 are left over.
-  assert.deepEqual(daySlotTimes(60), ['07:30', '08:30', '09:30', '10:30', '12:30', '13:30'])
+test('every length offered gives slots, and 25 minutes is the default', () => {
+  for (const length of SLOT_LENGTHS) assert.ok(daySlotTimes(length).length > 0, `${length} min`)
+  assert.ok(SLOT_LENGTHS.includes(DEFAULT_SLOT_MINUTES))
+  assert.equal(DEFAULT_SLOT_MINUTES, 25)
+  assert.equal(settings.slotMinutes, DEFAULT_SLOT_MINUTES)
+})
+
+test('leftover time before a bell is not a slot', () => {
+  // 30 min: one slot per period (25 minutes are left before each bell), none after her lunch.
+  assert.deepEqual(daySlotTimes(30), ['07:45', '08:40', '09:35', '10:05', '11:00', '12:50', '13:35', '14:30'])
+  // 45 min: no slot in the récréation or after 14h30.
+  assert.deepEqual(daySlotTimes(45), ['07:45', '08:40', '10:05', '11:00', '12:50', '13:35'])
 })
 
 // --- Item 2: slot length per week ---------------------------------------------

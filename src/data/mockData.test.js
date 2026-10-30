@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { addDays, isSchoolDay } from '@/lib/dates'
+import { addDays, addMinutes, isSchoolDay } from '@/lib/dates'
 import { daySlotTimes, isLocked } from '@/lib/rules'
 import { buildSchedule, initialSettings } from './mockData.js'
 
@@ -19,9 +19,12 @@ for (const today of DAYS) {
     }
   })
 
-  test(`fake data shown on ${today}: every slot fits her hours`, () => {
+  test(`fake data shown on ${today}: every slot fits her hours and the default length`, () => {
     const starts = daySlotTimes(initialSettings.slotMinutes)
-    for (const s of slots) assert.ok(starts.includes(s.start) && s.end <= '15:00', `${s.id} at ${s.start}–${s.end}`)
+    for (const s of slots) {
+      const fits = starts.includes(s.start) && s.end === addMinutes(s.start, initialSettings.slotMinutes)
+      assert.ok(fits, `${s.id} at ${s.start}–${s.end}`)
+    }
   })
 
   test(`fake data shown on ${today}: the 15h00 rule can be shown live`, () => {

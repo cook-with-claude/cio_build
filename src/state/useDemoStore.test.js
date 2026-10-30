@@ -55,15 +55,15 @@ test('a booked cell cannot be closed by a click', () => {
 })
 
 test('"Ouvrir toute la journée" fills empty cells and keeps protected time', () => {
-  const state = makeState({ slots: [slot('p', MON, '07:30', '08:00', 'protected')] })
-  assert.equal(dayHasEmptyCell(state.slots, MON, 30), true)
+  const state = makeState({ slots: [slot('p', MON, '07:45', '08:10', 'protected')] })
+  assert.equal(dayHasEmptyCell(state.slots, MON, 25), true)
   const next = reducer(state, { type: 'openDay', date: MON })
   const kinds = kindsOn(next, MON)
-  assert.equal(kinds.length, 14) // 7h30–12h00 and 12h30–15h00
-  assert.equal(kinds[0], '07:30 protected')
-  assert.ok(!kinds.some((k) => k.startsWith('12:00')), 'lunch stays closed')
+  assert.equal(kinds.length, 14) // 25-min slots between the bells, 7h45–14h55
+  assert.equal(kinds[0], '07:45 protected')
+  assert.ok(!kinds.some((k) => k.startsWith('11:55')), 'lunch stays closed')
   assert.ok(kinds.slice(1).every((k) => k.endsWith('open')))
-  assert.equal(dayHasEmptyCell(next.slots, MON, 30), false)
+  assert.equal(dayHasEmptyCell(next.slots, MON, 25), false)
 })
 
 test('"Copier la semaine précédente" only fills empty times', () => {
@@ -203,22 +203,22 @@ test("the counselor's upcoming list: confirmed bookings from today on, soonest f
 // --- Item 2: a new slot length only applies to weeks not prepared yet --------
 
 test('after the setting changes, a prepared week keeps its length', () => {
-  // This week has a 30-min slot; the setting is now 45 min.
-  let state = makeState({ slots: [slot('a', MON, '09:00', '09:30')], settings: { slotMinutes: 45 } })
-  state = reducer(state, { type: 'toggleCell', date: TUE, start: '09:00', kind: 'open' })
-  assert.equal(state.slots.find((s) => s.date === TUE).end, '09:30')
+  // This week has a 25-min slot; the setting is now 45 min.
+  let state = makeState({ slots: [slot('a', MON, '08:40', '09:05')], settings: { slotMinutes: 45 } })
+  state = reducer(state, { type: 'toggleCell', date: TUE, start: '08:40', kind: 'open' })
+  assert.equal(state.slots.find((s) => s.date === TUE).end, '09:05')
   state = reducer(state, { type: 'openDay', date: TUE })
-  assert.equal(kindsOn(state, TUE).length, 14) // 30-min cells, not 45
+  assert.equal(kindsOn(state, TUE).length, 14) // 25-min cells, not 45
 })
 
 test('an empty week takes the new length', () => {
   const state = reducer(makeState({ settings: { slotMinutes: 45 } }), {
     type: 'toggleCell',
     date: MON,
-    start: '07:30',
+    start: '07:45',
     kind: 'open',
   })
-  assert.equal(state.slots[0].end, '08:15')
+  assert.equal(state.slots[0].end, '08:30')
 })
 
 test('copying last week never mixes lengths in a prepared week', () => {

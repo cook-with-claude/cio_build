@@ -19,8 +19,8 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { formatTime } from '@/lib/dates'
+import { DEFAULT_SLOT_MINUTES, SLOT_LENGTHS } from '@/lib/rules'
 
-const SLOT_LENGTHS = [15, 20, 30, 45, 60]
 const CUTOFF_TIMES = ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
 
 // Counselor settings. Changes apply immediately: no "save" button to forget.
@@ -53,7 +53,7 @@ export default function SettingsSheet({ settings, onChange }) {
               <SelectContent>
                 {SLOT_LENGTHS.map((m) => (
                   <SelectItem key={m} value={String(m)}>
-                    {m} minutes
+                    {m} minutes{m === DEFAULT_SLOT_MINUTES && ' (par défaut)'}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -4,15 +4,16 @@
 
 ---
 
-## Current state (updated 2026-10-28)
+## Current state (updated 2026-10-30)
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
-- **Tests:** `npm test` (103 tests, Node's built-in test runner).
+- **Tests:** `npm test` (103 tests on `main`, Node's built-in test runner).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
+- **Experiment: slots that follow the school bells** (session 9) lives only on the branch `experiment/bell-grid` (local, not pushed). `main` and the live site still use :00/:30 slots, so the two can be compared. On the branch: 104 tests. The EDT experiment is on its own branch, `experiment/edt-import`.
 
 ## Next steps
 
@@ -20,6 +21,7 @@
 2. Show the demo to the conseillère and write down her feedback (here or in `docs/`).
 3. Answer the open questions below.
 4. Then the next phase: Supabase (database + CPF Google sign-in), hosted on Vercel. Not before her feedback.
+5. Bell grid: ask her the questions below. If she picks it, update `rules.md` and `v1-scope.md`, merge `experiment/bell-grid` into `main`, then bring `main` into `experiment/edt-import`. Decide before Supabase: once real slots are saved, switching grids needs a conversion.
 
 ## Open questions
 
@@ -29,8 +31,33 @@
 - Lunar holidays (Fitr, Adha, Hégire, Achoura) may move by a day once announced: correct them in `schoolCalendar.js` when that happens.
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
+- Bell grid, ask her: slots on the bells (7h45, 8h10, 8h40…) or on :00/:30? 25-minute sessions by default? Can her lunch move from 12:00–12:30 to 11:55–12:25 (if not: 13 slots a day instead of 14)? The pause méridienne slot at 12h50 (students eat after) or 13h10 (students eat first)?
+- Bell grid, docs not updated yet (waiting for her answer): `rules.md` still says bookable windows 7:30–12:00 and 12:30–15:00 with lunch 12:00–12:30; `v1-scope.md` item 7 still says default 30 min.
 
 ---
+
+## 2026-10-30 · Session 9: slots that follow the school bells (branch `experiment/bell-grid`)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** her :00/:30 slots don't match the school bells (7h45, 8h40, 9h35 récré…), so a student can't book the récré without missing class. Try a grid that follows the bells, keeping « Durée d'un créneau ».
+
+**Done**
+- **On `experiment/edt-import` first:** fixed `slotFits()`. The 5-minute allowance now only applies at the start of a slot (the student arrives up to 5 min late, never leaves class early). Before, 11:30–12:00 matched a student with class at 11:55. Committed with Nadim's spec and log edits (130 tests).
+- **New branch `experiment/bell-grid`, from `main`:**
+  - Her day is cut at the bells (`BOOKING_WINDOWS` in `src/lib/rules.js`): 7h45–8h40, 8h40–9h35, 9h35–10h05 (récré), 10h05–11h00, 11h00–11h55, 12h25–12h50, 12h50–13h35 (pause méridienne), 13h35–14h30, 14h30–15h00. Each window holds as many back-to-back slots as fit, starting at the bell; leftover minutes before the next bell are not a slot. So no slot ever crosses a bell.
+  - Her lunch moved to 11h55–12h25 (Nadim's proposal, to check with her).
+  - « Durée d'un créneau » kept: 15, 20, **25 (par défaut)**, 30, 45 min. 60 was removed: no window is that long. Slots a day: 23 / 15 / **14** / 8 / 6. With 25 min: 7h45, 8h10, 8h40, 9h05, 9h35, 10h05, 10h30, 11h00, 11h25, 12h25, 12h50, 13h35, 14h00, 14h30.
+  - Fake data moved onto the new grid (one booking at the récré, one at the pause méridienne).
+  - Tests: 103 → 104. Checked in Chrome on both sides, including 30 min in Réglages (8 rows a day). No console errors.
+
+**Decisions**
+- Default slot length 25 minutes, shown as « 25 minutes (par défaut) » (Nadim).
+- Built on its own branch, so `main` and the live site keep the :00/:30 grid until she decides.
+
+**Known issues / notes**
+- The bell times now live in two places: `BOOKING_WINDOWS` here and `PERIODS` in `timetable.js` on the EDT branch. Make one use the other when the branches meet.
+- 7h30–7h45 is never bookable (school starts at 7h45), even though she is in from 7h30.
 
 ## 2026-10-28 · Session 6: school calendar, phone dots, decisions
 

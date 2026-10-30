@@ -14,22 +14,34 @@ import {
 
 // --- Her hours -------------------------------------------------------------
 // Official 2026-27 timetable: she is present Mon/Tue/Wed/Fri 7:30–15:15 and
-// Thu 7:30–15:00, with lunch 12:00–12:30. Students can book inside these
-// windows, the same every day.
+// Thu 7:30–15:00. Her slots follow the school bells (Pronote, « Organisation
+// d'une journée »), so a student never misses class for a session: these
+// windows run from one bell to the next, the same every day. Her lunch moves
+// to 11:55–12:25, inside a period (bell grid, Nadim 2026-10-30, to check
+// with her; docs/rules.md still says 12:00–12:30).
 export const BOOKING_WINDOWS = [
-  { start: '07:30', end: '12:00' },
-  { start: '12:30', end: '15:00' },
+  { start: '07:45', end: '08:40' },
+  { start: '08:40', end: '09:35' },
+  { start: '09:35', end: '10:05' }, // récréation
+  { start: '10:05', end: '11:00' },
+  { start: '11:00', end: '11:55' },
+  { start: '12:25', end: '12:50' }, // after her lunch
+  { start: '12:50', end: '13:35' }, // pause méridienne
+  { start: '13:35', end: '14:30' },
+  { start: '14:30', end: '15:00' }, // she leaves at 15:00 on Thursdays
 ]
-export const LUNCH = { start: '12:00', end: '12:30' }
+export const LUNCH = { start: '11:55', end: '12:25' }
 
 // The rows of one day: the slot start times of each window, with lunch in
-// between. Slots never cross lunch or run past 15:00; leftover time at the end
-// of a window (when the length doesn't divide it evenly) is not a slot.
+// between. Each window starts at a bell and holds as many back-to-back slots
+// as fit; leftover time before the next bell is not a slot, so slots never
+// cross a bell, lunch or 15:00.
 // -> [{ kind: "slot", start }, …, { kind: "lunch", start, end }, …]
 export function dayRows(slotMinutes) {
   const rows = []
+  const afterLunch = BOOKING_WINDOWS.findIndex((w) => w.start >= LUNCH.end)
   BOOKING_WINDOWS.forEach((window, i) => {
-    if (i > 0) rows.push({ kind: 'lunch', ...LUNCH })
+    if (i === afterLunch) rows.push({ kind: 'lunch', ...LUNCH })
     const end = timeToMinutes(window.end)
     for (let t = timeToMinutes(window.start); t + slotMinutes <= end; t += slotMinutes) {
       rows.push({ kind: 'slot', start: minutesToTime(t) })
@@ -45,6 +57,11 @@ export const daySlotTimes = (slotMinutes) =>
     .map((row) => row.start)
 
 // --- Slot length -------------------------------------------------------------
+// The lengths she can pick in « Durée d'un créneau ». 25 minutes fits two
+// slots in each period; every length here gives at least one slot a day.
+export const SLOT_LENGTHS = [15, 20, 25, 30, 45]
+export const DEFAULT_SLOT_MINUTES = 25
+
 // A week keeps the length it was prepared with: a new « Durée d'un créneau »
 // only applies to weeks with no slot yet (open or protected), so the grid's
 // cells always match her slots.

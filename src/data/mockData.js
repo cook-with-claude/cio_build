@@ -15,6 +15,7 @@
 // stale dates whenever it is presented.
 
 import { addDays, isSchoolDay, nextSchoolDay, startOfWeek, todayInBeirut, weekDays } from '../lib/dates.js'
+import { DEFAULT_SLOT_MINUTES } from '../lib/rules.js'
 
 // Topics a student may optionally attach to a booking.
 export const TOPICS = [
@@ -38,7 +39,7 @@ export const DEMO_STUDENT_ID = 'stu-1'
 
 // settings: one set of options chosen by the counselor.
 export const initialSettings = {
-  slotMinutes: 30, // length of one slot, for weeks not prepared yet
+  slotMinutes: DEFAULT_SLOT_MINUTES, // length of one slot (25 min), for weeks not prepared yet
   cutoffTime: '15:00', // a day's bookings lock on the previous school day at this time
   approvalMode: false, // when on, bookings are requests she accepts or refuses
   bookingHorizonWeeks: 2, // how many weeks ahead students can book
@@ -56,7 +57,7 @@ export function buildSchedule(today = todayInBeirut()) {
   // The next two school days (holidays skipped), whatever day the demo is shown: the first
   // locks at the cutoff today (on a Friday, Monday locks at 15h00), the second
   // stays bookable, so the 15h00 rule can be shown live. Their times
-  // (14h00–15h00) are free all next week.
+  // (14h00–14h55) are free all next week.
   const soon1 = nextSchoolDay(today)
   const soon2 = nextSchoolDay(soon1)
 
@@ -65,20 +66,20 @@ export function buildSchedule(today = todayInBeirut()) {
   //   kind "protected" -> "Temps protégé": her own work time, never bookable
   // A time with no slot row is simply closed.
   const slots = [
-    { id: 'slot-1', date: day(0), start: '09:00', end: '09:30', kind: 'open' },
-    { id: 'slot-2', date: day(0), start: '09:30', end: '10:00', kind: 'open' },
-    { id: 'slot-3', date: day(0), start: '10:00', end: '10:30', kind: 'protected' },
-    { id: 'slot-4', date: day(1), start: '11:00', end: '11:30', kind: 'open' },
-    { id: 'slot-5', date: day(1), start: '11:30', end: '12:00', kind: 'open' },
-    { id: 'slot-6', date: day(2), start: '08:00', end: '08:30', kind: 'protected' },
-    { id: 'slot-7', date: day(2), start: '08:30', end: '09:00', kind: 'protected' },
-    { id: 'slot-8', date: day(3), start: '13:00', end: '13:30', kind: 'open' },
-    { id: 'slot-9', date: day(3), start: '13:30', end: '14:00', kind: 'open' },
-    { id: 'slot-10', date: day(4), start: '10:00', end: '10:30', kind: 'open' },
-    { id: 'slot-11', date: soon1, start: '14:00', end: '14:30', kind: 'open' },
-    { id: 'slot-12', date: soon1, start: '14:30', end: '15:00', kind: 'open' },
-    { id: 'slot-13', date: soon2, start: '14:00', end: '14:30', kind: 'open' },
-    { id: 'slot-14', date: soon2, start: '14:30', end: '15:00', kind: 'protected' },
+    { id: 'slot-1', date: day(0), start: '09:05', end: '09:30', kind: 'open' },
+    { id: 'slot-2', date: day(0), start: '09:35', end: '10:00', kind: 'open' }, // récréation
+    { id: 'slot-3', date: day(0), start: '10:05', end: '10:30', kind: 'protected' },
+    { id: 'slot-4', date: day(1), start: '11:00', end: '11:25', kind: 'open' },
+    { id: 'slot-5', date: day(1), start: '11:25', end: '11:50', kind: 'open' },
+    { id: 'slot-6', date: day(2), start: '07:45', end: '08:10', kind: 'protected' },
+    { id: 'slot-7', date: day(2), start: '08:10', end: '08:35', kind: 'protected' },
+    { id: 'slot-8', date: day(3), start: '12:50', end: '13:15', kind: 'open' }, // pause méridienne
+    { id: 'slot-9', date: day(3), start: '13:35', end: '14:00', kind: 'open' },
+    { id: 'slot-10', date: day(4), start: '10:05', end: '10:30', kind: 'open' },
+    { id: 'slot-11', date: soon1, start: '14:00', end: '14:25', kind: 'open' },
+    { id: 'slot-12', date: soon1, start: '14:30', end: '14:55', kind: 'open' },
+    { id: 'slot-13', date: soon2, start: '14:00', end: '14:25', kind: 'open' },
+    { id: 'slot-14', date: soon2, start: '14:30', end: '14:55', kind: 'protected' },
   ]
 
   // bookings: id, slotId, studentId, topic (a TOPICS id, or null), status, createdAt
