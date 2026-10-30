@@ -11,9 +11,10 @@
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
 - **Tests:** `npm test` (103 tests on `main`, Node's built-in test runner).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
+- **Dark mode** (session 10): « Thème » in the counselor's Réglages (Système / Clair / Sombre), applies to both sides for the demo. On `main` (live site) and merged into both experiment branches.
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
-- **Experiment: slots that follow the school bells** (session 9) lives only on the branch `experiment/bell-grid` (local, not pushed). `main` and the live site still use :00/:30 slots, so the two can be compared. On the branch: 104 tests. The EDT experiment is on its own branch, `experiment/edt-import`.
+- **Experiment: slots that follow the school bells** (session 9) lives only on the branch `experiment/bell-grid` (on GitHub, not merged into `main`). `main` and the live site still use :00/:30 slots, so the two can be compared. On the branch: 109 tests (with dark mode). The EDT experiment is on its own branch, `experiment/edt-import`.
 
 ## Next steps
 
@@ -34,6 +35,27 @@
 - Bell grid, ask her: slots on the bells (7h45, 8h10, 8h40…) or on :00/:30? 25-minute sessions by default? Can her lunch move from 12:00–12:30 to 11:55–12:25 (if not: 13 slots a day instead of 14)? The pause méridienne slot at 12h50 (students eat after) or 13h10 (students eat first)?
 
 ---
+
+## 2026-10-30 · Session 10: dark mode (branch `dark-mode`)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** a light/dark theme choice in the counselor's Réglages: Système, Clair, Sombre (three icon buttons, like Nadim's screenshot).
+
+**Done**
+- **Réglages → « Thème »:** Système (follows the device, the default) / Clair / Sombre. Applies at once, and is remembered in the browser after a reload (`localStorage`, key `cio-theme`).
+- **Demo shortcut:** her choice also changes the student view, and the hint says so (« Pour la démo, s’applique aussi à la vue élève »). Students have no settings of their own yet.
+- **Dark colours:** deep CPF navy instead of shadcn's grey default (`.dark` in `src/index.css`). Text colours are lighter tints (blue, green « Disponible », orange « Aujourd’hui »); the yellow « Demande » becomes dark gold with light text; the four-colour band and the logo keep the real CPF colours. Every text/background pair contrast-checked (lowest 4.7:1, the white « Confirmé » badge, same as in light).
+- `index.html` applies the saved theme before the page draws, so a dark page never flashes white.
+- Tests: 103 → 108 (`src/lib/theme.test.js`). Checked in Chrome: both sides, booking window, phone size, reload, no console errors.
+
+**Decisions**
+- Built on its own branch `dark-mode`, from `main` (not on `experiment/bell-grid`): it doesn't depend on the bells. The session 9 log entry lives on `experiment/bell-grid`.
+- The choice is a display preference, so it lives in the browser, not in the demo data.
+
+**Known issues / notes**
+- Later (Supabase phase): give each user their own theme setting (students too, once they have settings/privacy), and stop the counselor's choice from changing the student side. The places to change are marked in `src/lib/theme.js`.
+- Merged into `main` (live site), `experiment/bell-grid` and `experiment/edt-import`, all pushed. On the EDT branch, « À vérifier » cells use the real CPF yellow ring (`ring-cpf-yellow`): the dark gold highlight was too faint for a warning.
 
 ## 2026-10-30 · Session 9: slots that follow the school bells (branch `experiment/bell-grid`)
 

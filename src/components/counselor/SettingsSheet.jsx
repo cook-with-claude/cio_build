@@ -1,4 +1,4 @@
-import { Settings } from 'lucide-react'
+import { Monitor, Moon, Settings, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -18,13 +18,24 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatTime } from '@/lib/dates'
 import { DEFAULT_SLOT_MINUTES, SLOT_LENGTHS } from '@/lib/rules'
 
 const CUTOFF_TIMES = ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
 
+// Same order as THEMES in src/lib/theme.js.
+const THEME_OPTIONS = [
+  { id: 'system', label: 'Système', icon: Monitor, hint: 'Suit le réglage de l’appareil (clair ou sombre).' },
+  { id: 'light', label: 'Clair', icon: Sun, hint: 'Toujours clair.' },
+  { id: 'dark', label: 'Sombre', icon: Moon, hint: 'Toujours sombre.' },
+]
+
 // Counselor settings. Changes apply immediately: no "save" button to forget.
-export default function SettingsSheet({ settings, onChange }) {
+export default function SettingsSheet({ settings, onChange, theme, onThemeChange }) {
+  const themeHint = THEME_OPTIONS.find((t) => t.id === theme)?.hint
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -101,6 +112,44 @@ export default function SettingsSheet({ settings, onChange }) {
               onCheckedChange={(checked) => onChange({ approvalMode: checked })}
               className="mt-1"
             />
+          </div>
+
+          <Separator />
+
+          {/* Demo shortcut: this also changes the student view (see src/lib/theme.js). */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-4">
+              <Label id="theme-label">Thème</Label>
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                spacing={0}
+                value={theme}
+                // Ignore clicks on the already-selected option (one theme is always active).
+                onValueChange={(value) => value && onThemeChange(value)}
+                aria-labelledby="theme-label"
+                className="shrink-0 rounded-lg bg-background"
+              >
+                {THEME_OPTIONS.map(({ id, label, icon: Icon }) => (
+                  <Tooltip key={id}>
+                    {/* The tooltip takes over data-state, so "selected" is read from aria-checked. */}
+                    <TooltipTrigger asChild>
+                      <ToggleGroupItem
+                        value={id}
+                        aria-label={label}
+                        className="size-11 px-0 md:size-9 aria-checked:bg-primary aria-checked:text-primary-foreground"
+                      >
+                        <Icon aria-hidden="true" />
+                      </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>{label}</TooltipContent>
+                  </Tooltip>
+                ))}
+              </ToggleGroup>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {themeHint} Pour la démo, s’applique aussi à la vue élève.
+            </p>
           </div>
         </div>
       </SheetContent>

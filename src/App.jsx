@@ -13,6 +13,7 @@ import StudentView from '@/components/student/StudentView'
 import { nextAvailableSlot, weekHasNoAvailableSlot } from '@/components/student/availability'
 import { DEMO_STUDENT_ID } from '@/data/mockData'
 import { tomorrowSummary, upcomingAppointments, useDemoStore } from '@/state/useDemoStore'
+import { useTheme } from '@/state/useTheme'
 import { addDays, formatLongDate, nowInBeirut, startOfWeek } from '@/lib/dates'
 
 export default function App() {
@@ -25,6 +26,8 @@ export default function App() {
   const [role, setRole] = useState('student')
   const [weekStart, setWeekStart] = useState(currentWeek)
   const [state, actions] = useDemoStore()
+  // Light/dark look: set in the counselor's Réglages, applies to both sides (see theme.js).
+  const [theme, setTheme, dark] = useTheme()
   // Counselor side: the "Prochains rendez-vous" window.
   const [showUpcoming, setShowUpcoming] = useState(false)
 
@@ -124,12 +127,14 @@ export default function App() {
               now={now}
               showUpcoming={showUpcoming}
               onCloseUpcoming={() => setShowUpcoming(false)}
+              theme={theme}
+              onThemeChange={setTheme}
             />
           ) : (
             <StudentView state={state} actions={actions} weekStart={weekStart} now={now} />
           )}
         </main>
-        <Toaster position="bottom-center" containerAriaLabel="Notifications" />
+        <Toaster position="bottom-center" containerAriaLabel="Notifications" theme={dark ? 'dark' : 'light'} />
       </div>
     </TooltipProvider>
   )
