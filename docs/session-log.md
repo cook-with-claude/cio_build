@@ -4,7 +4,7 @@
 
 ---
 
-## Current state (updated 2026-10-29)
+## Current state (updated 2026-10-30)
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
@@ -13,7 +13,7 @@
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
-- **Experiment: timetable (EDT) import** (session 7) lives only on the branch `experiment/edt-import`, pushed to GitHub, with a Vercel preview (team login needed). `main` and the live site don't have it. To try it locally: `git switch experiment/edt-import`, then `npm install`, then `npm run dev`; `git switch main` to go back. On the branch: 127 tests. This log entry is on the branch only.
+- **Experiment: timetable (EDT) import** (session 7) lives only on the branch `experiment/edt-import`, pushed to GitHub, with a Vercel preview (team login needed). `main` and the live site don't have it. To try it locally: `git switch experiment/edt-import`, then `npm install`, then `npm run dev`; `git switch main` to go back. On the branch: 129 tests. The session 7 and 8 log entries are on the branch only.
 
 ## Next steps
 
@@ -33,7 +33,27 @@
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
 - EDT experiment: ask the school if reading a PDF exported with Pronote's own button is fine (rule 3), and how Q1/Q2 behave across holidays (today: they alternate every calendar week).
 - EDT experiment: should 7:30–7:45 count as free when the first period is free? (Today: no, so a 7:30 slot is never « Compatible ».)
+- EDT experiment: ask her if a « Compatible » slot may overlap a class by up to 5 minutes (today: yes, so 9:30–10:00 matches the 9:35–10:05 recess and the student leaves class 5 min early), or if her slots should follow the school bells instead (e.g. 9:35–10:05).
+- EDT experiment: `docs/edt-import-spec.md` still says a slot fits only if it is **entirely** inside free time; the 5-minute overlap (session 8) contradicts it. Update the spec if the overlap is kept.
 - EDT experiment: a timetable is data beyond the `rules.md` list. Today it never leaves the browser; keeping it in the database later would need a decision.
+
+---
+
+## 2026-10-30 · Session 8: EDT experiment, recess and lunch (branch `experiment/edt-import`)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** try the EDT experiment locally, and fix what Nadim found: the 9:30–10:00 slot was never « Compatible », even when the student is free at the morning recess.
+
+**Why it happened:** the recess runs 9:35–10:05, but her slots start on the hour and half hour. No 30-minute slot fits inside the recess: 9:30–10:00 overlaps the 8:40–9:35 class by 5 minutes.
+
+**What was done:**
+- **5-minute overlap** (chosen by Nadim, over asking her first or adding a recess slot): a slot counts as « Compatible » if it overlaps classes by 5 minutes at most (`OVERLAP_MINUTES` in `src/lib/timetable.js`). A slot overlapping by more (e.g. 8:30–9:00 against an 8:40 class) still doesn't match.
+- **Check grid:** « Récréation » (9:35–10:05) and « Pause méridienne » (12:50–13:35) are fixed rows across the week, not tappable. Lunch is now always free, every day (Nadim's choice): a student with a class at lunch can't mark it, and the PDF reader ignores that row.
+- **Badge** next to « Votre emploi du temps »: « Essai » became « Bêta ».
+- 2 new tests (129 in all). Committed and pushed to the branch; `main` and the live site are unchanged.
+
+**Left open:** ask her about the 5-minute overlap (see Open questions).
 
 ---
 

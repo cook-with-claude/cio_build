@@ -21,7 +21,7 @@ export default function TimetableCard({ timetable, weekStart, onImport, onManual
             </div>
             <div className="flex flex-col gap-1">
               <p className="flex items-center gap-2 font-medium">
-                Votre emploi du temps <Badge variant="outline">Essai</Badge>
+                Votre emploi du temps <Badge variant="outline">Bêta</Badge>
               </p>
               <p className="text-sm text-muted-foreground">
                 Importez-le depuis Pronote pour voir les créneaux où vous n’avez pas cours.
@@ -54,7 +54,7 @@ export default function TimetableCard({ timetable, weekStart, onImport, onManual
             </div>
             <div className="flex flex-col gap-1">
               <p className="flex items-center gap-2 font-medium">
-                Votre emploi du temps <Badge variant="outline">Essai</Badge>
+                Votre emploi du temps <Badge variant="outline">Bêta</Badge>
               </p>
               <p className="flex flex-wrap items-center gap-x-2 text-sm">
                 <span>
