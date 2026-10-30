@@ -65,7 +65,16 @@ function DayAction({ icon: Icon, label, date, onClick }) {
 }
 
 // `showUpcoming` opens the "Prochains rendez-vous" window (its button is in App).
-export default function CounselorView({ state, actions, weekStart, now, showUpcoming, onCloseUpcoming }) {
+export default function CounselorView({
+  state,
+  actions,
+  weekStart,
+  now,
+  showUpcoming,
+  onCloseUpcoming,
+  theme,
+  onThemeChange,
+}) {
   const { slots, bookings, settings, messages, notifications } = state
   const [tool, setTool] = useState('open')
   const [openBookingId, setOpenBookingId] = useState(null)
@@ -145,6 +154,8 @@ export default function CounselorView({ state, actions, weekStart, now, showUpco
         counts={weekCounts(slots, bookings, weekStart)}
         settings={settings}
         onSettingsChange={actions.updateSettings}
+        theme={theme}
+        onThemeChange={onThemeChange}
         onCopyPreviousWeek={copyPreviousWeek}
       />
 

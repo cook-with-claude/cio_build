@@ -4,13 +4,14 @@
 
 ---
 
-## Current state (updated 2026-10-28)
+## Current state (updated 2026-10-30)
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
 - **Tests:** `npm test` (103 tests, Node's built-in test runner).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
+- **Dark mode** (session 10) lives on the branch `dark-mode` (local, not merged): « Thème » in the counselor's Réglages, applies to both sides for the demo.
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
 
@@ -31,6 +32,27 @@
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
 
 ---
+
+## 2026-10-30 · Session 10: dark mode (branch `dark-mode`)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** a light/dark theme choice in the counselor's Réglages: Système, Clair, Sombre (three icon buttons, like Nadim's screenshot).
+
+**Done**
+- **Réglages → « Thème »:** Système (follows the device, the default) / Clair / Sombre. Applies at once, and is remembered in the browser after a reload (`localStorage`, key `cio-theme`).
+- **Demo shortcut:** her choice also changes the student view, and the hint says so (« Pour la démo, s’applique aussi à la vue élève »). Students have no settings of their own yet.
+- **Dark colours:** deep CPF navy instead of shadcn's grey default (`.dark` in `src/index.css`). Text colours are lighter tints (blue, green « Disponible », orange « Aujourd’hui »); the yellow « Demande » becomes dark gold with light text; the four-colour band and the logo keep the real CPF colours. Every text/background pair contrast-checked (lowest 4.7:1, the white « Confirmé » badge, same as in light).
+- `index.html` applies the saved theme before the page draws, so a dark page never flashes white.
+- Tests: 103 → 108 (`src/lib/theme.test.js`). Checked in Chrome: both sides, booking window, phone size, reload, no console errors.
+
+**Decisions**
+- Built on its own branch `dark-mode`, from `main` (not on `experiment/bell-grid`): it doesn't depend on the bells. The session 9 log entry lives on `experiment/bell-grid`.
+- The choice is a display preference, so it lives in the browser, not in the demo data.
+
+**Known issues / notes**
+- Later (Supabase phase): give each user their own theme setting (students too, once they have settings/privacy), and stop the counselor's choice from changing the student side. The places to change are marked in `src/lib/theme.js`.
+- Not merged yet: `main` and the live site don't have it.
 
 ## 2026-10-28 · Session 6: school calendar, phone dots, decisions
 
