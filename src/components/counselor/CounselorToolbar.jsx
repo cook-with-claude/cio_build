@@ -11,7 +11,16 @@ const TOOLS = [
 
 // Pick what a click on a slot does, see the week at a glance, copy last week,
 // open the settings.
-export default function CounselorToolbar({ tool, onToolChange, counts, settings, onSettingsChange, onCopyPreviousWeek }) {
+export default function CounselorToolbar({
+  tool,
+  onToolChange,
+  counts,
+  settings,
+  onSettingsChange,
+  theme,
+  onThemeChange,
+  onCopyPreviousWeek,
+}) {
   return (
     <Card size="sm">
       {/* Two rows: what a click does (and the week's counts), then the buttons. */}
@@ -49,7 +58,12 @@ export default function CounselorToolbar({ tool, onToolChange, counts, settings,
               <Copy aria-hidden="true" />
               Copier la semaine précédente
             </Button>
-            <SettingsSheet settings={settings} onChange={onSettingsChange} />
+            <SettingsSheet
+              settings={settings}
+              onChange={onSettingsChange}
+              theme={theme}
+              onThemeChange={onThemeChange}
+            />
           </div>
         </div>
       </CardContent>

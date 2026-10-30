@@ -20,7 +20,8 @@ const CELL = {
   unsure: {
     label: 'À vérifier',
     icon: TriangleAlert,
-    className: 'bg-highlight/40 text-foreground ring-2 ring-highlight hover:bg-highlight/60',
+    // The ring is the real CPF yellow: the dark theme's gold highlight is too faint for a warning.
+    className: 'bg-highlight/40 text-foreground ring-2 ring-cpf-yellow hover:bg-highlight/60',
   },
 }
 

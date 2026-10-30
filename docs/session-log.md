@@ -11,6 +11,7 @@
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
 - **Tests:** `npm test` (103 tests, Node's built-in test runner).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
+- **Dark mode** (session 10): « Thème » in the counselor's Réglages (Système / Clair / Sombre), applies to both sides for the demo. On `main` (live site) and merged into both experiment branches.
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
 - **Experiment: timetable (EDT) import** (session 7) lives only on the branch `experiment/edt-import`, pushed to GitHub, with a Vercel preview (team login needed). `main` and the live site don't have it. To try it locally: `git switch experiment/edt-import`, then `npm install`, then `npm run dev`; `git switch main` to go back. On the branch: 129 tests. The session 7 and 8 log entries are on the branch only.
@@ -37,6 +38,27 @@
 - EDT experiment: a timetable is data beyond the `rules.md` list. Today it never leaves the browser; keeping it in the database later would need a decision.
 
 ---
+
+## 2026-10-30 · Session 10: dark mode (branch `dark-mode`)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** a light/dark theme choice in the counselor's Réglages: Système, Clair, Sombre (three icon buttons, like Nadim's screenshot).
+
+**Done**
+- **Réglages → « Thème »:** Système (follows the device, the default) / Clair / Sombre. Applies at once, and is remembered in the browser after a reload (`localStorage`, key `cio-theme`).
+- **Demo shortcut:** her choice also changes the student view, and the hint says so (« Pour la démo, s’applique aussi à la vue élève »). Students have no settings of their own yet.
+- **Dark colours:** deep CPF navy instead of shadcn's grey default (`.dark` in `src/index.css`). Text colours are lighter tints (blue, green « Disponible », orange « Aujourd’hui »); the yellow « Demande » becomes dark gold with light text; the four-colour band and the logo keep the real CPF colours. Every text/background pair contrast-checked (lowest 4.7:1, the white « Confirmé » badge, same as in light).
+- `index.html` applies the saved theme before the page draws, so a dark page never flashes white.
+- Tests: 103 → 108 (`src/lib/theme.test.js`). Checked in Chrome: both sides, booking window, phone size, reload, no console errors.
+
+**Decisions**
+- Built on its own branch `dark-mode`, from `main` (not on `experiment/bell-grid`): it doesn't depend on the bells. The session 9 log entry lives on `experiment/bell-grid`.
+- The choice is a display preference, so it lives in the browser, not in the demo data.
+
+**Known issues / notes**
+- Later (Supabase phase): give each user their own theme setting (students too, once they have settings/privacy), and stop the counselor's choice from changing the student side. The places to change are marked in `src/lib/theme.js`.
+- Merged into `main` (live site), `experiment/bell-grid` and `experiment/edt-import`, all pushed. On the EDT branch, « À vérifier » cells use the real CPF yellow ring (`ring-cpf-yellow`): the dark gold highlight was too faint for a warning.
 
 ## 2026-10-30 · Session 8: EDT experiment, recess and lunch (branch `experiment/edt-import`)
 
