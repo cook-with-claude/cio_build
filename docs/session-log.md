@@ -21,7 +21,7 @@
 2. Show the demo to the conseillère and write down her feedback (here or in `docs/`).
 3. Answer the open questions below.
 4. Then the next phase: Supabase (database + CPF Google sign-in), hosted on Vercel. Not before her feedback.
-5. Bell grid: ask her the questions below. If she picks it, update `rules.md` and `v1-scope.md`, merge `experiment/bell-grid` into `main`, then bring `main` into `experiment/edt-import`. Decide before Supabase: once real slots are saved, switching grids needs a conversion.
+5. Bell grid: ask her the questions below. If she picks it, merge `experiment/bell-grid` into `main`, then bring `main` into `experiment/edt-import`. Decide before Supabase: once real slots are saved, switching grids needs a conversion.
 
 ## Open questions
 
@@ -32,7 +32,6 @@
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
 - Bell grid, ask her: slots on the bells (7h45, 8h10, 8h40…) or on :00/:30? 25-minute sessions by default? Can her lunch move from 12:00–12:30 to 11:55–12:25 (if not: 13 slots a day instead of 14)? The pause méridienne slot at 12h50 (students eat after) or 13h10 (students eat first)?
-- Bell grid, docs not updated yet (waiting for her answer): `rules.md` still says bookable windows 7:30–12:00 and 12:30–15:00 with lunch 12:00–12:30; `v1-scope.md` item 7 still says default 30 min.
 
 ---
 
@@ -53,6 +52,7 @@
 
 **Decisions**
 - Default slot length 25 minutes, shown as « 25 minutes (par défaut) » (Nadim).
+- `rules.md` (her lunch, bookable times) and `v1-scope.md` (items 7, 8 and the time rule) updated for the bell grid, on this branch only, marked « to confirm with her » (Nadim approved). If she keeps :00/:30, drop the branch and the docs on `main` stay right.
 - Built on its own branch, so `main` and the live site keep the :00/:30 grid until she decides.
 
 **Known issues / notes**

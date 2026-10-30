@@ -1,5 +1,5 @@
 # Hard rules
-_Last updated: 2026-10-28. Ask Nadim before changing or bending any of these._
+_Last updated: 2026-10-30. Ask Nadim before changing or bending any of these._
 
 1. **Golden rule.** The app must add zero work or friction for the counselor or the administration. Her side must take seconds, not minutes. If a feature adds work for her, say so before building it.
 2. **Privacy: the users are minors.**
@@ -9,8 +9,8 @@ _Last updated: 2026-10-28. Ask Nadim before changing or bending any of these._
    - Collecting anything beyond this list needs Nadim's approval.
 3. **Pronote.** Never use unofficial Pronote APIs, scraping, or reverse engineering. There is a legal risk, and it would kill the school's approval.
 4. **Time.** Use the Asia/Beirut timezone. No same-day bookings. _(Hours and cutoff decided by Nadim, 2026-10-24/26, from the official 2026-27 timetable.)_
-   - The counselor is present Mon/Tue/Wed/Fri 7:30–15:15 and Thu 7:30–15:00, with lunch 12:00–12:30.
-   - Bookable windows are the same every day: **7:30–12:00 and 12:30–15:00**. Lunch is never bookable. No slot crosses lunch or runs past 15:00.
+   - The counselor is present Mon/Tue/Wed/Fri 7:30–15:15 and Thu 7:30–15:00, with lunch 11:55–12:25. _(Bell grid, Nadim 2026-10-30, to confirm with her; was 12:00–12:30.)_
+   - Slots follow the school bells, the same every day: bookable from **7:45 to 15:00**, cut at each bell (7:45, 8:40, 9:35, 10:05, 11:00, 11:55, 12:50, 13:35, 14:30). No slot crosses a bell, lunch, or 15:00. Lunch is never bookable. _(Bell grid, Nadim 2026-10-30, to confirm with her.)_
    - Cutoff: a day's bookings lock on the **previous school day** at the cutoff hour (default 15:00). Monday locks on Friday.
    - **School days follow the official CPF calendar** (`src/data/schoolCalendar.js`): no bookings on holidays or during breaks, and the cutoff falls on the last school day before them. The calendar changes every year: Nadim sends the new one, and it is added as a new school year in that file. _(Decided by Nadim, 2026-10-28.)_
 5. **Zero maintenance.** Nothing that needs manual upkeep, personal paid accounts, or paid plans. Free tiers only. Ask before anything that could cost money.
