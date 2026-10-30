@@ -1,8 +1,9 @@
+import { Fragment } from 'react'
 import { BookOpen, Check, TriangleAlert } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { formatTime, formatWeekdayLong, formatWeekdayShort, weekDays } from '@/lib/dates'
-import { PERIODS, WEEKDAYS, WEEK_TYPES, countUnsure, nextCellValue, setCell } from '@/lib/timetable'
+import { PERIODS, RECESS, WEEKDAYS, WEEK_TYPES, countUnsure, nextCellValue, setCell } from '@/lib/timetable'
 
 // Weekday names, taken from any Monday–Friday (only the names are used).
 const NAMED_WEEK = weekDays('2026-11-16')
@@ -25,7 +26,7 @@ const CELL = {
 
 // The student's timetable as a Pronote-like grid, one week type at a time:
 // each period is « Cours », « Libre » or « À vérifier »; a tap changes it
-// (see nextCellValue). Recesses are not shown: they are always free.
+// (see nextCellValue). The morning recess and lunch are fixed rows: always free.
 export default function TimetableGrid({ timetable, weekType, onWeekTypeChange, onChange }) {
   const days = timetable[weekType]
 
@@ -75,47 +76,69 @@ export default function TimetableGrid({ timetable, weekType, onWeekTypeChange, o
           </tr>
         </thead>
         <tbody>
-          {PERIODS.map((p) => (
-            <tr key={p.start}>
-              <th scope="row" className="pr-1 text-right align-middle font-normal text-muted-foreground tabular-nums">
-                {formatTime(p.start)}
-                {p.lunch && <span className="block text-[10px]">Déjeuner</span>}
-              </th>
-              {WEEKDAYS.map((d) => {
-                const value = days[d][p.start]
-                const { label, icon: Icon, className } = CELL[value]
-                return (
-                  <td key={d} className="p-0">
-                    <button
-                      type="button"
-                      onClick={() => onChange(setCell(timetable, weekType, d, p.start, nextCellValue(value)))}
-                      aria-label={`${DAY_LONG[d]}, ${formatTime(p.start)}–${formatTime(p.end)}, semaine ${weekType} : ${label}. Toucher pour changer.`}
-                      className={cn(
-                        'press flex h-11 w-full items-center justify-center gap-1 rounded-md border border-transparent px-0.5 font-medium transition-colors md:h-9',
-                        'focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
-                        className,
-                      )}
-                    >
-                      <Icon className="size-3.5 shrink-0 max-sm:hidden" aria-hidden="true" />
-                      {/* Phones are narrow: « À vérifier » becomes « ? ». */}
-                      <span className="truncate">
-                        {value === 'unsure' ? (
-                          <>
-                            <span className="sm:hidden">?</span>
-                            <span className="max-sm:hidden">{label}</span>
-                          </>
-                        ) : (
-                          label
-                        )}
-                      </span>
-                    </button>
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
+          {PERIODS.map((p) =>
+            p.lunch ? (
+              <BreakRow key={p.start} start={p.start} label="Pause méridienne" />
+            ) : (
+              <Fragment key={p.start}>
+                {p.start === RECESS.end && <BreakRow start={RECESS.start} label="Récréation" />}
+                <tr>
+                  <th scope="row" className="pr-1 text-right align-middle font-normal text-muted-foreground tabular-nums">
+                    {formatTime(p.start)}
+                  </th>
+                  {WEEKDAYS.map((d) => {
+                    const value = days[d][p.start]
+                    const { label, icon: Icon, className } = CELL[value]
+                    return (
+                      <td key={d} className="p-0">
+                        <button
+                          type="button"
+                          onClick={() => onChange(setCell(timetable, weekType, d, p.start, nextCellValue(value)))}
+                          aria-label={`${DAY_LONG[d]}, ${formatTime(p.start)}–${formatTime(p.end)}, semaine ${weekType} : ${label}. Toucher pour changer.`}
+                          className={cn(
+                            'press flex h-11 w-full items-center justify-center gap-1 rounded-md border border-transparent px-0.5 font-medium transition-colors md:h-9',
+                            'focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
+                            className,
+                          )}
+                        >
+                          <Icon className="size-3.5 shrink-0 max-sm:hidden" aria-hidden="true" />
+                          {/* Phones are narrow: « À vérifier » becomes « ? ». */}
+                          <span className="truncate">
+                            {value === 'unsure' ? (
+                              <>
+                                <span className="sm:hidden">?</span>
+                                <span className="max-sm:hidden">{label}</span>
+                              </>
+                            ) : (
+                              label
+                            )}
+                          </span>
+                        </button>
+                      </td>
+                    )
+                  })}
+                </tr>
+              </Fragment>
+            ),
+          )}
         </tbody>
       </table>
     </div>
+  )
+}
+
+// A break every day (recess or lunch): one fixed row across the week, not tappable.
+function BreakRow({ start, label }) {
+  return (
+    <tr>
+      <th scope="row" className="pr-1 text-right align-middle font-normal text-muted-foreground tabular-nums">
+        {formatTime(start)}
+      </th>
+      <td colSpan={WEEKDAYS.length} className="p-0">
+        <div className="flex h-9 items-center justify-center rounded-md border border-dashed border-success/30 bg-success/5 font-medium text-success-foreground md:h-7">
+          {label}
+        </div>
+      </td>
+    </tr>
   )
 }

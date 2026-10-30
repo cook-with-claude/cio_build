@@ -6,7 +6,7 @@
 // … 5 = Friday). 'unsure' marks a reading that needs the student's check;
 // until then it counts as busy, so a wrong reading never creates a false match.
 
-import { startOfWeek } from './dates.js'
+import { startOfWeek, timeToMinutes } from './dates.js'
 
 export const WEEK_TYPES = ['Q1', 'Q2']
 export const WEEKDAYS = [1, 2, 3, 4, 5]
@@ -14,7 +14,8 @@ const DAY_NAMES = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi']
 
 // CPF school periods while the counselor is in (Pronote, « Organisation d'une
 // journée »). The recesses (9:35–10:05, 15:25–15:40) are not periods: they are
-// always free. Lunch is a period, free unless a class is put there.
+// always free. Lunch (« Pause méridienne ») is a period that is always free,
+// every day (decided by Nadim 2026-10-30).
 export const PERIODS = [
   { start: '07:45', end: '08:40' },
   { start: '08:40', end: '09:35' },
@@ -29,6 +30,13 @@ export const PERIODS = [
 // at school yet, and after 15:25 the periods are not read (she leaves at 15:00).
 const DAY_START = PERIODS[0].start
 const DAY_END = PERIODS.at(-1).end
+
+// The morning recess is 9:35–10:05 but her slots start on the hour and half
+// hour, so no slot fits it exactly. A slot still counts as compatible if it
+// overlaps classes by this many minutes at most (decided by Nadim 2026-10-30).
+export const OVERLAP_MINUTES = 5
+
+export const RECESS = { start: '09:35', end: '10:05' }
 
 // --- Building and editing ---------------------------------------------------
 
@@ -77,7 +85,7 @@ const weekdayOf = (date) => new Date(`${date}T00:00:00Z`).getUTCDay() // 1 = Mon
 // The student's free time on one weekday of one week type, as
 // [{ start, end }] blocks ("HH:MM"), recesses and lunch merged in.
 export function freeIntervals(days, weekday) {
-  const busy = PERIODS.filter((p) => days[weekday]?.[p.start] !== 'free')
+  const busy = PERIODS.filter((p) => !p.lunch && days[weekday]?.[p.start] !== 'free')
   const free = []
   let from = DAY_START
   for (const p of busy) {
@@ -88,12 +96,18 @@ export function freeIntervals(days, weekday) {
   return free
 }
 
-// True when the whole slot falls inside the student's free time that week.
+// True when the slot falls inside the student's free time that week, except
+// for OVERLAP_MINUTES at most.
 export function slotFits(timetable, anchor, slot) {
   const weekday = weekdayOf(slot.date)
   if (!WEEKDAYS.includes(weekday)) return false
   const days = timetable[weekTypeOn(slot.date, anchor)]
-  return freeIntervals(days, weekday).some((f) => f.start <= slot.start && slot.end <= f.end)
+  const [from, to] = [timeToMinutes(slot.start), timeToMinutes(slot.end)]
+  const freeMinutes = freeIntervals(days, weekday)
+    .map((f) => Math.min(to, timeToMinutes(f.end)) - Math.max(from, timeToMinutes(f.start)))
+    .filter((m) => m > 0)
+    .reduce((a, b) => a + b, 0)
+  return to - from - freeMinutes <= OVERLAP_MINUTES
 }
 
 // --- Reading the PDF geometry (edtPdf.js) ------------------------------------
@@ -183,7 +197,9 @@ export function parseTimetable(geometry) {
   const periodAt = (y) => shown.find((r) => y >= r.y0 && y <= r.y1)
 
   const marks = { Q1: {}, Q2: {} } // marks[week]["weekday start"] = 'busy' | 'unsure'
+  const lunch = PERIODS.find((p) => p.lunch).start
   const mark = (weeks, column, start, value) => {
+    if (start === lunch) return // always free
     for (const w of weeks) {
       const key = `${column + 1} ${start}`
       if (marks[w][key] !== 'unsure') marks[w][key] = value

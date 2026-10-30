@@ -187,7 +187,7 @@ export default function TimetableImportDialog({ mode, initial, anchor, today, on
               <TimetableGrid timetable={draft} weekType={weekType} onWeekTypeChange={showWeek} onChange={setDraft} />
 
               <p className="text-xs text-muted-foreground">
-                Les récréations et la pause déjeuner comptent comme du temps libre. Seules les heures où la
+                La récréation et la pause méridienne comptent comme du temps libre. Seules les heures où la
                 conseillère d’orientation reçoit sont affichées.
               </p>
             </div>

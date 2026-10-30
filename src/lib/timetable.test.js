@@ -164,11 +164,11 @@ test('free time merges free periods with recesses and lunch', () => {
   ])
 })
 
-test('a slot fits only if it is entirely inside the student’s free time', () => {
+test('a slot fits only if it is inside the student’s free time, give or take 5 minutes', () => {
   const { timetable } = parseTimetable(sample())
   const fits = (date, start, end) => slotFits(timetable, anchor, slot(date, start, end))
   const MON = '2026-11-16'
-  assert.equal(fits(MON, '09:30', '10:00'), false) // starts during a class
+  assert.equal(fits(MON, '09:30', '10:00'), true) // the recess, leaving class 5 minutes early
   assert.equal(fits(MON, '10:00', '10:30'), true) // recess + free period
   assert.equal(fits(MON, '10:30', '11:00'), true)
   assert.equal(fits(MON, '11:00', '11:30'), false)
@@ -189,4 +189,15 @@ test('« À vérifier » counts as busy', () => {
   const t = setCell(blankTimetable('free'), 'Q1', 1, '10:05', 'unsure')
   assert.equal(slotFits(t, anchor, slot('2026-11-16', '10:00', '10:30')), false)
   assert.equal(slotFits(t, anchor, slot('2026-11-16', '09:30', '10:00')), true)
+})
+
+test('a slot overlapping a class by more than 5 minutes does not fit', () => {
+  const t = setCell(blankTimetable('free'), 'Q1', 1, '08:40', 'busy')
+  assert.equal(slotFits(t, anchor, slot('2026-11-16', '08:30', '09:00')), false) // 20 minutes
+  assert.equal(slotFits(t, anchor, slot('2026-11-16', '09:30', '10:00')), true) // 5 minutes
+})
+
+test('lunch is always free, whatever the cell says', () => {
+  const t = setCell(blankTimetable('free'), 'Q1', 1, '12:50', 'busy')
+  assert.equal(slotFits(t, anchor, slot('2026-11-16', '13:00', '13:30')), true)
 })
