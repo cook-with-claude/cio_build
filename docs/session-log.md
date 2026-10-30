@@ -11,7 +11,7 @@
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
 - **Tests:** `npm test` (103 tests, Node's built-in test runner).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
-- **Dark mode** (session 10) lives on the branch `dark-mode` (local, not merged): « Thème » in the counselor's Réglages, applies to both sides for the demo.
+- **Dark mode** (session 10): « Thème » in the counselor's Réglages (Système / Clair / Sombre), applies to both sides for the demo. On `main` (live site) and merged into both experiment branches.
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
 
@@ -52,7 +52,7 @@
 
 **Known issues / notes**
 - Later (Supabase phase): give each user their own theme setting (students too, once they have settings/privacy), and stop the counselor's choice from changing the student side. The places to change are marked in `src/lib/theme.js`.
-- Not merged yet: `main` and the live site don't have it.
+- Merged into `main` (live site), `experiment/bell-grid` and `experiment/edt-import`, all pushed. On the EDT branch, « À vérifier » cells use the real CPF yellow ring (`ring-cpf-yellow`): the dark gold highlight was too faint for a warning.
 
 ## 2026-10-28 · Session 6: school calendar, phone dots, decisions
 
