@@ -33,7 +33,8 @@ const DAY_END = PERIODS.at(-1).end
 
 // The morning recess is 9:35–10:05 but her slots start on the hour and half
 // hour, so no slot fits it exactly. A slot still counts as compatible if it
-// overlaps classes by this many minutes at most (decided by Nadim 2026-10-30).
+// starts at most this many minutes before the student's class ends (decided
+// by Nadim 2026-10-30).
 export const OVERLAP_MINUTES = 5
 
 export const RECESS = { start: '09:35', end: '10:05' }
@@ -97,17 +98,16 @@ export function freeIntervals(days, weekday) {
 }
 
 // True when the slot falls inside the student's free time that week, except
-// for OVERLAP_MINUTES at most.
+// that it may start up to OVERLAP_MINUTES before their class ends: they arrive
+// a little late, but never leave class early.
 export function slotFits(timetable, anchor, slot) {
   const weekday = weekdayOf(slot.date)
   if (!WEEKDAYS.includes(weekday)) return false
   const days = timetable[weekTypeOn(slot.date, anchor)]
   const [from, to] = [timeToMinutes(slot.start), timeToMinutes(slot.end)]
-  const freeMinutes = freeIntervals(days, weekday)
-    .map((f) => Math.min(to, timeToMinutes(f.end)) - Math.max(from, timeToMinutes(f.start)))
-    .filter((m) => m > 0)
-    .reduce((a, b) => a + b, 0)
-  return to - from - freeMinutes <= OVERLAP_MINUTES
+  return freeIntervals(days, weekday).some(
+    (f) => timeToMinutes(f.start) <= from + OVERLAP_MINUTES && timeToMinutes(f.end) >= to,
+  )
 }
 
 // --- Reading the PDF geometry (edtPdf.js) ------------------------------------

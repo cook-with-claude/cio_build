@@ -18,7 +18,7 @@ A student uploads their Pronote timetable PDF. The app figures out when the stud
 - **Every student uploads their own PDF, in the demo too.** No timetable is built into the app or the mock data: the app reads whatever PDF is uploaded, at the moment it's uploaded. The sample in `private-samples/` is only for you to test that the reading works.
 - The student can check and correct the result before it's used. Parsing will sometimes be wrong; a wrong reading must never silently turn into wrong matches. If parsing fails completely, the student can still enter their free times by hand.
 - The app knows whether a given week is Q1 or Q2 (for now: ask the student which week it is now, and alternate from there).
-- A counselor slot "fits" only if the whole slot falls inside the student's free time that week. Fitting slots are visible in the student's view.
+- A counselor slot "fits" if the student is free for the whole slot that week, with one allowance: the slot may **start up to 5 minutes before the student's class ends** (`OVERLAP_MINUTES`). The student finishes class and arrives up to 5 minutes late to the meeting; they never leave class early. Example: 9:30–10:00 fits a student free at the 9:35–10:05 recess. The slot must still **end** inside the student's free time. Fitting slots are visible in the student's view. _(Decided by Nadim, 2026-10-30.)_
 
 ## Rules
 - No names anywhere in the repo or the app: not the student's, not teachers'. Keep only times.

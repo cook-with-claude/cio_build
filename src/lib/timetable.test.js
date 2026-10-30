@@ -197,6 +197,12 @@ test('a slot overlapping a class by more than 5 minutes does not fit', () => {
   assert.equal(slotFits(t, anchor, slot('2026-11-16', '09:30', '10:00')), true) // 5 minutes
 })
 
+test('the 5 minutes are only allowed at the start: arriving late, never leaving class early', () => {
+  const t = setCell(blankTimetable('free'), 'Q1', 1, '11:55', 'busy')
+  assert.equal(slotFits(t, anchor, slot('2026-11-16', '11:30', '12:00')), false) // class starts at 11:55
+  assert.equal(slotFits(t, anchor, slot('2026-11-16', '11:00', '11:30')), true)
+})
+
 test('lunch is always free, whatever the cell says', () => {
   const t = setCell(blankTimetable('free'), 'Q1', 1, '12:50', 'busy')
   assert.equal(slotFits(t, anchor, slot('2026-11-16', '13:00', '13:30')), true)

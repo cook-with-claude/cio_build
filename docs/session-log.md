@@ -33,8 +33,7 @@
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
 - EDT experiment: ask the school if reading a PDF exported with Pronote's own button is fine (rule 3), and how Q1/Q2 behave across holidays (today: they alternate every calendar week).
 - EDT experiment: should 7:30–7:45 count as free when the first period is free? (Today: no, so a 7:30 slot is never « Compatible ».)
-- EDT experiment: ask her if a « Compatible » slot may overlap a class by up to 5 minutes (today: yes, so 9:30–10:00 matches the 9:35–10:05 recess and the student leaves class 5 min early), or if her slots should follow the school bells instead (e.g. 9:35–10:05).
-- EDT experiment: `docs/edt-import-spec.md` still says a slot fits only if it is **entirely** inside free time; the 5-minute overlap (session 8) contradicts it. Update the spec if the overlap is kept.
+- EDT experiment: tell her a « Compatible » slot may start up to 5 minutes before the student's class ends (e.g. 9:30–10:00 and the 9:35–10:05 recess): the student arrives up to 5 minutes late, never leaves class early. Check she's fine with it.
 - EDT experiment: a timetable is data beyond the `rules.md` list. Today it never leaves the browser; keeping it in the database later would need a decision.
 
 ---
