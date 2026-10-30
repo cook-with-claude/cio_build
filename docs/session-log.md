@@ -32,10 +32,10 @@
 - Lunar holidays (Fitr, Adha, Hégire, Achoura) may move by a day once announced: correct them in `schoolCalendar.js` when that happens.
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
-- EDT experiment: ask the school if reading a PDF exported with Pronote's own button is fine (rule 3), and how Q1/Q2 behave across holidays (today: they alternate every calendar week).
+- ~~EDT experiment: ask the school if reading a PDF exported with Pronote's own button is fine (rule 3)~~ **Answered (2026-10-30): the school agreed, no issue.** Still open: how Q1/Q2 behave across holidays (today: they alternate every calendar week).
 - EDT experiment: should 7:30–7:45 count as free when the first period is free? (Today: no, so a 7:30 slot is never « Compatible ».)
 - EDT experiment: tell her a « Compatible » slot may start up to 5 minutes before the student's class ends (e.g. 9:30–10:00 and the 9:35–10:05 recess): the student arrives up to 5 minutes late, never leaves class early. Check she's fine with it.
-- EDT experiment: a timetable is data beyond the `rules.md` list. Today it never leaves the browser; keeping it in the database later would need a decision.
+- ~~EDT experiment: a timetable is data beyond the `rules.md` list~~ **Answered (2026-10-30): the school sees no privacy issue** (read in the browser, never uploaded), and **it may be stored with the student's account** in the database phase, so they don't import the PDF again at each login. Added to `rules.md` (rule 2), on this branch.
 
 ---
 

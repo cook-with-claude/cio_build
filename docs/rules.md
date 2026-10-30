@@ -1,9 +1,10 @@
 # Hard rules
-_Last updated: 2026-10-28. Ask Nadim before changing or bending any of these._
+_Last updated: 2026-10-30. Ask Nadim before changing or bending any of these._
 
 1. **Golden rule.** The app must add zero work or friction for the counselor or the administration. Her side must take seconds, not minutes. If a feature adds work for her, say so before building it.
 2. **Privacy: the users are minors.**
    - Store the minimum: name, class, school email, bookings, and the optional topic. When a student cancels after the cutoff, also the reason they picked from a fixed list (« Malade », « Contrôle ou examen », « Conflit avec un cours », « Autre »). Never free text. _(Decided by Nadim, 2026-10-24/26.)_
+   - The student's timetable, read from the PDF they export with Pronote's own button: only which periods they have class or not, per week (Q1/Q2). No subjects, teachers or rooms. It is used only to show which slots fit their free time, and may be stored with their account so they don't import it again each time. _(Approved by the school and Nadim, 2026-10-30.)_
    - Never store session notes.
    - Students only see the slots they can book (« Disponible ») and their own booking. They never see her activities, her protected time, or who else booked. Only the counselor sees who booked. _(Reworded 2026-10-28, Nadim: the student view changed in session 2.)_
    - Collecting anything beyond this list needs Nadim's approval.
