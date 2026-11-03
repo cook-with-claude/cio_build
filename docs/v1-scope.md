@@ -16,10 +16,10 @@ _Last updated: 2026-10-28_
 4. **VISION:** cancel or move a booking. The student gets an automatic, courteous message. In the demo, show the message on screen.
 5. **VISION:** approval mode (on/off switch). When on, bookings become requests that she accepts or refuses. Off by default. **DECIDED (2026-10-24/26):** when the cutoff passes, any request still pending for that day is declined automatically. The student gets a polite message worded around the timing, not as her refusal (« n'a pas pu être validée à temps : les réservations pour ce jour sont maintenant closes »), which invites them to choose another slot. _(Reworded 2026-10-26, Nadim.)_
 6. **VISION:** cutoff. **DECIDED (2026-10-24/26):** a day's bookings lock on the **previous school day** at an hour she chooses (setting « Heure limite la veille », default 15:00). Monday locks on Friday.
-7. **DECIDED (2026-10-24/26):** slot length stays a setting (« Durée d'un créneau »), default 30 min. **Updated 2026-10-30 (Nadim, bell grid):** 15/20/25/30/45 min, default 25 min, shown « (par défaut) ».
+7. **DECIDED (2026-10-24/26):** slot length stays a setting (« Durée d'un créneau »), default 30 min. **Updated 2026-10-30 (Nadim, bell grid; confirmed by her 2026-11-03):** 15/20/25/30/45 min, default 25 min, shown « (par défaut) ».
    - Slots are generated inside each bookable window separately. Leftover time at the end of a window, when the length doesn't divide it evenly, is not a slot.
    - A new length only applies to weeks she hasn't prepared yet. A week that already has slots or bookings keeps its length. The setting says so: « S'applique aux semaines pas encore préparées. »
-8. **DECIDED (2026-10-24/26):** her hours. The grid shows 7:30–12:00 and 12:30–15:00 every day. **Updated 2026-10-30 (Nadim, bell grid, to confirm with her):** the grid follows the school bells, 7:45–15:00, and lunch is 11:55–12:25. Lunch shows as « Pause déjeuner » on her side: not clickable, never bookable.
+8. **DECIDED (2026-10-24/26):** her hours. The grid shows 7:30–12:00 and 12:30–15:00 every day. **Updated 2026-10-30 (Nadim, bell grid; confirmed by her 2026-11-03):** the grid follows the school bells, 7:45–15:00, and lunch is 11:55–12:25. Lunch shows as « Pause déjeuner » on her side: not clickable, never bookable.
 9. **DECIDED (2026-10-24/26):** « Vos notifications »: she is told immediately when a student cancels after the cutoff, with the reason.
 10. **DECIDED (2026-10-24/26):** « Résumé de demain »: a preview of the summary she receives **5 minutes after the cutoff (15:05 by default)**, once requests are declined automatically. _(15:05 decided 2026-10-26, Nadim.)_ It lists tomorrow's confirmed bookings (time, name, class, topic), requests declined automatically, and late cancellations. In the demo, show it on screen.
 11. **DECIDED (2026-10-24/26):** open slots that students can't book right now (past the cutoff, or beyond the booking horizon) show a small lock icon and a tooltip saying why.
@@ -31,6 +31,7 @@ _Last updated: 2026-10-28_
 4. **VISION:** cancel their own booking before the cutoff. **DECIDED (2026-10-24/26), late cancellation:** after the cutoff and until the session starts, the student can still cancel, but must pick a reason from a dropdown with no free text: « Malade », « Contrôle ou examen », « Conflit avec un cours », « Autre ». The slot is not reopened; it becomes closed (her free time). The counselor is notified immediately with the reason.
 5. **VISION:** confirmation and a reminder. The goal is to reduce no-shows, which the counselor herself named as a problem. In the demo, show them on screen. **DECIDED (2026-10-24/26):** the reminder is sent on the morning of the session at 7:00.
 6. **VISION:** the app never blocks walk-ins. Coming to the office in person stays possible.
+7. **DECIDED (2026-11-03, Nadim), « Bêta »:** timetable matching. The student imports the PDF from Pronote's own export button (or fills the grid by hand), checks it, and slots that fit their free time get a « Compatible » mark, with a « Seulement les créneaux compatibles » switch. The PDF is read in the browser, never uploaded; only class / no class per period is kept (see `rules.md`, rule 2). Approved by the school 2026-10-30.
 
 ## Booking rules
 - **DECIDED:** no same-day bookings.
@@ -43,7 +44,6 @@ _Last updated: 2026-10-28_
 ## NOT in V1 (don't build, even partially)
 - **Google Calendar sync** (DECIDED 2026-10-21: not in V1). Her calendar is incomplete, and the sync is the hardest part.
 - Real login and database (Supabase), hosting the real app (Vercel; the demo is already there), real emails. These are the next phase, after her feedback.
-- Matching with student timetables.
 - Statistics dashboard (planned later with Bklit UI).
 - Counselor announcements.
-- Pronote integration.
+- Pronote integration (API, sync, automatic import). The PDF the student exports themselves is fine (see student side, item 7).

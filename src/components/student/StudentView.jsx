@@ -12,15 +12,26 @@ import { dayHasAvailableSlot, studentCell, studentDayNote } from './availability
 import BookingDialog from './BookingDialog'
 import MyBookingCard from './MyBookingCard'
 import StudentCell from './StudentCell'
+import TimetableCard from './TimetableCard'
+import TimetableImport from './TimetableImport'
 
 // In the demo there is no login: the student side acts as one fake student.
 const student = students.find((s) => s.id === DEMO_STUDENT_ID)
+
+// The short line under a day's name (see studentDayNote).
+const DAY_NOTES = {
+  closed: 'Réservations closes',
+  'none-available': 'Aucun créneau disponible',
+  'none-compatible': 'Aucun créneau compatible',
+}
 
 export default function StudentView({ state, actions, weekStart, now }) {
   const { settings } = state
   const [bookingSlot, setBookingSlot] = useState(null) // slot being booked (dialog open)
   const [notice, setNotice] = useState('')
   const [showReminder, setShowReminder] = useState(false)
+  // Timetable experiment: "import" | "manual" | "edit" while its dialog is open.
+  const [timetableMode, setTimetableMode] = useState(null)
 
   const upcoming = upcomingBookingFor(state, student.id, now.date)
   const myMessages = state.messages.filter((m) => m.studentId === student.id)
@@ -47,6 +58,17 @@ export default function StudentView({ state, actions, weekStart, now }) {
         onShowReminder={() => setShowReminder(true)}
       />
 
+      <TimetableCard
+        timetable={state.timetable}
+        weekStart={weekStart}
+        onImport={() => setTimetableMode('import')}
+        onManual={() => setTimetableMode('manual')}
+        onEdit={() => setTimetableMode('edit')}
+        onRemove={actions.clearTimetable}
+        onWeekType={actions.setWeekType}
+        onOnlyCompatible={actions.setOnlyCompatible}
+      />
+
       <MessageList title="Vos messages" icon={Mail} messages={myMessages} to={student.email} dialogTitle="Message reçu" />
 
       <WeekView
@@ -65,7 +87,7 @@ export default function StudentView({ state, actions, weekStart, now }) {
           return (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Icon className="size-3 shrink-0" aria-hidden="true" />
-              {note === 'closed' ? 'Réservations closes' : 'Aucun créneau disponible'}
+              {DAY_NOTES[note]}
             </span>
           )
         }}
@@ -74,6 +96,7 @@ export default function StudentView({ state, actions, weekStart, now }) {
           return (
             <StudentCell
               status={cell.status}
+              fits={cell.fits}
               time={time}
               dayLabel={formatLongDate(date)}
               onBook={() => {
@@ -94,6 +117,17 @@ export default function StudentView({ state, actions, weekStart, now }) {
           existing={upcoming}
           onConfirm={(topic) => actions.bookSlot(bookingSlot.id, student.id, topic, now)}
           onClose={() => setBookingSlot(null)}
+        />
+      )}
+
+      {timetableMode && (
+        <TimetableImport
+          mode={timetableMode}
+          initial={state.timetable?.days}
+          anchor={state.timetable?.anchor}
+          today={now.date}
+          onSave={actions.setTimetable}
+          onClose={() => setTimetableMode(null)}
         />
       )}
 

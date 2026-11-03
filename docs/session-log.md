@@ -4,17 +4,19 @@
 
 ---
 
-## Current state (updated 2026-10-30)
+## Current state (updated 2026-11-03)
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
-- **Tests:** `npm test` (103 tests on `main`, Node's built-in test runner).
+- **Tests:** `npm test` (136 tests on `main`, Node's built-in test runner).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
-- **Dark mode** (session 10): « Thème » in the counselor's Réglages (Système / Clair / Sombre), applies to both sides for the demo. On `main` (live site) and merged into both experiment branches.
+- **Dark mode** (session 10): « Thème » in the counselor's Réglages (Système / Clair / Sombre), applies to both sides for the demo. On `main` (live site).
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
-- **Experiment: slots that follow the school bells** (session 9) lives only on the branch `experiment/bell-grid` (on GitHub, not merged into `main`). `main` and the live site still use :00/:30 slots, so the two can be compared. On the branch: 109 tests (with dark mode). The EDT experiment is on its own branch, `experiment/edt-import`.
+- **Slots follow the school bells** (session 9), 25 minutes by default, lunch 11:55–12:25. **Confirmed by the conseillère** and merged into `main` (session 11).
+- **Timetable (EDT) import** (sessions 7–8), « Bêta »: a student imports the PDF from Pronote's own export button and sees which slots fit their free time. Moved into V1 and merged into `main` (session 11).
+- **Branches:** only `main` (plus Dependabot's Vite update, not reviewed yet). The experiment branches and `dark-mode` were deleted once merged.
 
 ## Next steps
 
@@ -22,7 +24,8 @@
 2. Show the demo to the conseillère and write down her feedback (here or in `docs/`).
 3. Answer the open questions below.
 4. Then the next phase: Supabase (database + CPF Google sign-in), hosted on Vercel. Not before her feedback.
-5. Bell grid: ask her the questions below. If she picks it, merge `experiment/bell-grid` into `main`, then bring `main` into `experiment/edt-import`. Decide before Supabase: once real slots are saved, switching grids needs a conversion.
+5. EDT import: try it with a few classmates' PDFs (other classes may use another layout) and show it to the conseillère.
+6. [PROPOSAL] The bell times now live in two places (`BOOKING_WINDOWS` in `src/lib/rules.js`, `PERIODS` in `src/lib/timetable.js`). Make one use the other.
 
 ## Open questions
 
@@ -32,7 +35,23 @@
 - Lunar holidays (Fitr, Adha, Hégire, Achoura) may move by a day once announced: correct them in `schoolCalendar.js` when that happens.
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) are only checked by the screens today. The database must enforce them too.
-- Bell grid, ask her: slots on the bells (7h45, 8h10, 8h40…) or on :00/:30? 25-minute sessions by default? Can her lunch move from 12:00–12:30 to 11:55–12:25 (if not: 13 slots a day instead of 14)? The pause méridienne slot at 12h50 (students eat after) or 13h10 (students eat first)?
+- ~~Bell grid: slots on the bells? 25 minutes? Lunch 11:55–12:25?~~ **Answered (2026-11-03): yes to all three.** Still open: the pause méridienne slot at 12h50 (students eat after, today) or 13h10 (students eat first)?
+- ~~EDT experiment: ask the school if reading a PDF exported with Pronote's own button is fine (rule 3)~~ **Answered (2026-10-30): the school agreed, no issue.** Still open: how Q1/Q2 behave across holidays (today: they alternate every calendar week).
+- EDT experiment: should 7:30–7:45 count as free when the first period is free? (Today: no, so a 7:30 slot is never « Compatible ».)
+- EDT experiment: tell her a « Compatible » slot may start up to 5 minutes before the student's class ends (e.g. 9:30–10:00 and the 9:35–10:05 recess): the student arrives up to 5 minutes late, never leaves class early. Check she's fine with it.
+- ~~EDT experiment: a timetable is data beyond the `rules.md` list~~ **Answered (2026-10-30): the school sees no privacy issue** (read in the browser, never uploaded), and **it may be stored with the student's account** in the database phase, so they don't import the PDF again at each login. Added to `rules.md` (rule 2).
+
+---
+
+## 2026-11-03 · Session 11: both experiments merged into `main`
+
+**Who:** Nadim + Claude Code
+
+**Done**
+- The conseillère agreed to the bell grid, 25-minute sessions and lunch 11:55–12:25. The school had already approved the EDT import (2026-10-30).
+- Merged `experiment/bell-grid`, then `experiment/edt-import`, into `main` (only clash: this log). 136 tests pass (1 skipped without `private-samples/`), the build works. Pushed: the live site now has both.
+- Docs: « to confirm with her » removed from `rules.md` and `v1-scope.md`; timetable matching moved into V1 as « Bêta » (Nadim). Pronote integration (API, sync) stays out of V1.
+- Deleted the merged branches: `dark-mode`, `experiment/bell-grid`, `experiment/edt-import` (on the computer and GitHub).
 
 ---
 
@@ -80,6 +99,54 @@
 **Known issues / notes**
 - The bell times now live in two places: `BOOKING_WINDOWS` here and `PERIODS` in `timetable.js` on the EDT branch. Make one use the other when the branches meet.
 - 7h30–7h45 is never bookable (school starts at 7h45), even though she is in from 7h30.
+
+---
+
+## 2026-10-30 · Session 8: EDT experiment, recess and lunch (branch `experiment/edt-import`)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** try the EDT experiment locally, and fix what Nadim found: the 9:30–10:00 slot was never « Compatible », even when the student is free at the morning recess.
+
+**Why it happened:** the recess runs 9:35–10:05, but her slots start on the hour and half hour. No 30-minute slot fits inside the recess: 9:30–10:00 overlaps the 8:40–9:35 class by 5 minutes.
+
+**What was done:**
+- **5-minute overlap** (chosen by Nadim, over asking her first or adding a recess slot): a slot counts as « Compatible » if it overlaps classes by 5 minutes at most (`OVERLAP_MINUTES` in `src/lib/timetable.js`). A slot overlapping by more (e.g. 8:30–9:00 against an 8:40 class) still doesn't match.
+- **Check grid:** « Récréation » (9:35–10:05) and « Pause méridienne » (12:50–13:35) are fixed rows across the week, not tappable. Lunch is now always free, every day (Nadim's choice): a student with a class at lunch can't mark it, and the PDF reader ignores that row.
+- **Badge** next to « Votre emploi du temps »: « Essai » became « Bêta ».
+- 2 new tests (129 in all). Committed and pushed to the branch; `main` and the live site are unchanged.
+
+**Left open:** ask her about the 5-minute overlap (see Open questions).
+
+---
+
+## 2026-10-29 · Session 7: EDT import experiment (branch `experiment/edt-import`)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** build the experiment in `docs/edt-import-spec.md` on its own branch: a student uploads their Pronote timetable PDF and sees which of the counselor's slots fit their free time. `main` and the live site are untouched.
+
+**Done**
+- **Branch** `experiment/edt-import` (the spec, the code, this log, then the review fixes), pushed to GitHub. Vercel built a **preview** (https://cio-fvornxc80-synforge-corp.vercel.app, needs a Vercel login: previews are protected); the live site is unchanged.
+- **Reading the PDF:** the Pronote PDF is drawn (text + coloured rectangles), not a photo. pdf.js (`pdfjs-dist` 6.4, approved by Nadim) reads it **in the browser**: nothing is uploaded. It only downloads when a student picks a file. Only the times, day names and Q1/Q2 tags are kept; every other text becomes a single point, and colours only "white" or "coloured" (`src/lib/edtPdf.js`).
+- **From drawing to timetable** (`src/lib/timetable.js`): rows come from the tick marks of the time axis (Pronote draws every period the same height, and recesses as a line). A class covering part of a period makes it busy. Anything odd (misaligned box, unexplained text in a cell, two Q tags) makes the cell « À vérifier », which counts as busy; an unknown layout fails the reading.
+- **Screens (student side only):** card « Votre emploi du temps » (Importer / Saisir à la main / Modifier / Retirer); a check grid, Q1 then Q2, one tap per period; nothing is used until « C'est correct ». If reading fails, the same grid starts with every period « Cours ». Then « Cette semaine, c'est une semaine Q1 ou Q2 ? »; during a break it asks about the week school starts again. Matching slots still say « Disponible », with a « Compatible » mark; the « Seulement les créneaux compatibles » switch hides the others (day notes, phone dot, week title and « Prochain créneau » follow).
+- **Test data:** `src/lib/edtSampleGeometry.json`, a nameless copy of the sample's geometry, made by `node scripts/edt-fixture.mjs`. A test checks it has no words other than times, days and Q1/Q2, no text lengths and no class colours.
+- **Code review** (`/code-review`, then fixes approved by Nadim): the import shows a message instead of a blank page if it can't load (offline, or after a redeploy); the week title only says « Aucun créneau compatible » when the switch really hides slots; « Saisir à la main » always starts from a blank grid; read failures are logged in the console with their reason (`[EDT]`); the cell keeps « Disponible » (as `rules.md` says) with a « Compatible » mark; the fixture was shrunk (see above) and moved next to its tests; small duplicates removed. Not done: the Q1/Q2 question in summer before next year's calendar is added (edge case); speed tweaks (not needed at this size).
+- **Tests:** 103 → 127. One test reads the real PDF, only on a computer that has `private-samples/` (skipped elsewhere).
+- **Checked in Chrome** (computer and phone): the real PDF reads correctly for Q1 and Q2; correction, unreadable file → manual entry, week question during the break, alternation and its correction, the switch. No console errors. `main` still runs its 103 tests.
+
+**Decisions**
+- pdf.js approved (Nadim). Q1/Q2 alternate every calendar week, holidays included, until we know better (Nadim). The spec is committed on the branch only. The « Seulement les compatibles » switch: yes; example-timetable button: no.
+- Before 7:45 counts as not free (the school day starts at 7:45), so a 7:30 slot is never « Compatible ». Kept as is after the review; the student is not told yet. Lunch (12:50–13:35) is free unless the student marks a class there.
+
+**Known issues / notes**
+- **Not mergeable as is:** `v1-scope.md` lists "matching with student timetables" and "Pronote integration" as NOT in V1. Merging needs a scope decision first.
+- **To check with the school:** that reading a PDF exported with Pronote's own button is fine (we use no API, no scraping, no reverse engineering: rule 3), and how Q1/Q2 behave across holidays.
+- **Privacy:** a timetable is data beyond the list in `rules.md`. Here it stays in the browser and disappears on reload. Storing it in the database phase would need a decision.
+- Only tested on one real PDF. Other classes' PDFs (other periods, Saturday classes, two pages) may fail to read; they then fall back to manual entry.
+- The main JS file is now 509.9 kB (was 496.6 kB). Vite prints its "over 500 kB" hint. Harmless; pdf.js itself is in separate files.
+- pdf.js brings `@napi-rs/canvas` as an optional package for Node only; it is not part of the website.
 
 ## 2026-10-28 · Session 6: school calendar, phone dots, decisions
 

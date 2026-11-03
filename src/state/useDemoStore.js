@@ -28,6 +28,10 @@ import {
 // receive, so the student side can show them. The real app would send the
 // e-mail and keep no copy (minimum data, docs/rules.md).
 // `notifications` is the same for the counselor (« Vos notifications »).
+//
+// `timetable` (experiment, docs/edt-import-spec.md) is the demo student's
+// timetable once checked: { days, anchor, onlyCompatible } (see
+// lib/timetable.js), or null. It stays on the student's device.
 
 // Bookings that still hold their slot (cancelled/refused ones free it).
 export const ACTIVE_BOOKING_STATUSES = ['confirmed', 'pending']
@@ -156,6 +160,24 @@ export function reducer(state, action) {
 
     case 'updateSettings':
       return { ...state, settings: { ...state.settings, ...action.changes } }
+
+    // Student saves their checked timetable, and which week type this week is.
+    case 'setTimetable':
+      return {
+        ...state,
+        timetable: { days: action.days, anchor: action.anchor, onlyCompatible: state.timetable?.onlyCompatible ?? false },
+      }
+
+    // Student corrects which week type a week is (« Changer »).
+    case 'setWeekType':
+      return state.timetable ? { ...state, timetable: { ...state.timetable, anchor: action.anchor } } : state
+
+    // Student's « Seulement les créneaux compatibles » switch.
+    case 'setOnlyCompatible':
+      return state.timetable ? { ...state, timetable: { ...state.timetable, onlyCompatible: action.value } } : state
+
+    case 'clearTimetable':
+      return { ...state, timetable: null }
 
     // Student books an open slot. In approval mode it becomes a request.
     // (The screens check the time rules; this only refuses impossible bookings.)
@@ -327,6 +349,7 @@ export function useDemoStore() {
     settings: initialSettings,
     messages: [],
     notifications: [],
+    timetable: null,
   })
 
   // The same functions on every render (dispatch never changes), so screens
@@ -362,6 +385,11 @@ export function useDemoStore() {
       refuseRequest: (bookingId, at) => withMessageId({ type: 'answerRequest', bookingId, status: 'refused', at }),
       counselorCancel: (bookingId, closeSlot, at) => withMessageId({ type: 'counselorCancel', bookingId, closeSlot, at }),
       moveBooking: (bookingId, toSlotId, at) => withMessageId({ type: 'moveBooking', bookingId, toSlotId, at }),
+      // Timetable experiment. `anchor` = { weekStart, type } (lib/timetable.js).
+      setTimetable: (days, anchor) => dispatch({ type: 'setTimetable', days, anchor }),
+      setWeekType: (anchor) => dispatch({ type: 'setWeekType', anchor }),
+      setOnlyCompatible: (value) => dispatch({ type: 'setOnlyCompatible', value }),
+      clearTimetable: () => dispatch({ type: 'clearTimetable' }),
     }
   }, [])
 
