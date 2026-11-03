@@ -24,7 +24,10 @@ import { dayRows } from '@/lib/rules'
 // `isDayOff(date)` marks holidays: the day shows its name (« Vacances de
 // Noël ») instead of rows. `hasDot(date)` puts a dot under the day in the
 // phone day picker (the student side marks days with a free slot).
+// `alignRows` gives all five day headers the same height on a computer, so
+// the time rows line up across the week (counselor side).
 export default function WeekView({
+  alignRows,
   weekStart,
   today,
   slotMinutes,
@@ -91,14 +94,18 @@ export default function WeekView({
         ))}
       </ToggleGroup>
 
-      <div className="grid gap-3 md:grid-cols-5 md:gap-2">
+      {/* With `alignRows`, on a computer each day spans two shared rows
+          (header, then times) via subgrid: all five headers take the tallest
+          one's height, so the time rows line up across the week. */}
+      <div className={cn('grid gap-3 md:grid-cols-5 md:gap-2', alignRows && 'md:gap-y-0')}>
         {days.map((date) => (
           <Card
             key={date}
             size="sm"
             className={cn(
               'gap-0 py-0',
-              date !== selectedDay && 'hidden md:flex',
+              alignRows && 'md:row-span-2 md:grid md:grid-rows-subgrid',
+              date !== selectedDay && 'max-md:hidden',
               date === today && 'ring-2 ring-today',
               date < today && 'opacity-60',
             )}

@@ -52,6 +52,9 @@
 - Merged `experiment/bell-grid`, then `experiment/edt-import`, into `main` (only clash: this log). 136 tests pass (1 skipped without `private-samples/`), the build works. Pushed: the live site now has both.
 - Docs: « to confirm with her » removed from `rules.md` and `v1-scope.md`; timetable matching moved into V1 as « Bêta » (Nadim). Pronote integration (API, sync) stays out of V1.
 - Deleted the merged branches: `dark-mode`, `experiment/bell-grid`, `experiment/edt-import` (on the computer and GitHub).
+- Merged Dependabot's Vite 8.3.4 → 8.3.5 (patch, bug fixes only) and deleted its branch.
+- **Counselor week view, one link per day:** « Fermer toute la journée » if the day has a free open slot, otherwise « Ouvrir toute la journée » (same actions as before). With the new `alignRows` option of `WeekView` (CSS subgrid, no library), the five day headers share one height on a computer, so the time rows line up across the week (past days, holidays and « Aujourd’hui » included). Student side unchanged. Checked in Chrome: light, dark, 1280 px, 800 px, phone.
+- **Lint can't run on this computer:** Windows' Application Control blocks oxlint's native file (`@oxlint/binding-win32-arm64-msvc`, ARM64 PC). Not a code problem; `main` has the same error. To fix outside the app (Windows security setting, or run lint on another computer).
 
 ---
 

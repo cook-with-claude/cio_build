@@ -165,35 +165,30 @@ export default function CounselorView({
         today={today}
         slotMinutes={slotMinutes}
         showLunch
+        alignRows
         // A holiday shows its name instead of the grid, unless a slot was set
         // on it before the calendar said so: then she still sees it to act on it.
         isDayOff={(date) => !isSchoolDay(date) && !slots.some((s) => s.date === date)}
+        // One link per day, so every header has the same lines: « Fermer » as
+        // soon as the day has a free open slot, otherwise « Ouvrir ».
         renderDayExtra={(date) => {
           if (date < today) return null
-          const canOpen = dayHasEmptyCell(slots, date, slotMinutes)
-          const canClose = dayHasFreeOpenSlot(state, date)
-          return (
-            (canOpen || canClose) && (
-              <div className="flex flex-col items-start gap-1">
-                {canOpen && (
-                  <DayAction
-                    icon={CalendarPlus}
-                    label="Ouvrir toute la journée"
-                    date={date}
-                    onClick={() => actions.openDay(date)}
-                  />
-                )}
-                {canClose && (
-                  <DayAction
-                    icon={CalendarMinus}
-                    label="Fermer toute la journée"
-                    date={date}
-                    onClick={() => closeDay(date)}
-                  />
-                )}
-              </div>
+          if (dayHasFreeOpenSlot(state, date)) {
+            return (
+              <DayAction icon={CalendarMinus} label="Fermer toute la journée" date={date} onClick={() => closeDay(date)} />
             )
-          )
+          }
+          if (dayHasEmptyCell(slots, date, slotMinutes)) {
+            return (
+              <DayAction
+                icon={CalendarPlus}
+                label="Ouvrir toute la journée"
+                date={date}
+                onClick={() => actions.openDay(date)}
+              />
+            )
+          }
+          return null
         }}
         renderCell={(date, time) => {
           const cell = cellFor(slotsInCell(slots, date, time, slotMinutes), bookings)
