@@ -27,7 +27,12 @@ _Last updated: 2026-11-05_
 ## Student side
 1. **VISION:** week view. Each day lists only the slots the student can book (« Disponible ») and their own booking; times that can't be booked are simply not listed. A short note explains empty days (« Réservations closes » / « Aucun créneau disponible ») and empty weeks, with a button to the next available slot. Never show her activities or other students' names. _(Changed 2026-10-26, approved by Nadim: previously every slot showed « Disponible » or « Indisponible ».)_ **DECIDED (2026-10-28):** on phones, a small dot under a day in the day picker marks days with a slot the student can book. Holidays show their name instead of slots.
 2. **VISION:** book a slot in a few clicks.
-3. **DECIDED (2026-11-05):** the topic is **required**. List, in this order: Parcoursup, UCAS, Common App, AUB, AUB early admission, Études à l’étranger, Choix de spécialités, Métiers, Autre. With « Autre », a short text is required (25 characters max, live counter). A clear French error if they try to confirm without a topic.
+3. **DECIDED (2026-11-05):** the topic is **required**, and the list **depends on the student's level**, in this order:
+   - **Terminale** (they apply to universities, and have already chosen their spécialités): Parcoursup, UCAS, Common App, AUB, AUB early admission, SAT, Études à l’étranger, Métiers, Autre.
+   - **Première** (they don't apply yet, but can talk about universities, majors and careers; many take the SAT): Orientation universitaire, SAT, Études à l’étranger, Choix de spécialités, Métiers, Autre.
+   - **Seconde**: Orientation universitaire, Études à l’étranger, Choix de spécialités, Métiers, Autre.
+
+   With « Autre », a short text is required (25 characters max, live counter). A clear French error if they try to confirm without a topic.
 4. **VISION:** cancel their own booking before the cutoff. **DECIDED (2026-10-24/26), late cancellation:** after the cutoff and until the session starts, the student can still cancel, but must pick a reason from a dropdown with no free text: « Malade », « Contrôle ou examen », « Conflit avec un cours », « Autre ». The slot is not reopened; it becomes closed (her free time). The counselor is notified immediately with the reason.
 5. **VISION:** confirmation and a reminder. The goal is to reduce no-shows, which the counselor herself named as a problem. In the demo, show them on screen. **DECIDED (2026-10-24/26):** the reminder is sent on the morning of the session at 7:00.
 6. **VISION:** the app never blocks walk-ins. Coming to the office in person stays possible.

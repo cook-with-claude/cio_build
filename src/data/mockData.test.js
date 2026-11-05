@@ -44,7 +44,10 @@ for (const today of DAYS) {
   })
 
   test(`fake data shown on ${today}: every booking has a valid topic`, () => {
-    for (const b of bookings) assert.equal(topicError(b.topic, b.topicOther), null, b.id)
+    for (const b of bookings) {
+      const level = students.find((s) => s.id === b.studentId).level
+      assert.equal(topicError(b.topic, b.topicOther, level), null, b.id)
+    }
   })
 
   test(`fake data shown on ${today}: the demo students start with no booking`, () => {

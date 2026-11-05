@@ -128,6 +128,17 @@ test('« Autre » needs a few words, 25 characters at most', () => {
   assert.equal(book(state, 'a', 'bk-x', 'autre', 'x'.repeat(25)).bookings.length, 1, '25 characters is fine')
 })
 
+test('a student can only pick a topic of their level', () => {
+  const state = makeState({ slots: [slot('a', MON, '09:00', '09:30')] })
+  const asStudent = (studentId, topic) =>
+    reducer(state, { type: 'bookSlot', id: 'bk-x', messageId: 'm', slotId: 'a', studentId, topic, topicOther: null, at })
+  // stu-3 is in Première: no application topics, but « Orientation universitaire ».
+  assert.equal(asStudent('stu-3', 'ucas'), state)
+  assert.equal(asStudent('stu-3', 'orientation-univ').bookings[0].topic, 'orientation-univ')
+  // stu-1 is in Terminale: no « Choix de spécialités ».
+  assert.equal(asStudent('stu-1', 'specialites'), state)
+})
+
 test('the « Autre » text is dropped for any other topic', () => {
   const next = book(makeState({ slots: [slot('a', MON, '09:00', '09:30')] }), 'a', 'bk-x', 'ucas', 'leftover')
   assert.equal(next.bookings[0].topicOther, null)

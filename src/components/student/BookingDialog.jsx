@@ -16,9 +16,10 @@ import MessagePreview from '@/components/MessagePreview'
 import { formatLongDate, formatTime } from '@/lib/dates'
 import { lockMoment } from '@/lib/rules'
 import { confirmationMessage, slotMoment } from '@/lib/messages'
-import { OTHER_TOPIC, OTHER_TOPIC_MAX_LENGTH, TOPICS, topicError } from '@/lib/topics'
+import { OTHER_TOPIC, OTHER_TOPIC_MAX_LENGTH, topicError, topicsFor } from '@/lib/topics'
 
-// Booking flow for one slot: pick a topic (required), confirm, see the confirmation.
+// Booking flow for one slot: pick a topic (required; the list depends on the
+// student's level), confirm, see the confirmation.
 // The parent remounts it (key) for each slot, so it always starts fresh.
 // `levelNotice` ({ title, body }) when the student's level can't book yet.
 export default function BookingDialog({ slot, student, settings, existing, levelNotice, onConfirm, onClose }) {
@@ -30,7 +31,8 @@ export default function BookingDialog({ slot, student, settings, existing, level
   const lock = lockMoment(slot.date, settings)
   const approval = settings.approvalMode
   const blocked = !done && existing && settings.oneUpcomingBookingPerStudent
-  const error = topicError(topic, otherText)
+  const topics = topicsFor(student.level)
+  const error = topicError(topic, otherText, student.level)
   const showError = tried && error
   const isOther = topic === OTHER_TOPIC
 
@@ -119,7 +121,7 @@ export default function BookingDialog({ slot, student, settings, existing, level
                 aria-describedby="topic-help"
                 className="flex w-full flex-wrap"
               >
-                {TOPICS.map((t) => (
+                {topics.map((t) => (
                   <ToggleGroupItem
                     key={t.id}
                     value={t.id}

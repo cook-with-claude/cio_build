@@ -180,14 +180,15 @@ export function reducer(state, action) {
       return { ...state, timetable: null }
 
     // Student books an open slot. In approval mode it becomes a request.
-    // A topic is required; « Autre » needs a few words (see lib/topics.js).
+    // A topic from the student's level is required; « Autre » needs a few
+    // words (see lib/topics.js).
     // (The screens check the time and level rules; this only refuses
     // impossible bookings.)
     case 'bookSlot': {
       const { id, messageId, slotId, studentId, topic, topicOther, at } = action
       const slot = state.slots.find((s) => s.id === slotId)
       if (!slot || slot.kind !== 'open' || activeBookingForSlot(state.bookings, slotId)) return state
-      if (topicError(topic, topicOther)) return state
+      if (topicError(topic, topicOther, studentById(studentId)?.level)) return state
       const status = state.settings.approvalMode ? 'pending' : 'confirmed'
       const other = topic === OTHER_TOPIC ? topicOther.trim() : null
       const booking = { id, slotId, studentId, topic, topicOther: other, status, createdAt: at.date }
