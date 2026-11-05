@@ -149,7 +149,7 @@ export function studentBookingBlock(date, now, settings) {
 export const REMINDER_TIME = '07:00'
 export const reminderMoment = (slot) => ({ date: slot.date, time: REMINDER_TIME })
 
-// « Résumé du jour »: she receives it a few minutes after the cutoff (15h05
+// « Liste définitive »: she receives it a few minutes after the cutoff (15h05
 // with the default 15h00), so requests declined at the cutoff are final. It
 // covers every day that has just locked (on a Friday: Monday and Tuesday).
 export const SUMMARY_DELAY_MINUTES = 5

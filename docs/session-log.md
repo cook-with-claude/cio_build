@@ -35,7 +35,7 @@
 - Lunar holidays (Fitr, Adha, Hégire, Achoura) may move by a day once announced: correct them in `schoolCalendar.js` when that happens.
 - Student data beyond the minimum (for a future analytics platform): parked. To discuss with her and the administration before the database phase.
 - For the Supabase phase: the time rules (cutoff, horizon, no same-day, holidays) and the Terminale-only rule are only checked by the screens today. The database must enforce them too.
-- Still open from session 12: keep the name « Résumé du jour »? Terminale rule by booking date (today) or session date?
+- ~~Session 12: name of the summary? Terminale rule by booking date or session date?~~ **Answered (2026-11-05, Nadim):** « Liste définitive »; by the day the student books.
 - [PROPOSAL] Keep the session 12 Playwright walkthrough as a permanent test (`npm run e2e`); adds Playwright as a dev tool (needs Nadim's OK).
 - ~~Bell grid: slots on the bells? 25 minutes? Lunch 11:55–12:25?~~ **Answered (2026-11-03): yes to all three.** Still open: the pause méridienne slot at 12h50 (students eat after, today) or 13h10 (students eat first)?
 - ~~EDT experiment: ask the school if reading a PDF exported with Pronote's own button is fine (rule 3)~~ **Answered (2026-10-30): the school agreed, no issue.** Still open: how Q1/Q2 behave across holidays (today: they alternate every calendar week).
@@ -53,7 +53,7 @@
 
 **Done**
 - **Cutoff:** a day closes at 15h00 two calendar days before; if that day is not a school day, the last school day before it (Mon/Tue → Fri, Wed → Mon, Thu → Tue, Fri → Wed; after a break, the last day before it). One function (`lockDay` in `src/lib/rules.js`) feeds the booking lock, late cancellation, auto-decline and the lock tooltips. Setting renamed « Heure limite de réservation », with the new rule in its hint; student info text updated.
-- **Summary:** « Résumé de demain » became « Résumé du jour »: sent at cutoff + 5 min, it covers every day that has just locked (Friday: Monday + Tuesday, one heading per day). Thursday has none, so the preview shows Friday's. Topics shown on each line.
+- **Summary:** « Résumé de demain » became « Liste définitive » (name chosen by Nadim): sent at cutoff + 5 min, it covers every day that has just locked (Friday: Monday + Tuesday, one heading per day). Thursday has none, so the preview shows Friday's. Topics shown on each line.
 - **Topic:** required, in this order: Parcoursup, UCAS, Common App, AUB, AUB early admission, Études à l’étranger, Choix de spécialités, Métiers, Autre. « Autre » opens a text box (required, 25 characters max, live counter). French error if they confirm without one. The list and checks moved to `src/lib/topics.js`; bookings get a `topicOther` field. The counselor sees « Année de césure (autre) » in the grid, booking details, requests, upcoming list and summary.
 - **Terminale only until the Toussaint:** uses the break marked `toussaint: true` in `schoolCalendar.js` (no new date setting). Première/Seconde still see the slots; a message explains, and clicking a slot shows it again. Demo: « Niveau de l’élève (démo) » next to the demo date (student side only); each level acts as its own fake student (Élève Test 1, 5, 6) with no booking.
 - **shadcn `input`** added with shadcn's installer (plain styled `<input>`, no new library).
@@ -62,7 +62,7 @@
 **Then, after Nadim's phone test and a full review**
 - **Thursday column cut off** (counselor, computer): the long « Autre » line widened the day's column past its card. Fixed in `WeekView.jsx` (`md:grid-cols-1` on each card).
 - **Full review**: 16 flows clicked through with Playwright (`playwright-cli`, installed globally on Nadim's PC, not in the project), all pass, no console errors; Chrome DevTools screenshots (light, dark, phone); Lighthouse accessibility 96, best practices 100; `npm audit --omit=dev` 0.
-- **Done from the review (Nadim):** `docs/rules.md` and `docs/v1-scope.md` updated (new cutoff, required topic with the 25-character « Autre » exception to « never free text », level in the stored data, Terminale rule, « Résumé du jour »); her grid's rows now line up across the week (every cell 44 px, like a booked cell); « Autre » shows as « Année de césure (autre) »; no more bounce at the top/bottom of the page on phones (`overscroll-behavior-y: none`, which also stops pull-to-refresh) and more room under the last row.
+- **Done from the review (Nadim):** `docs/rules.md` and `docs/v1-scope.md` updated (new cutoff, required topic with the 25-character « Autre » exception to « never free text », level in the stored data, Terminale rule, the summary renamed « Liste définitive »); her grid's rows now line up across the week (every cell 44 px, like a booked cell); « Autre » shows as « Année de césure (autre) »; no more bounce at the top/bottom of the page on phones (`overscroll-behavior-y: none`, which also stops pull-to-refresh) and more room under the last row.
 - **Not done (Nadim):** shorter « Vos messages » on phones (messages will be e-mails in the real app); renaming « Annuler » in her booking window; the low-priority list.
 
 **Decisions**

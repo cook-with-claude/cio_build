@@ -337,9 +337,9 @@ test('declining is done once, even if the clock moves again', () => {
   assert.equal(tick(once, { date: MON, time: '15:30' }), once)
 })
 
-// --- Item 6: « Résumé du jour » --------------------------------------------------
+// --- Item 6: « Liste définitive » --------------------------------------------------
 
-test('on Friday, « Résumé du jour » covers Monday and Tuesday', () => {
+test('on Friday, « Liste définitive » covers Monday and Tuesday', () => {
   let state = makeState({
     slots: [
       slot('a', TUE, '13:00', '13:30'),
@@ -370,7 +370,7 @@ test('on Friday, « Résumé du jour » covers Monday and Tuesday', () => {
 
   // The message: one heading per day, and each booking's topic (with the « Autre » text).
   const { subject, body } = summaryMessage(summary)
-  assert.equal(subject, 'Résumé des rendez-vous du lundi 16 novembre et mardi 17 novembre')
+  assert.equal(subject, 'Liste définitive des rendez-vous du lundi 16 novembre et mardi 17 novembre')
   assert.ok(body.includes('Lundi 16 novembre'))
   assert.ok(body.includes('Mardi 17 novembre'))
   assert.ok(body.includes('• 9h00 · Élève Test 3 · Première C · Année de césure (autre)'))
@@ -382,7 +382,7 @@ test('a one-day summary has no day heading', () => {
   const summary = cutoffSummary(state, { date: MON, time: '16:00' })
   assert.deepEqual(summary.days.map((d) => d.date), [WED])
   const { subject, body } = summaryMessage(summary)
-  assert.equal(subject, 'Résumé des rendez-vous du mercredi 18 novembre')
+  assert.equal(subject, 'Liste définitive des rendez-vous du mercredi 18 novembre')
   assert.equal(body[0], 'Rendez-vous confirmés : aucun.')
 })
 

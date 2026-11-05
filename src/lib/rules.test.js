@@ -201,7 +201,7 @@ test('the summary covers every day that has just locked', () => {
   assert.deepEqual(daysLockingOn('2026-12-18'), ['2027-01-04', '2027-01-05']) // before Christmas
 })
 
-test('« Résumé du jour » is sent 5 minutes after the cutoff (15h05)', () => {
+test('« Liste définitive » is sent 5 minutes after the cutoff (15h05)', () => {
   assert.deepEqual(nextSummary(at(LAST_FRI, '10:00'), settings), {
     dates: [MON, TUE],
     sentAt: { date: LAST_FRI, time: '15:05' },

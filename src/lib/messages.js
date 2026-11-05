@@ -1,5 +1,5 @@
 // Texts of the automatic messages: those a student receives, and those the
-// counselor receives (late cancellations, « Résumé du jour »).
+// counselor receives (late cancellations, « Liste définitive »).
 // In the demo they are shown on screen; no e-mail is sent.
 // Tone: polite, "vous", and never blames anyone (docs/rules.md).
 
@@ -153,7 +153,7 @@ const dateList = (dates) => {
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
-// « Résumé du jour », sent to her just after the cutoff, for every day that
+// « Liste définitive », sent to her just after the cutoff, for every day that
 // has just locked (on a Friday: Monday and Tuesday).
 // days: [{ date, confirmed, declined, lateCancellations }] (see cutoffSummary
 // in useDemoStore.js); confirmed/declined: [{ slot, student, booking }],
@@ -167,7 +167,7 @@ export function summaryMessage({ days }) {
     return `• ${formatTime(slot.start)} · ${student.name} · ${student.className}${topic ? ` · ${topic}` : ''}`
   }
   return {
-    subject: `Résumé des rendez-vous du ${dateList(days.map((d) => d.date))}`,
+    subject: `Liste définitive des rendez-vous du ${dateList(days.map((d) => d.date))}`,
     body: days.flatMap(({ date, confirmed, declined, lateCancellations }) => [
       // A heading per day, only when the summary covers several days.
       ...(days.length > 1 ? [capitalize(formatLongDate(date))] : []),

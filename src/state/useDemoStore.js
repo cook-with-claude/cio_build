@@ -317,7 +317,7 @@ export function upcomingAppointments(state, today) {
     .sort((a, b) => (a.slot.date + a.slot.start).localeCompare(b.slot.date + b.slot.start))
 }
 
-// What « Résumé du jour » contains: today's (or the next one, see
+// What « Liste définitive » contains: today's (or the next one, see
 // nextSummary in rules.js). For each day that locks: its confirmed bookings,
 // its requests declined automatically (those still pending are declined at
 // the cutoff, before the summary is sent) and its late cancellations.
