@@ -12,6 +12,9 @@
 //             a holiday on a Saturday or Sunday is listed only for the record.
 //   lunar     true for dates set by the Muslim lunar calendar: they may move
 //             by a day or two once officially announced. Correct them here.
+//   toussaint true on the break that includes la Toussaint (one per year).
+//             Until its last day, only Terminale students can book
+//             (levelBookingBlock in lib/rules.js).
 //
 // What counts as a school day (see isSchoolDay in lib/dates.js):
 //   - Monday to Friday, not in daysOff;
@@ -25,7 +28,7 @@ export const SCHOOL_YEARS = [
     firstDay: '2026-09-14',
     lastDay: '2027-06-30',
     daysOff: [
-      { from: '2026-10-24', to: '2026-11-01', label: 'Vacances de mi-trimestre' }, // includes la Toussaint
+      { from: '2026-10-24', to: '2026-11-01', label: 'Vacances de mi-trimestre', toussaint: true }, // includes la Toussaint
       { from: '2026-11-22', label: 'Fête de l’Indépendance' },
       { from: '2026-12-19', to: '2027-01-03', label: 'Vacances de Noël' }, // includes le Jour de l’an
       { from: '2027-01-06', label: 'Noël arménien' },

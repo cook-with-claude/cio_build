@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/select'
 import MessagePreview from '@/components/MessagePreview'
 import { formatLongDate, formatTime } from '@/lib/dates'
-import { reminderMessage, topicLabel } from '@/lib/messages'
+import { reminderMessage } from '@/lib/messages'
+import { bookingTopic } from '@/lib/topics'
 import { reminderMoment } from '@/lib/rules'
 import { activeBookingForSlot, studentById } from '@/state/useDemoStore'
 
@@ -40,7 +41,7 @@ export default function BookingDetailsDialog({ booking, state, actions, now, onC
   // Remembered, so the dialog still works if the slot is closed after a cancellation.
   const [slotSnapshot] = useState(() => slots.find((s) => s.id === booking.slotId))
   const slot = slots.find((s) => s.id === booking.slotId) ?? slotSnapshot
-  const topic = topicLabel(booking.topic)
+  const topic = bookingTopic(booking)
   const pending = booking.status === 'pending'
   const past = slot.date < now.date
   const reminder = reminderMoment(slot)

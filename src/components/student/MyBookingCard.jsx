@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BellRing, CalendarCheck, CalendarX, Info } from 'lucide-react'
+import { BellRing, CalendarCheck, CalendarClock, CalendarX, Info } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -24,7 +24,8 @@ import {
 } from '@/components/ui/select'
 import { formatLongDate, formatTime } from '@/lib/dates'
 import { cancellationKind, lockMoment } from '@/lib/rules'
-import { LATE_CANCEL_REASONS, slotMoment, topicLabel } from '@/lib/messages'
+import { LATE_CANCEL_REASONS, slotMoment } from '@/lib/messages'
+import { bookingTopic } from '@/lib/topics'
 
 // After the cutoff: cancelling needs a reason from a fixed list (no free text).
 function LateCancelButton({ slot, onCancel }) {
@@ -77,7 +78,9 @@ function LateCancelButton({ slot, onCancel }) {
 }
 
 // Top of the student view: the student's next booking (with cancel), or how booking works.
-export default function MyBookingCard({ upcoming, settings, now, notice, onCancel, onShowReminder }) {
+// `levelNotice` ({ title, body }): shown instead of the invitation to book
+// when the student's level can't book yet (Terminale only until the Toussaint).
+export default function MyBookingCard({ upcoming, settings, now, notice, levelNotice, onCancel, onShowReminder }) {
   if (!upcoming) {
     return (
       <Card size="sm">
@@ -88,16 +91,26 @@ export default function MyBookingCard({ upcoming, settings, now, notice, onCance
               {notice}
             </p>
           )}
-          <p>
-            Choisissez un créneau <span className="font-medium text-success-foreground">« Disponible »</span>{' '}
-            ci-dessous.
-          </p>
+          {levelNotice ? (
+            <div role="status" className="flex gap-3 rounded-md bg-primary/10 px-3 py-2">
+              <CalendarClock className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+              <div className="flex flex-col gap-1">
+                <p className="font-medium">{levelNotice.title}</p>
+                <p className="text-sm">{levelNotice.body}</p>
+              </div>
+            </div>
+          ) : (
+            <p>
+              Choisissez un créneau <span className="font-medium text-success-foreground">« Disponible »</span>{' '}
+              ci-dessous.
+            </p>
+          )}
           <p className="flex gap-2 text-sm text-muted-foreground">
             <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>
-              Vous pouvez réserver jusqu’à {formatTime(settings.cutoffTime)} la veille du rendez-vous (le vendredi
-              pour un lundi), et jusqu’à {settings.bookingHorizonWeeks} semaines à l’avance. Vous pouvez aussi
-              toujours passer au bureau du CIO.
+              Vous pouvez réserver jusqu’à {formatTime(settings.cutoffTime)}, deux jours avant le rendez-vous (le
+              vendredi pour un lundi ou un mardi), et jusqu’à {settings.bookingHorizonWeeks} semaines à l’avance.
+              Vous pouvez aussi toujours passer au bureau du CIO.
             </span>
           </p>
         </CardContent>
@@ -111,7 +124,7 @@ export default function MyBookingCard({ upcoming, settings, now, notice, onCance
   // "free" before the cutoff, "late" after it (confirmed bookings only:
   // requests still pending then are declined automatically), "none" once started.
   const kind = cancellationKind(slot, now, settings)
-  const topic = topicLabel(booking.topic)
+  const topic = bookingTopic(booking)
 
   return (
     <Card size="sm" className="ring-2 ring-primary/30">

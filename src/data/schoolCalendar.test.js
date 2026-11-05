@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { DEMO_STUDENT_ID, buildSchedule, initialSettings } from '@/data/mockData'
-import { dayOffLabel, isSchoolDay, nextSchoolDay, previousSchoolDay } from '@/lib/dates'
+import { dayOffLabel, isSchoolDay, nextSchoolDay, previousSchoolDay, toussaintEnd } from '@/lib/dates'
 import { isLocked, lockMoment } from '@/lib/rules'
 import { dayHasEmptyCell, reducer } from '@/state/useDemoStore'
 import { studentCell } from '@/components/student/availability'
@@ -62,12 +62,28 @@ test('the cutoff falls on the last school day before a holiday', () => {
   assert.equal(isLocked('2026-11-02', { date: '2026-10-28', time: '10:00' }, initialSettings), true)
 })
 
+test('the Toussaint break is marked once, and ends on Sunday 1 November 2026', () => {
+  assert.equal(toussaintEnd('2026-09-14'), '2026-11-01')
+  assert.equal(toussaintEnd('2027-06-30'), '2026-11-01') // same school year
+  assert.equal(toussaintEnd('2027-07-15'), null) // next year's calendar not added yet
+})
+
 // --- Summer and missing years -----------------------------------------------
 
 const TWO_YEARS = [
   { name: 'A', firstDay: '2030-09-16', lastDay: '2031-06-27', daysOff: [] },
-  { name: 'B', firstDay: '2031-09-15', lastDay: '2032-06-25', daysOff: [] },
+  {
+    name: 'B',
+    firstDay: '2031-09-15',
+    lastDay: '2032-06-25',
+    daysOff: [{ from: '2031-10-25', to: '2031-11-02', label: 'Vacances de la Toussaint', toussaint: true }],
+  },
 ]
+
+test('in the summer, the Toussaint break is the coming year’s', () => {
+  assert.equal(toussaintEnd('2031-07-15', TWO_YEARS), '2031-11-02')
+  assert.equal(toussaintEnd('2031-01-15', TWO_YEARS), null) // year A has none marked
+})
 
 test('the summer between two listed years is a holiday', () => {
   assert.equal(dayOffLabel('2031-07-15', TWO_YEARS), 'Vacances d’été')

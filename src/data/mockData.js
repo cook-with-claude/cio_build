@@ -9,38 +9,41 @@
 //
 // Rules for this file (see docs/rules.md):
 // - Only obviously fake people. Never real names, classes or emails.
-// - Only the minimum fields: name, class, school email, bookings, optional topic.
+// - Only the minimum fields: name, class, level, school email, bookings, topic.
 //
 // Dates are generated relative to "this week", so the demo never shows
 // stale dates whenever it is presented.
 
 import { addDays, isSchoolDay, nextSchoolDay, startOfWeek, todayInBeirut, weekDays } from '../lib/dates.js'
-import { DEFAULT_SLOT_MINUTES } from '../lib/rules.js'
+import { DEFAULT_SLOT_MINUTES, lockDay } from '../lib/rules.js'
 
-// Topics a student may optionally attach to a booking.
-export const TOPICS = [
-  { id: 'parcoursup', label: 'Parcoursup' },
-  { id: 'etranger', label: 'Études à l’étranger' },
-  { id: 'specialites', label: 'Choix de spécialités' },
-  { id: 'metiers', label: 'Métiers' },
-  { id: 'autre', label: 'Autre' },
+// The levels that can book (the topics are in lib/topics.js).
+export const LEVELS = [
+  { id: 'terminale', label: 'Terminale' },
+  { id: 'premiere', label: 'Première' },
+  { id: 'seconde', label: 'Seconde' },
 ]
 
-// students: id, name, className, email
+// students: id, name, className, level (a LEVELS id), email
+// In the real app, the level comes from the school roster.
 export const students = [
-  { id: 'stu-1', name: 'Élève Test 1', className: 'Terminale A', email: 'eleve.test1@example.com' },
-  { id: 'stu-2', name: 'Élève Test 2', className: 'Terminale B', email: 'eleve.test2@example.com' },
-  { id: 'stu-3', name: 'Élève Test 3', className: 'Première C', email: 'eleve.test3@example.com' },
-  { id: 'stu-4', name: 'Élève Test 4', className: 'Seconde A', email: 'eleve.test4@example.com' },
+  { id: 'stu-1', name: 'Élève Test 1', className: 'Terminale A', level: 'terminale', email: 'eleve.test1@example.com' },
+  { id: 'stu-2', name: 'Élève Test 2', className: 'Terminale B', level: 'terminale', email: 'eleve.test2@example.com' },
+  { id: 'stu-3', name: 'Élève Test 3', className: 'Première C', level: 'premiere', email: 'eleve.test3@example.com' },
+  { id: 'stu-4', name: 'Élève Test 4', className: 'Seconde A', level: 'seconde', email: 'eleve.test4@example.com' },
+  { id: 'stu-5', name: 'Élève Test 5', className: 'Première B', level: 'premiere', email: 'eleve.test5@example.com' },
+  { id: 'stu-6', name: 'Élève Test 6', className: 'Seconde B', level: 'seconde', email: 'eleve.test6@example.com' },
 ]
 
-// In the demo there is no login: the student view acts as this student.
-export const DEMO_STUDENT_ID = 'stu-1'
+// In the demo there is no login: the student view acts as one of these
+// students, picked with « Niveau de l’élève (démo) ». They start with no booking.
+export const DEMO_STUDENTS = { terminale: 'stu-1', premiere: 'stu-5', seconde: 'stu-6' }
+export const DEMO_STUDENT_ID = DEMO_STUDENTS.terminale
 
 // settings: one set of options chosen by the counselor.
 export const initialSettings = {
   slotMinutes: DEFAULT_SLOT_MINUTES, // length of one slot (25 min), for weeks not prepared yet
-  cutoffTime: '15:00', // a day's bookings lock on the previous school day at this time
+  cutoffTime: '15:00', // a day's bookings lock at this time, 2 days before (see lockDay in rules.js)
   approvalMode: false, // when on, bookings are requests she accepts or refuses
   bookingHorizonWeeks: 2, // how many weeks ahead students can book
   oneUpcomingBookingPerStudent: true, // limit to one upcoming booking
@@ -54,12 +57,18 @@ export function buildSchedule(today = todayInBeirut()) {
   let nextMonday = addDays(thisMonday, 7)
   while (!weekDays(nextMonday).every(isSchoolDay)) nextMonday = addDays(nextMonday, 7)
   const day = (offset) => addDays(nextMonday, offset) // 0 = that Monday … 4 = that Friday
-  // The next two school days (holidays skipped), whatever day the demo is shown: the first
-  // locks at the cutoff today (on a Friday, Monday locks at 15h00), the second
-  // stays bookable, so the 15h00 rule can be shown live. Their times
-  // (14h00–14h55) are free all next week.
-  const soon1 = nextSchoolDay(today)
-  const soon2 = nextSchoolDay(soon1)
+  // Two days soon, whatever day the demo is shown, so the 15h00 rule can be
+  // shown live: the first is the first day still bookable this morning (it
+  // locks at 15h00 today when a day locks today: on a Monday, Wednesday), the
+  // second is still bookable tonight. Their times (14h00–14h55) are free all
+  // next week.
+  const firstDayLockingFrom = (from, after) => {
+    let d = nextSchoolDay(after)
+    while (lockDay(d) < from) d = nextSchoolDay(d)
+    return d
+  }
+  const soon1 = firstDayLockingFrom(today, today)
+  const soon2 = firstDayLockingFrom(addDays(today, 1), soon1)
 
   // slots: id, date, start, end, kind
   //   kind "open"      -> students can book it
@@ -82,16 +91,17 @@ export function buildSchedule(today = todayInBeirut()) {
     { id: 'slot-14', date: soon2, start: '14:30', end: '14:55', kind: 'protected' },
   ]
 
-  // bookings: id, slotId, studentId, topic (a TOPICS id, or null), status, createdAt
+  // bookings: id, slotId, studentId, topic (a TOPICS id), topicOther, status, createdAt
+  //   topicOther -> the student's few words when topic is "autre" (max 25 characters), else null
   //   status "confirmed" -> booked
   //   status "pending"   -> waiting for her answer (approval mode)
   //   status "refused" / "cancelled" -> kept so the student can be informed
   //   autoDeclined: true -> refused because she hadn't answered by the cutoff
   //   lateReason (a LATE_CANCEL_REASONS id) -> cancelled by the student after the cutoff
   const bookings = [
-    { id: 'bk-1', slotId: 'slot-2', studentId: 'stu-2', topic: 'parcoursup', status: 'confirmed', createdAt: thisMonday },
-    { id: 'bk-2', slotId: 'slot-8', studentId: 'stu-3', topic: null, status: 'confirmed', createdAt: thisMonday },
-    { id: 'bk-3', slotId: 'slot-12', studentId: 'stu-4', topic: 'specialites', status: 'confirmed', createdAt: today },
+    { id: 'bk-1', slotId: 'slot-2', studentId: 'stu-2', topic: 'parcoursup', topicOther: null, status: 'confirmed', createdAt: thisMonday },
+    { id: 'bk-2', slotId: 'slot-8', studentId: 'stu-3', topic: 'autre', topicOther: 'Année de césure', status: 'confirmed', createdAt: thisMonday },
+    { id: 'bk-3', slotId: 'slot-12', studentId: 'stu-4', topic: 'specialites', topicOther: null, status: 'confirmed', createdAt: today },
   ]
 
   return { slots, bookings }

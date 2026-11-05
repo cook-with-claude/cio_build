@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { initialSettings } from '@/data/mockData'
+import { summaryMessage } from '@/lib/messages'
 import {
   copiableSlots,
+  cutoffSummary,
   dayHasEmptyCell,
   dayHasFreeOpenSlot,
   reducer,
-  tomorrowSummary,
   upcomingAppointments,
   upcomingBookingFor,
 } from './useDemoStore.js'
@@ -15,6 +16,8 @@ import {
 const MON = '2026-11-16'
 const TUE = '2026-11-17'
 const WED = '2026-11-18'
+const THU = '2026-11-19'
+const LAST_FRI = '2026-11-13'
 const LAST_MON = '2026-11-09'
 const LAST_TUE = '2026-11-10'
 const at = { date: '2026-11-11', time: '10:00' }
@@ -95,13 +98,39 @@ test('copying skips days that are already past', () => {
   assert.deepEqual(kindsOn(next, TUE), ['09:00 open'])
 })
 
-const book = (state, slotId, id = 'bk-x') =>
-  reducer(state, { type: 'bookSlot', id, messageId: `m-${id}`, slotId, studentId: 'stu-1', topic: null, at })
+const book = (state, slotId, id = 'bk-x', topic = 'parcoursup', topicOther = null) =>
+  reducer(state, { type: 'bookSlot', id, messageId: `m-${id}`, slotId, studentId: 'stu-1', topic, topicOther, at })
 
 test('booking an open slot confirms it and sends a message', () => {
   const next = book(makeState({ slots: [slot('a', MON, '09:00', '09:30')] }), 'a')
   assert.equal(next.bookings[0].status, 'confirmed')
   assert.equal(next.messages.length, 1)
+})
+
+test('a booking needs a topic from the list', () => {
+  const state = makeState({ slots: [slot('a', MON, '09:00', '09:30')] })
+  assert.equal(book(state, 'a', 'bk-x', null), state, 'no topic: nothing happens')
+  assert.equal(book(state, 'a', 'bk-x', 'n’importe quoi'), state, 'not in the list: nothing happens')
+  const next = book(state, 'a', 'bk-x', 'aub-early')
+  assert.equal(next.bookings[0].topic, 'aub-early')
+  assert.equal(next.bookings[0].topicOther, null)
+  assert.ok(next.messages[0].body.includes('Sujet : AUB early admission.'))
+})
+
+test('« Autre » needs a few words, 25 characters at most', () => {
+  const state = makeState({ slots: [slot('a', MON, '09:00', '09:30')] })
+  assert.equal(book(state, 'a', 'bk-x', 'autre'), state, 'no text: nothing happens')
+  assert.equal(book(state, 'a', 'bk-x', 'autre', '   '), state, 'only spaces: nothing happens')
+  assert.equal(book(state, 'a', 'bk-x', 'autre', 'x'.repeat(26)), state, '26 characters: nothing happens')
+  const next = book(state, 'a', 'bk-x', 'autre', '  Année de césure ')
+  assert.equal(next.bookings[0].topicOther, 'Année de césure', 'kept without the extra spaces')
+  assert.ok(next.messages[0].body.includes('Sujet : Année de césure (autre).'))
+  assert.equal(book(state, 'a', 'bk-x', 'autre', 'x'.repeat(25)).bookings.length, 1, '25 characters is fine')
+})
+
+test('the « Autre » text is dropped for any other topic', () => {
+  const next = book(makeState({ slots: [slot('a', MON, '09:00', '09:30')] }), 'a', 'bk-x', 'ucas', 'leftover')
+  assert.equal(next.bookings[0].topicOther, null)
 })
 
 test('in approval mode, a booking becomes a request', () => {
@@ -233,8 +262,8 @@ test('copying last week never mixes lengths in a prepared week', () => {
 
 const cancelState = () =>
   makeState({
-    slots: [slot('a', TUE, '10:00', '10:30')],
-    bookings: [{ id: 'bk', slotId: 'a', studentId: 'stu-1', topic: null, status: 'confirmed' }],
+    slots: [slot('a', WED, '10:00', '10:30')],
+    bookings: [{ id: 'bk', slotId: 'a', studentId: 'stu-1', topic: 'metiers', status: 'confirmed' }],
   })
 const cancel = (state, now, reason) =>
   reducer(state, { type: 'studentCancel', bookingId: 'bk', at: now, reason, notificationId: 'n1' })
@@ -242,7 +271,7 @@ const cancel = (state, now, reason) =>
 test('before the cutoff, cancelling reopens the slot and notifies nobody', () => {
   const next = cancel(cancelState(), { date: MON, time: '14:59' })
   assert.equal(next.bookings[0].status, 'cancelled')
-  assert.deepEqual(kindsOn(next, TUE), ['10:00 open'])
+  assert.deepEqual(kindsOn(next, WED), ['10:00 open'])
   assert.deepEqual(next.notifications, [])
 })
 
@@ -254,30 +283,30 @@ test('after the cutoff, cancelling needs a reason from the list', () => {
 })
 
 test('a late cancellation closes the slot and notifies her with the reason', () => {
-  const next = cancel(cancelState(), { date: TUE, time: '09:00' }, 'malade')
+  const next = cancel(cancelState(), { date: WED, time: '09:00' }, 'malade')
   assert.equal(next.bookings[0].status, 'cancelled')
   assert.equal(next.bookings[0].lateReason, 'malade')
-  assert.deepEqual(kindsOn(next, TUE), [], 'the slot is closed, not reopened')
+  assert.deepEqual(kindsOn(next, WED), [], 'the slot is closed, not reopened')
   assert.equal(next.notifications.length, 1)
   const [n] = next.notifications
   assert.equal(n.reason, 'malade')
-  assert.deepEqual(n.slot, { date: TUE, start: '10:00', end: '10:30' })
+  assert.deepEqual(n.slot, { date: WED, start: '10:00', end: '10:30' })
   assert.ok(n.body.includes('Motif : Malade.'))
 })
 
 test('once the session has started, the student can no longer cancel', () => {
   const state = cancelState()
-  assert.equal(cancel(state, { date: TUE, time: '10:00' }, 'malade'), state)
+  assert.equal(cancel(state, { date: WED, time: '10:00' }, 'malade'), state)
 })
 
 // --- Item 5: requests unanswered at the cutoff are declined automatically -----
 
 const requestState = () =>
   makeState({
-    slots: [slot('a', TUE, '10:00', '10:30'), slot('b', WED, '10:00', '10:30')],
+    slots: [slot('a', WED, '10:00', '10:30'), slot('b', THU, '10:00', '10:30')],
     bookings: [
-      { id: 'r1', slotId: 'a', studentId: 'stu-1', topic: null, status: 'pending' },
-      { id: 'r2', slotId: 'b', studentId: 'stu-2', topic: null, status: 'pending' },
+      { id: 'r1', slotId: 'a', studentId: 'stu-1', topic: 'metiers', status: 'pending' },
+      { id: 'r2', slotId: 'b', studentId: 'stu-2', topic: 'metiers', status: 'pending' },
     ],
     settings: { approvalMode: true },
   })
@@ -293,14 +322,14 @@ test('at the cutoff, requests for that day are declined, with a message about th
   const [r1, r2] = next.bookings
   assert.equal(r1.status, 'refused')
   assert.equal(r1.autoDeclined, true)
-  assert.equal(r2.status, 'pending', 'the Wednesday request still waits')
+  assert.equal(r2.status, 'pending', 'the Thursday request still waits')
   assert.equal(next.messages.length, 1)
   assert.equal(next.messages[0].studentId, 'stu-1')
   const body = next.messages[0].body.join(' ')
   assert.ok(body.includes('n’a pas pu être validée à temps'))
   assert.ok(body.includes('choisir un autre créneau'))
   assert.ok(!body.includes('ne peut malheureusement pas'), 'not worded as her refusal')
-  assert.deepEqual(kindsOn(next, TUE), ['10:00 open'], 'the slot itself stays')
+  assert.deepEqual(kindsOn(next, WED), ['10:00 open'], 'the slot itself stays')
 })
 
 test('declining is done once, even if the clock moves again', () => {
@@ -308,34 +337,53 @@ test('declining is done once, even if the clock moves again', () => {
   assert.equal(tick(once, { date: MON, time: '15:30' }), once)
 })
 
-// --- Item 6: « Résumé de demain » ------------------------------------------------
+// --- Item 6: « Résumé du jour » --------------------------------------------------
 
-test('« Résumé de demain » lists confirmed bookings, declined requests and late cancellations', () => {
+test('on Friday, « Résumé du jour » covers Monday and Tuesday', () => {
   let state = makeState({
     slots: [
       slot('a', TUE, '13:00', '13:30'),
       slot('b', TUE, '09:00', '09:30'),
-      slot('c', TUE, '10:00', '10:30'),
+      slot('c', MON, '10:00', '10:30'),
       slot('d', TUE, '11:00', '11:30'),
       slot('w', WED, '09:00', '09:30'),
     ],
     bookings: [
-      { id: 'b1', slotId: 'a', studentId: 'stu-2', topic: null, status: 'confirmed' },
-      { id: 'b2', slotId: 'b', studentId: 'stu-3', topic: 'metiers', status: 'confirmed' },
-      { id: 'b3', slotId: 'c', studentId: 'stu-4', topic: null, status: 'pending' },
-      { id: 'bk', slotId: 'd', studentId: 'stu-1', topic: null, status: 'confirmed' },
-      { id: 'b5', slotId: 'w', studentId: 'stu-2', topic: null, status: 'confirmed' }, // Wednesday: not tomorrow
+      { id: 'b1', slotId: 'a', studentId: 'stu-2', topic: 'parcoursup', status: 'confirmed' },
+      { id: 'b2', slotId: 'b', studentId: 'stu-3', topic: 'autre', topicOther: 'Année de césure', status: 'confirmed' },
+      { id: 'b3', slotId: 'c', studentId: 'stu-4', topic: 'ucas', status: 'pending' },
+      { id: 'bk', slotId: 'd', studentId: 'stu-1', topic: 'metiers', status: 'confirmed' },
+      { id: 'b5', slotId: 'w', studentId: 'stu-2', topic: 'aub', status: 'confirmed' }, // Wednesday: locks on Monday
     ],
   })
-  const now = { date: MON, time: '15:30' }
+  const now = { date: LAST_FRI, time: '15:30' }
   state = tick(state, now)
   state = cancel(state, now, 'controle')
-  const summary = tomorrowSummary(state, now)
-  assert.equal(summary.date, TUE)
-  assert.deepEqual(summary.sentAt, { date: MON, time: '15:05' })
-  assert.deepEqual(summary.confirmed.map((c) => c.slot.start), ['09:00', '13:00'])
-  assert.deepEqual(summary.declined.map((d) => d.student.name), ['Élève Test 4'])
-  assert.deepEqual(summary.lateCancellations.map((l) => [l.slot.start, l.reason]), [['11:00', 'controle']])
+  const summary = cutoffSummary(state, now)
+  assert.deepEqual(summary.sentAt, { date: LAST_FRI, time: '15:05' })
+  assert.deepEqual(summary.days.map((d) => d.date), [MON, TUE])
+  const [monday, tuesday] = summary.days
+  assert.deepEqual(monday.confirmed, [])
+  assert.deepEqual(monday.declined.map((d) => d.student.name), ['Élève Test 4'])
+  assert.deepEqual(tuesday.confirmed.map((c) => c.slot.start), ['09:00', '13:00'])
+  assert.deepEqual(tuesday.lateCancellations.map((l) => [l.slot.start, l.reason]), [['11:00', 'controle']])
+
+  // The message: one heading per day, and each booking's topic (with the « Autre » text).
+  const { subject, body } = summaryMessage(summary)
+  assert.equal(subject, 'Résumé des rendez-vous du lundi 16 novembre et mardi 17 novembre')
+  assert.ok(body.includes('Lundi 16 novembre'))
+  assert.ok(body.includes('Mardi 17 novembre'))
+  assert.ok(body.includes('• 9h00 · Élève Test 3 · Première C · Année de césure (autre)'))
+  assert.ok(body.includes('• 10h00 · Élève Test 4 · Seconde A · UCAS'))
+})
+
+test('a one-day summary has no day heading', () => {
+  const state = makeState({ slots: [slot('w', WED, '09:00', '09:30')] })
+  const summary = cutoffSummary(state, { date: MON, time: '16:00' })
+  assert.deepEqual(summary.days.map((d) => d.date), [WED])
+  const { subject, body } = summaryMessage(summary)
+  assert.equal(subject, 'Résumé des rendez-vous du mercredi 18 novembre')
+  assert.equal(body[0], 'Rendez-vous confirmés : aucun.')
 })
 
 // --- Timetable experiment (docs/edt-import-spec.md) -------------------------

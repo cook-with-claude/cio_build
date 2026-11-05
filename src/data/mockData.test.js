@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { addDays, addMinutes, isSchoolDay } from '@/lib/dates'
-import { daySlotTimes, isLocked } from '@/lib/rules'
-import { buildSchedule, initialSettings } from './mockData.js'
+import { addDays, addMinutes } from '@/lib/dates'
+import { daySlotTimes, isLocked, lockDay } from '@/lib/rules'
+import { topicError } from '@/lib/topics'
+import { DEMO_STUDENTS, LEVELS, buildSchedule, initialSettings, students } from './mockData.js'
 
 // Monday 16 to Sunday 22 November 2026 (Monday to Friday are all school days, see
 // schoolCalendar.test.js for the demo during holidays): any day can be shown.
@@ -30,14 +31,30 @@ for (const today of DAYS) {
   test(`fake data shown on ${today}: the 15h00 rule can be shown live`, () => {
     const soon = slots.filter((s) => s.id === 'slot-11' || s.id === 'slot-13')
     const [first, second] = soon.map((s) => s.date)
-    // On a school day, the next school day locks at 15h00 today. At the
-    // weekend, Monday already locked on Friday.
-    assert.equal(isLocked(first, { date: today, time: '14:59' }, initialSettings), !isSchoolDay(today))
-    assert.equal(isLocked(first, { date: today, time: '15:00' }, initialSettings), true)
+    // The first day is bookable this morning. When a day locks today (every
+    // school day but Thursday), it is that one: it locks at 15h00.
+    assert.equal(isLocked(first, { date: today, time: '14:59' }, initialSettings), false)
+    assert.equal(isLocked(first, { date: today, time: '15:00' }, initialSettings), lockDay(first) === today)
+    // The second is still bookable tonight.
     assert.equal(isLocked(second, { date: today, time: '21:30' }, initialSettings), false)
   })
 
   test(`fake data shown on ${today}: every booking points to an open slot`, () => {
     for (const b of bookings) assert.equal(slots.find((s) => s.id === b.slotId)?.kind, 'open')
   })
+
+  test(`fake data shown on ${today}: every booking has a valid topic`, () => {
+    for (const b of bookings) assert.equal(topicError(b.topic, b.topicOther), null, b.id)
+  })
+
+  test(`fake data shown on ${today}: the demo students start with no booking`, () => {
+    const demoIds = Object.values(DEMO_STUDENTS)
+    assert.ok(bookings.every((b) => !demoIds.includes(b.studentId)))
+  })
 }
+
+test('there is one demo student per level, of that level', () => {
+  for (const { id } of LEVELS) {
+    assert.equal(students.find((s) => s.id === DEMO_STUDENTS[id])?.level, id)
+  }
+})

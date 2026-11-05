@@ -1,13 +1,11 @@
 // Texts of the automatic messages: those a student receives, and those the
-// counselor receives (late cancellations, « Résumé de demain »).
+// counselor receives (late cancellations, « Résumé du jour »).
 // In the demo they are shown on screen; no e-mail is sent.
 // Tone: polite, "vous", and never blames anyone (docs/rules.md).
 
-import { TOPICS } from '../data/mockData.js'
 import { formatLongDate, formatTime } from './dates.js'
-import { firstVisibleDate, lockMoment } from './rules.js'
-
-export const topicLabel = (topicId) => TOPICS.find((t) => t.id === topicId)?.label
+import { firstVisibleDate, lockMoment, openToAllLevelsFrom } from './rules.js'
+import { bookingTopic } from './topics.js'
 
 // Reasons a student picks from when cancelling after the cutoff. A fixed
 // list, never free text (docs/rules.md, privacy).
@@ -26,7 +24,7 @@ export const slotMoment = (slot) => `${formatLongDate(slot.date)} à ${formatTim
 const signature = ['Bien cordialement,', 'La conseillère d’orientation']
 
 export function confirmationMessage({ student, slot, booking, lock }) {
-  const topic = topicLabel(booking.topic)
+  const topic = bookingTopic(booking)
   if (booking.status === 'pending') {
     return {
       subject: 'Votre demande de rendez-vous d’orientation',
@@ -118,7 +116,7 @@ export function movedMessage({ student, from, to }) {
 }
 
 export function reminderMessage({ student, slot, booking }) {
-  const topic = topicLabel(booking.topic)
+  const topic = bookingTopic(booking)
   return {
     subject: 'Rappel : votre rendez-vous d’orientation aujourd’hui',
     body: [
@@ -147,27 +145,49 @@ export function lateCancellationNotice({ student, slot, reason }) {
   }
 }
 
-// « Résumé de demain », sent to her at the cutoff.
-// confirmed: [{ slot, student, booking }], declined: [{ slot, student }],
+// "lundi 9 novembre et mardi 10 novembre"
+const dateList = (dates) => {
+  const labels = dates.map(formatLongDate)
+  return labels.length > 1 ? `${labels.slice(0, -1).join(', ')} et ${labels.at(-1)}` : labels[0]
+}
+
+const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+
+// « Résumé du jour », sent to her just after the cutoff, for every day that
+// has just locked (on a Friday: Monday and Tuesday).
+// days: [{ date, confirmed, declined, lateCancellations }] (see cutoffSummary
+// in useDemoStore.js); confirmed/declined: [{ slot, student, booking }],
 // lateCancellations: [{ slot, student, reason }], each sorted by time.
-export function tomorrowSummaryMessage({ date, confirmed, declined, lateCancellations }) {
+export function summaryMessage({ days }) {
   // `none` agrees with the title: « aucun » / « aucune ».
   const section = (title, none, items, line) =>
     items.length ? [`${title} (${items.length}) :`, ...items.map(line)] : [`${title} : ${none}.`]
+  const bookingLine = ({ slot, student, booking }) => {
+    const topic = bookingTopic(booking)
+    return `• ${formatTime(slot.start)} · ${student.name} · ${student.className}${topic ? ` · ${topic}` : ''}`
+  }
   return {
-    subject: `Résumé de demain : ${formatLongDate(date)}`,
-    body: [
-      ...section('Rendez-vous confirmés', 'aucun', confirmed, ({ slot, student, booking }) => {
-        const topic = topicLabel(booking.topic)
-        return `• ${formatTime(slot.start)} · ${student.name} · ${student.className}${topic ? ` · ${topic}` : ''}`
-      }),
-      ...section('Demandes refusées automatiquement', 'aucune', declined, ({ slot, student }) =>
-        `• ${formatTime(slot.start)} · ${student.name} · ${student.className}`,
-      ),
+    subject: `Résumé des rendez-vous du ${dateList(days.map((d) => d.date))}`,
+    body: days.flatMap(({ date, confirmed, declined, lateCancellations }) => [
+      // A heading per day, only when the summary covers several days.
+      ...(days.length > 1 ? [capitalize(formatLongDate(date))] : []),
+      ...section('Rendez-vous confirmés', 'aucun', confirmed, bookingLine),
+      ...section('Demandes refusées automatiquement', 'aucune', declined, bookingLine),
       ...section('Annulations tardives', 'aucune', lateCancellations, ({ slot, student, reason }) =>
         `• ${formatTime(slot.start)} · ${student.name} · ${student.className} · ${reasonLabel(reason)}`,
       ),
-    ],
+    ]),
+  }
+}
+
+// --- Who can book --------------------------------------------------------------
+
+// For a Première or Seconde student before the end of the Toussaint break
+// (levelBookingBlock in rules.js).
+export function terminaleOnlyNotice(now) {
+  return {
+    title: 'Réservé aux élèves de Terminale pour le moment',
+    body: `Jusqu’aux vacances de la Toussaint, les rendez-vous sont réservés aux élèves de Terminale. Vous pourrez réserver à partir du ${formatLongDate(openToAllLevelsFrom(now))}. D’ici là, vous pouvez toujours passer au bureau du CIO.`,
   }
 }
 

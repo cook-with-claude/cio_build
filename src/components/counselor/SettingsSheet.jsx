@@ -75,7 +75,7 @@ export default function SettingsSheet({ settings, onChange, theme, onThemeChange
           <Separator />
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="cutoff">Heure limite la veille</Label>
+            <Label htmlFor="cutoff">Heure limite de réservation</Label>
             <Select value={settings.cutoffTime} onValueChange={(v) => onChange({ cutoffTime: v })}>
               <SelectTrigger id="cutoff" className="w-full data-[size=default]:h-11 md:data-[size=default]:h-9">
                 <SelectValue />
@@ -89,9 +89,9 @@ export default function SettingsSheet({ settings, onChange, theme, onThemeChange
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground">
-              Les rendez-vous d’un jour sont arrêtés la veille (le vendredi pour le lundi) à{' '}
-              {formatTime(settings.cutoffTime)} : après cette heure, les élèves ne peuvent plus réserver,
-              et ne peuvent annuler qu’en indiquant un motif.
+              Les rendez-vous d’un jour sont arrêtés deux jours avant, à {formatTime(settings.cutoffTime)} (le
+              vendredi pour le lundi et le mardi ; avant des vacances, le dernier jour de classe). Après cette
+              heure, les élèves ne peuvent plus réserver, et ne peuvent annuler qu’en indiquant un motif.
             </p>
           </div>
 

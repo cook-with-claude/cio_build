@@ -62,6 +62,15 @@ export function dayOffLabel(dateStr, years = SCHOOL_YEARS) {
   return summer ? 'Vacances d’été' : null
 }
 
+// Last day of the Toussaint break (the entry marked `toussaint: true` in
+// data/schoolCalendar.js) of the school year `dateStr` belongs to; in the
+// summer, of the coming year. null if the calendar doesn't say.
+export function toussaintEnd(dateStr, years = SCHOOL_YEARS) {
+  const year = years.find((y) => dateStr <= y.lastDay)
+  const brk = year?.daysOff.find((d) => d.toussaint)
+  return brk ? (brk.to ?? brk.from) : null
+}
+
 // True from Monday to Friday, except holidays and breaks.
 export function isSchoolDay(dateStr) {
   const day = toUtcDate(dateStr).getUTCDay()

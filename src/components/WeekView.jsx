@@ -104,7 +104,10 @@ export default function WeekView({
             size="sm"
             className={cn(
               'gap-0 py-0',
-              alignRows && 'md:row-span-2 md:grid md:grid-rows-subgrid',
+              // grid-cols-1 (minmax(0, 1fr)) keeps the column at the card's
+              // width: without it, a long no-wrap line (e.g. « … (autre) »)
+              // widens the column and gets clipped instead of truncated.
+              alignRows && 'md:row-span-2 md:grid md:grid-cols-1 md:grid-rows-subgrid',
               date !== selectedDay && 'max-md:hidden',
               date === today && 'ring-2 ring-today',
               date < today && 'opacity-60',
@@ -148,7 +151,7 @@ export default function WeekView({
                     <span className="min-w-0 flex-1">
                       {row.kind === 'lunch' ? (
                         // Not clickable, never bookable.
-                        <span className="flex h-11 items-center gap-1.5 px-2 text-sm text-muted-foreground md:h-9">
+                        <span className="flex h-11 items-center gap-1.5 px-2 text-sm text-muted-foreground">
                           <Utensils className="size-4 shrink-0" aria-hidden="true" />
                           <span className="truncate">Pause déjeuner</span>
                         </span>

@@ -2,7 +2,7 @@ import { CircleCheck, Hourglass, Lock, UserCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatTime } from '@/lib/dates'
-import { topicLabel } from '@/lib/messages'
+import { bookingTopic } from '@/lib/topics'
 
 // What one time cell shows on the counselor side, and the one-click action on it.
 // status: "closed" | "open" | "protected" | "booked" | "requested"
@@ -59,14 +59,15 @@ export default function CounselorCell({
   const hasBooking = status === 'booked' || status === 'requested'
 
   if (hasBooking) {
-    const topic = topicLabel(booking.topic)
+    const topic = bookingTopic(booking)
     return (
       <button
         type="button"
         onClick={onOpenBooking}
         aria-label={`${dayLabel}, ${formatTime(time)} : ${look.label}, ${student.name}, ${student.className}${topic ? `, ${topic}` : ''}. Voir le détail.`}
         className={cn(
-          'flex min-h-11 w-full flex-col items-start justify-center rounded-md px-2 py-1 text-left text-sm lift-sm hover:shadow-sm md:min-h-9',
+          // Same height as every other cell (h-11), so the rows line up across the week.
+          'flex h-11 w-full flex-col items-start justify-center rounded-md px-2 py-1 text-left text-sm lift-sm hover:shadow-sm',
           'focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
           look.className,
         )}
@@ -94,7 +95,9 @@ export default function CounselorCell({
       onClick={onToggle}
       aria-label={`${dayLabel}, ${formatTime(time)} : ${look.label}. ${blockHint ? `${blockHint} ` : ''}${hint}`}
       className={cn(
-        'flex h-11 w-full items-center gap-1.5 rounded-md px-2 text-left text-sm lift-sm enabled:hover:shadow-sm md:h-9',
+        // h-11 on a computer too: a booked cell needs two lines, and all cells
+        // share its height so the time rows line up across the five days.
+        'flex h-11 w-full items-center gap-1.5 rounded-md px-2 text-left text-sm lift-sm enabled:hover:shadow-sm',
         'focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
         'disabled:cursor-default',
         disabled && 'opacity-60 hover:bg-transparent',

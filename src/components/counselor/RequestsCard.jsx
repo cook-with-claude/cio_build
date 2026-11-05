@@ -2,7 +2,7 @@ import { Check, Hourglass, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatLongDate, formatTime } from '@/lib/dates'
-import { topicLabel } from '@/lib/messages'
+import { bookingTopic } from '@/lib/topics'
 
 // Pending requests (approval mode), answered in one click each.
 // requests: [{ booking, slot, student }]
@@ -20,7 +20,7 @@ export default function RequestsCard({ requests, onAccept, onRefuse, onOpen }) {
       <CardContent>
         <ul className="divide-y">
           {requests.map(({ booking, slot, student }) => {
-            const topic = topicLabel(booking.topic)
+            const topic = bookingTopic(booking)
             return (
               <li key={booking.id} className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
                 <button

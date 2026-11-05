@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { addDays, formatLongDate, formatTime } from '@/lib/dates'
-import { topicLabel } from '@/lib/messages'
+import { bookingTopic } from '@/lib/topics'
 
 function dayHeading(date, today) {
   if (date === today) return `Aujourd’hui · ${formatLongDate(date)}`
@@ -44,7 +44,7 @@ export default function UpcomingDialog({ appointments, today, onOpen, onClose })
                 {appointments
                   .filter(({ slot }) => slot.date === date)
                   .map(({ booking, slot, student }) => {
-                    const topic = topicLabel(booking.topic)
+                    const topic = bookingTopic(booking)
                     return (
                       <li key={booking.id}>
                         <button

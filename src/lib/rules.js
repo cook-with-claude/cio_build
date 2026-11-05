@@ -4,11 +4,13 @@
 import {
   addDays,
   addMinutes,
+  isSchoolDay,
   minutesToTime,
   nextSchoolDay,
   previousSchoolDay,
   startOfWeek,
   timeToMinutes,
+  toussaintEnd,
   weekDays,
 } from './dates.js'
 
@@ -76,10 +78,23 @@ export function weekSlotMinutes(slots, weekStart, settings) {
 export const slotMinutesOn = (slots, date, settings) => weekSlotMinutes(slots, startOfWeek(date), settings)
 
 // --- Cutoff ------------------------------------------------------------------
-// The moment a day's bookings are locked: the previous school day at the
-// cutoff time (Monday locks on Friday).
+// A day's bookings close at the cutoff time (15h00 by default), 2 calendar
+// days before the session. If that day is not a school day (weekend,
+// holiday), they close on the last school day before it:
+//   Monday and Tuesday -> Friday, Wednesday -> Monday, Thursday -> Tuesday,
+//   Friday -> Wednesday; after a break -> the last school day before it.
+// (Nadim, 2026-11-05; was the previous school day.)
+export const CUTOFF_DAYS_BEFORE = 2
+
+// The school day on which `date` locks.
+export function lockDay(date) {
+  const target = addDays(date, -CUTOFF_DAYS_BEFORE)
+  return isSchoolDay(target) ? target : previousSchoolDay(target)
+}
+
+// The moment `date` locks: { date, time }.
 export function lockMoment(date, settings) {
-  return { date: previousSchoolDay(date), time: settings.cutoffTime }
+  return { date: lockDay(date), time: settings.cutoffTime }
 }
 
 // True once students can no longer book (or cancel freely) on `date`.
@@ -134,13 +149,44 @@ export function studentBookingBlock(date, now, settings) {
 export const REMINDER_TIME = '07:00'
 export const reminderMoment = (slot) => ({ date: slot.date, time: REMINDER_TIME })
 
-// The day covered by « Résumé de demain »: the next school day.
-export const summaryDate = (now) => nextSchoolDay(now.date)
-
-// She receives it a few minutes after that day locks (15h05 with the default
-// 15h00 cutoff), so requests declined at the cutoff are already final.
+// « Résumé du jour »: she receives it a few minutes after the cutoff (15h05
+// with the default 15h00), so requests declined at the cutoff are final. It
+// covers every day that has just locked (on a Friday: Monday and Tuesday).
 export const SUMMARY_DELAY_MINUTES = 5
-export function summaryMoment(date, settings) {
-  const lock = lockMoment(date, settings)
-  return { date: lock.date, time: addMinutes(lock.time, SUMMARY_DELAY_MINUTES) }
+
+// The school days whose bookings lock on `day` (none on a Thursday).
+export function daysLockingOn(day) {
+  const days = []
+  // lockDay never goes back in time from one day to the next, so the search
+  // stops at the first day that locks later than `day`.
+  for (let d = nextSchoolDay(day); lockDay(d) <= day; d = nextSchoolDay(d)) {
+    if (lockDay(d) === day) days.push(d)
+  }
+  return days
 }
+
+// The summary her preview shows: today's if some day locks today (before or
+// after it is sent), otherwise the next one.
+// -> { dates: ["YYYY-MM-DD", …], sentAt: { date, time } }
+export function nextSummary(now, settings) {
+  let day = now.date
+  while (!isSchoolDay(day) || daysLockingOn(day).length === 0) day = addDays(day, 1)
+  return {
+    dates: daysLockingOn(day),
+    sentAt: { date: day, time: addMinutes(settings.cutoffTime, SUMMARY_DELAY_MINUTES) },
+  }
+}
+
+// --- Who can book: Terminale only until the end of the Toussaint break -----
+// From the start of the school year until the end of the Toussaint break
+// (school calendar), only Terminale students can book; then Première and
+// Seconde too. Checked at the moment of booking. (Nadim, 2026-11-05.)
+// -> "terminale-only" when `level` can't book at `now`, otherwise null.
+export function levelBookingBlock(level, now) {
+  if (level === 'terminale') return null
+  const end = toussaintEnd(now.date)
+  return end && now.date <= end ? 'terminale-only' : null
+}
+
+// The first school day on which every level can book, for the message.
+export const openToAllLevelsFrom = (now) => nextSchoolDay(toussaintEnd(now.date))

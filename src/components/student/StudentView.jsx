@@ -3,20 +3,16 @@ import { useState } from 'react'
 import MessageDialog from '@/components/MessageDialog'
 import MessageList from '@/components/MessageList'
 import WeekView from '@/components/WeekView'
-import { DEMO_STUDENT_ID, students } from '@/data/mockData'
 import { formatLongDate, formatTime, isSchoolDay } from '@/lib/dates'
-import { reminderMessage } from '@/lib/messages'
-import { reminderMoment, weekSlotMinutes } from '@/lib/rules'
-import { upcomingBookingFor } from '@/state/useDemoStore'
+import { reminderMessage, terminaleOnlyNotice } from '@/lib/messages'
+import { levelBookingBlock, reminderMoment, weekSlotMinutes } from '@/lib/rules'
+import { studentById, upcomingBookingFor } from '@/state/useDemoStore'
 import { dayHasAvailableSlot, studentCell, studentDayNote } from './availability'
 import BookingDialog from './BookingDialog'
 import MyBookingCard from './MyBookingCard'
 import StudentCell from './StudentCell'
 import TimetableCard from './TimetableCard'
 import TimetableImport from './TimetableImport'
-
-// In the demo there is no login: the student side acts as one fake student.
-const student = students.find((s) => s.id === DEMO_STUDENT_ID)
 
 // The short line under a day's name (see studentDayNote).
 const DAY_NOTES = {
@@ -25,8 +21,14 @@ const DAY_NOTES = {
   'none-compatible': 'Aucun créneau compatible',
 }
 
-export default function StudentView({ state, actions, weekStart, now }) {
+// In the demo there is no login: the student side acts as one fake student
+// (`studentId`, picked with « Niveau de l’élève (démo) »).
+export default function StudentView({ state, actions, weekStart, now, studentId }) {
   const { settings } = state
+  const student = studentById(studentId)
+  // Première and Seconde can't book until the end of the Toussaint break:
+  // they still see the slots, and this message explains why.
+  const levelNotice = levelBookingBlock(student.level, now) ? terminaleOnlyNotice(now) : null
   const [bookingSlot, setBookingSlot] = useState(null) // slot being booked (dialog open)
   const [notice, setNotice] = useState('')
   const [showReminder, setShowReminder] = useState(false)
@@ -54,6 +56,7 @@ export default function StudentView({ state, actions, weekStart, now }) {
         settings={settings}
         now={now}
         notice={notice}
+        levelNotice={levelNotice}
         onCancel={cancel}
         onShowReminder={() => setShowReminder(true)}
       />
@@ -115,7 +118,8 @@ export default function StudentView({ state, actions, weekStart, now }) {
           student={student}
           settings={settings}
           existing={upcoming}
-          onConfirm={(topic) => actions.bookSlot(bookingSlot.id, student.id, topic, now)}
+          levelNotice={levelNotice}
+          onConfirm={(choice) => actions.bookSlot(bookingSlot.id, student.id, choice, now)}
           onClose={() => setBookingSlot(null)}
         />
       )}

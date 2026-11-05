@@ -10,8 +10,9 @@ export default function MessagePreview({ to, subject, body }) {
       </figcaption>
       <div className="flex flex-col gap-2 px-3 py-3">
         <p className="font-medium">{subject}</p>
-        {body.map((line) => (
-          <p key={line}>{line}</p>
+        {body.map((line, i) => (
+          // Lines can repeat (« … : aucune. » for each day of a summary).
+          <p key={i}>{line}</p>
         ))}
       </div>
       <p className="border-t px-3 py-2 text-xs text-muted-foreground">

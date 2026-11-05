@@ -16,10 +16,10 @@ import {
   daySlotTimes,
   isLocked,
   lockMoment,
+  nextSummary,
   slotMinutesOn,
-  summaryDate,
-  summaryMoment,
 } from '@/lib/rules'
+import { OTHER_TOPIC, topicError } from '@/lib/topics'
 
 // In-memory state for the demo (resets on reload). Every change goes through
 // one of the actions below, so they can later become Supabase queries.
@@ -180,13 +180,17 @@ export function reducer(state, action) {
       return { ...state, timetable: null }
 
     // Student books an open slot. In approval mode it becomes a request.
-    // (The screens check the time rules; this only refuses impossible bookings.)
+    // A topic is required; « Autre » needs a few words (see lib/topics.js).
+    // (The screens check the time and level rules; this only refuses
+    // impossible bookings.)
     case 'bookSlot': {
-      const { id, messageId, slotId, studentId, topic, at } = action
+      const { id, messageId, slotId, studentId, topic, topicOther, at } = action
       const slot = state.slots.find((s) => s.id === slotId)
       if (!slot || slot.kind !== 'open' || activeBookingForSlot(state.bookings, slotId)) return state
+      if (topicError(topic, topicOther)) return state
       const status = state.settings.approvalMode ? 'pending' : 'confirmed'
-      const booking = { id, slotId, studentId, topic, status, createdAt: at.date }
+      const other = topic === OTHER_TOPIC ? topicOther.trim() : null
+      const booking = { id, slotId, studentId, topic, topicOther: other, status, createdAt: at.date }
       const next = { ...state, bookings: [...state.bookings, booking] }
       return withMessage(next, {
         id: messageId,
@@ -313,14 +317,16 @@ export function upcomingAppointments(state, today) {
     .sort((a, b) => (a.slot.date + a.slot.start).localeCompare(b.slot.date + b.slot.start))
 }
 
-// What « Résumé de demain » would contain if sent now: the next school day's
-// confirmed bookings, its requests declined automatically (those still pending
-// are declined at the cutoff, before the summary is sent) and its late
-// cancellations. Each list is [{ slot, student, … }], sorted by time.
-export function tomorrowSummary(state, now) {
-  const date = summaryDate(now)
+// What « Résumé du jour » contains: today's (or the next one, see
+// nextSummary in rules.js). For each day that locks: its confirmed bookings,
+// its requests declined automatically (those still pending are declined at
+// the cutoff, before the summary is sent) and its late cancellations.
+// -> { sentAt, days: [{ date, confirmed, declined, lateCancellations }] },
+// each list [{ slot, student, … }] sorted by time.
+export function cutoffSummary(state, now) {
+  const { dates, sentAt } = nextSummary(now, state.settings)
   const byTime = (a, b) => a.slot.start.localeCompare(b.slot.start)
-  const onDate = (keep) =>
+  const onDate = (date, keep) =>
     state.bookings
       .filter(keep)
       .map((booking) => ({
@@ -331,14 +337,16 @@ export function tomorrowSummary(state, now) {
       .filter(({ slot }) => slot?.date === date)
       .sort(byTime)
   return {
-    date,
-    sentAt: summaryMoment(date, state.settings),
-    confirmed: onDate((b) => b.status === 'confirmed'),
-    declined: onDate((b) => b.status === 'pending' || b.autoDeclined),
-    lateCancellations: state.notifications
-      .filter((n) => n.kind === 'lateCancel' && n.slot.date === date)
-      .map((n) => ({ slot: n.slot, student: studentById(n.studentId), reason: n.reason }))
-      .sort(byTime),
+    sentAt,
+    days: dates.map((date) => ({
+      date,
+      confirmed: onDate(date, (b) => b.status === 'confirmed'),
+      declined: onDate(date, (b) => b.status === 'pending' || b.autoDeclined),
+      lateCancellations: state.notifications
+        .filter((n) => n.kind === 'lateCancel' && n.slot.date === date)
+        .map((n) => ({ slot: n.slot, student: studentById(n.studentId), reason: n.reason }))
+        .sort(byTime),
+    })),
   }
 }
 
@@ -375,8 +383,9 @@ export function useDemoStore() {
       },
       undoCopy: (batchId) => dispatch({ type: 'undoCopy', batchId }),
       updateSettings: (changes) => dispatch({ type: 'updateSettings', changes }),
-      bookSlot: (slotId, studentId, topic, at) =>
-        withMessageId({ type: 'bookSlot', id: newId('bk'), slotId, studentId, topic, at }),
+      // `choice` = { topic, topicOther } (topicOther only with « Autre »).
+      bookSlot: (slotId, studentId, { topic, topicOther = null }, at) =>
+        withMessageId({ type: 'bookSlot', id: newId('bk'), slotId, studentId, topic, topicOther, at }),
       // `reason` is only needed after the cutoff (a LATE_CANCEL_REASONS id).
       cancelBooking: (bookingId, at, reason) =>
         dispatch({ type: 'studentCancel', bookingId, at, reason, notificationId: newId('notif') }),

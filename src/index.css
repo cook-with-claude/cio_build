@@ -186,6 +186,12 @@
   html {
     @apply font-sans;
     }
+  /* No rubber-band bounce at the top or bottom of the page on phones: it
+     threw the last rows back out of view (Nadim, 2026-11-05). Also stops
+     pull-to-refresh, which would wipe the demo's clicks. */
+  html, body {
+    overscroll-behavior-y: none;
+    }
 }
 /* How clickable things react, in one place (tune the numbers here).
    - press:   colours fade, and it sinks a little while pressed. For joined

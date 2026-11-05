@@ -3,11 +3,12 @@ import { CalendarCheck, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import MessageDialog from '@/components/MessageDialog'
 import { formatLongDate, formatTime } from '@/lib/dates'
-import { tomorrowSummaryMessage } from '@/lib/messages'
+import { summaryMessage } from '@/lib/messages'
 
 // Top of the counselor side: open the list of next appointments, and preview
-// « Résumé de demain » (the summary she receives just after the cutoff).
-// summary: see tomorrowSummary in useDemoStore.js
+// « Résumé du jour » (the summary she receives just after the cutoff, for
+// every day that has just locked).
+// summary: see cutoffSummary in useDemoStore.js
 export default function CounselorShortcuts({ upcomingCount, onShowUpcoming, summary }) {
   const [showSummary, setShowSummary] = useState(false)
 
@@ -20,14 +21,14 @@ export default function CounselorShortcuts({ upcomingCount, onShowUpcoming, summ
       </Button>
       <Button variant="ghost" className="h-11 md:h-9" onClick={() => setShowSummary(true)}>
         <ClipboardList aria-hidden="true" />
-        Résumé de demain
+        Résumé du jour
       </Button>
 
       {showSummary && (
         <MessageDialog
-          title="Aperçu du résumé de demain"
-          description={`Envoyé automatiquement le ${formatLongDate(summary.sentAt.date)} à ${formatTime(summary.sentAt.time)}, juste après la clôture des réservations pour ce jour.`}
-          message={tomorrowSummaryMessage(summary)}
+          title="Aperçu du résumé du jour"
+          description={`Envoyé automatiquement le ${formatLongDate(summary.sentAt.date)} à ${formatTime(summary.sentAt.time)}, juste après la clôture des réservations pour ${summary.days.length > 1 ? 'ces jours' : 'ce jour'}.`}
+          message={summaryMessage(summary)}
           to="la conseillère d’orientation"
           onClose={() => setShowSummary(false)}
         />

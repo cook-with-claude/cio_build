@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import DemoClock from '@/components/DemoClock'
+import DemoLevelSelect from '@/components/DemoLevelSelect'
 import Logo from '@/components/Logo'
 import RoleSwitch from '@/components/RoleSwitch'
 import WeekNav from '@/components/WeekNav'
@@ -11,8 +12,8 @@ import CounselorShortcuts from '@/components/counselor/CounselorShortcuts'
 import CounselorView from '@/components/counselor/CounselorView'
 import StudentView from '@/components/student/StudentView'
 import { nextAvailableSlot, studentWeekNote } from '@/components/student/availability'
-import { DEMO_STUDENT_ID } from '@/data/mockData'
-import { tomorrowSummary, upcomingAppointments, useDemoStore } from '@/state/useDemoStore'
+import { DEMO_STUDENTS } from '@/data/mockData'
+import { cutoffSummary, upcomingAppointments, useDemoStore } from '@/state/useDemoStore'
 import { useTheme } from '@/state/useTheme'
 import { addDays, formatLongDate, nowInBeirut, startOfWeek } from '@/lib/dates'
 
@@ -24,6 +25,9 @@ export default function App() {
   const currentWeek = startOfWeek(today)
 
   const [role, setRole] = useState('student')
+  // Demo-only: the student side acts as a Terminale, Première or Seconde student.
+  const [demoLevel, setDemoLevel] = useState('terminale')
+  const studentId = DEMO_STUDENTS[demoLevel]
   const [weekStart, setWeekStart] = useState(currentWeek)
   const [state, actions] = useDemoStore()
   // Light/dark look: set in the counselor's Réglages, applies to both sides (see theme.js).
@@ -42,7 +46,7 @@ export default function App() {
   }, [])
 
   // Student side: when the shown week has nothing to book, point to the next slot.
-  const weekNote = role === 'student' ? studentWeekNote(state, DEMO_STUDENT_ID, now, weekStart) : null
+  const weekNote = role === 'student' ? studentWeekNote(state, studentId, now, weekStart) : null
   const weekIsEmptyForStudent = weekNote !== null
   const nextSlot = weekIsEmptyForStudent ? nextAvailableSlot(state, now) : undefined
 
@@ -92,14 +96,17 @@ export default function App() {
           </div>
         </header>
 
-        <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5">
-          <DemoClock now={now} simulated={demoNow !== null} onChange={changeDemoNow} />
+        {/* Extra room at the bottom, so the phone browser's bar never covers the last row. */}
+        <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 pt-5 pb-16 md:pb-8">
+          <DemoClock now={now} simulated={demoNow !== null} onChange={changeDemoNow}>
+            {role === 'student' && <DemoLevelSelect level={demoLevel} onChange={setDemoLevel} />}
+          </DemoClock>
 
           {role === 'counselor' && (
             <CounselorShortcuts
               upcomingCount={upcomingAppointments(state, today).length}
               onShowUpcoming={() => setShowUpcoming(true)}
-              summary={tomorrowSummary(state, now)}
+              summary={cutoffSummary(state, now)}
             />
           )}
 
@@ -136,7 +143,8 @@ export default function App() {
               onThemeChange={setTheme}
             />
           ) : (
-            <StudentView state={state} actions={actions} weekStart={weekStart} now={now} />
+            // Keyed by student, so switching level starts with a fresh screen.
+            <StudentView key={studentId} state={state} actions={actions} weekStart={weekStart} now={now} studentId={studentId} />
           )}
         </main>
         <Toaster position="bottom-center" containerAriaLabel="Notifications" theme={dark ? 'dark' : 'light'} />

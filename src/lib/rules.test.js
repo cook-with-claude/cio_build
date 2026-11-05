@@ -11,13 +11,15 @@ import {
   daySlotTimes,
   firstVisibleDate,
   isLocked,
+  daysLockingOn,
   isWithinHorizon,
   lastBookableDate,
+  levelBookingBlock,
   lockMoment,
+  nextSummary,
+  openToAllLevelsFrom,
   reminderMoment,
   studentBookingBlock,
-  summaryDate,
-  summaryMoment,
   weekSlotMinutes,
 } from './rules.js'
 
@@ -26,6 +28,8 @@ import {
 const MON = '2026-11-16'
 const TUE = '2026-11-17'
 const WED = '2026-11-18'
+const THU = '2026-11-19'
+const FRI = '2026-11-20'
 const LAST_FRI = '2026-11-13'
 const NEXT_MON = '2026-11-23'
 const at = (date, time) => ({ date, time })
@@ -97,31 +101,47 @@ test('protected time alone also marks a week as prepared', () => {
   assert.equal(weekSlotMinutes(slots, MON, settings), 20)
 })
 
-// --- Item 3: cutoff on the previous school day, 15h00 by default -------------
+// --- Item 3: cutoff 2 days before, at 15h00 by default ----------------------
 
 test('the cutoff is 15h00 by default', () => {
   assert.equal(settings.cutoffTime, '15:00')
 })
 
-test('a day locks on the previous school day at the cutoff time', () => {
-  assert.deepEqual(lockMoment(TUE, settings), { date: MON, time: '15:00' })
+// The expected results given by Nadim (2026-11-05), Beirut time.
+test('bookings close at 15h00, 2 days before (on the last school day if that is not one)', () => {
+  const closes = (date) => lockMoment(date, settings)
+  assert.deepEqual(closes(MON), { date: LAST_FRI, time: '15:00' }) // Monday -> Friday
+  assert.deepEqual(closes(TUE), { date: LAST_FRI, time: '15:00' }) // Tuesday -> Friday
+  assert.deepEqual(closes(WED), { date: MON, time: '15:00' }) // Wednesday -> Monday
+  assert.deepEqual(closes(THU), { date: TUE, time: '15:00' }) // Thursday -> Tuesday
+  assert.deepEqual(closes(FRI), { date: WED, time: '15:00' }) // Friday -> Wednesday
 })
 
-test("Monday's bookings lock on Friday, not Sunday", () => {
-  assert.deepEqual(lockMoment(MON, settings), { date: LAST_FRI, time: '15:00' })
+test('after a holiday, bookings close on the last school day before it', () => {
+  const closes = (date) => lockMoment(date, settings).date
+  // Mid-term break (Sat 24 October – Sun 1 November 2026):
+  assert.equal(closes('2026-11-02'), '2026-10-23') // Monday after the break -> Friday before it
+  assert.equal(closes('2026-11-03'), '2026-10-23') // Tuesday after the break -> Friday before it
+  assert.equal(closes('2026-11-04'), '2026-11-02') // Wednesday -> Monday, as usual
+  // Christmas break (19 December – 3 January): Monday 4 and Tuesday 5 January -> Friday 18 December.
+  assert.equal(closes('2027-01-04'), '2026-12-18')
+  assert.equal(closes('2027-01-05'), '2026-12-18')
+  // Armenian Christmas (Wednesday 6 January): Friday 8 January -> Tuesday 5 January.
+  assert.equal(closes('2027-01-08'), '2027-01-05')
+})
+
+test('a day is still bookable just before its cutoff, locked at it', () => {
+  assert.equal(isLocked(WED, at(MON, '14:59'), settings), false)
+  assert.equal(isLocked(WED, at(MON, '15:00'), settings), true)
   assert.equal(isLocked(MON, at(LAST_FRI, '14:59'), settings), false)
   assert.equal(isLocked(MON, at(LAST_FRI, '15:00'), settings), true)
+  assert.equal(isLocked(TUE, at(LAST_FRI, '15:00'), settings), true)
   assert.equal(isLocked(MON, at('2026-11-15', '10:00'), settings), true) // Sunday
 })
 
-test('tomorrow is still bookable just before the cutoff, locked at it', () => {
-  assert.equal(isLocked(TUE, at(MON, '14:59'), settings), false)
-  assert.equal(isLocked(TUE, at(MON, '15:00'), settings), true)
-  assert.equal(isLocked(TUE, at(MON, '21:30'), settings), true)
-})
-
-test('the day after tomorrow is still bookable in the evening', () => {
-  assert.equal(isLocked(WED, at(MON, '21:30'), settings), false)
+test('tomorrow is always closed; two days ahead is bookable until 15h00', () => {
+  assert.equal(isLocked(TUE, at(MON, '07:00'), settings), true)
+  assert.equal(isLocked(THU, at(MON, '21:30'), settings), false)
 })
 
 test('no same-day bookings, even early in the morning', () => {
@@ -134,19 +154,20 @@ test('past days are locked', () => {
 
 test('the cutoff follows the setting', () => {
   const noon = { ...settings, cutoffTime: '12:00' }
-  assert.equal(isLocked(TUE, at(MON, '11:59'), noon), false)
-  assert.equal(isLocked(TUE, at(MON, '12:00'), noon), true)
+  assert.equal(isLocked(WED, at(MON, '11:59'), noon), false)
+  assert.equal(isLocked(WED, at(MON, '12:00'), noon), true)
 })
 
 // --- Item 4: late cancellation -------------------------------------------------
 
 test('a student cancels freely before the cutoff, late after it, not once started', () => {
-  const s = slot(TUE, '10:00', '10:30')
+  const s = slot(WED, '10:00', '10:30')
   assert.equal(cancellationKind(s, at(MON, '14:59'), settings), 'free')
   assert.equal(cancellationKind(s, at(MON, '15:00'), settings), 'late')
-  assert.equal(cancellationKind(s, at(TUE, '09:59'), settings), 'late')
-  assert.equal(cancellationKind(s, at(TUE, '10:00'), settings), 'none')
-  assert.equal(cancellationKind(s, at(WED, '08:00'), settings), 'none')
+  assert.equal(cancellationKind(s, at(TUE, '12:00'), settings), 'late')
+  assert.equal(cancellationKind(s, at(WED, '09:59'), settings), 'late')
+  assert.equal(cancellationKind(s, at(WED, '10:00'), settings), 'none')
+  assert.equal(cancellationKind(s, at(THU, '08:00'), settings), 'none')
 })
 
 // --- Horizon, lock hints, reminder, summary ------------------------------------
@@ -162,8 +183,8 @@ test('students can book up to the horizon (2 weeks), not beyond', () => {
 test('why students cannot book an open slot: closed, too far, or nothing', () => {
   const now = at(MON, '15:00')
   assert.equal(studentBookingBlock(MON, now, settings), 'closed') // today
-  assert.equal(studentBookingBlock(TUE, now, settings), 'closed') // past the cutoff
-  assert.equal(studentBookingBlock(WED, now, settings), null)
+  assert.equal(studentBookingBlock(WED, now, settings), 'closed') // past the cutoff
+  assert.equal(studentBookingBlock(THU, now, settings), null)
   assert.equal(studentBookingBlock('2026-12-01', now, settings), 'too-far')
 })
 
@@ -171,13 +192,45 @@ test('the reminder goes out at 7h00 on the morning of the session', () => {
   assert.deepEqual(reminderMoment(slot(TUE, '13:00', '13:30')), { date: TUE, time: '07:00' })
 })
 
-test('« Résumé de demain » covers the next school day (Monday, from a Friday)', () => {
-  assert.equal(summaryDate(at(MON, '10:00')), TUE)
-  assert.equal(summaryDate(at(LAST_FRI, '10:00')), MON)
+test('the summary covers every day that has just locked', () => {
+  assert.deepEqual(daysLockingOn(LAST_FRI), [MON, TUE]) // on Friday: Monday and Tuesday
+  assert.deepEqual(daysLockingOn(MON), [WED])
+  assert.deepEqual(daysLockingOn(TUE), [THU])
+  assert.deepEqual(daysLockingOn(WED), [FRI])
+  assert.deepEqual(daysLockingOn(THU), []) // nothing locks on Thursday
+  assert.deepEqual(daysLockingOn('2026-12-18'), ['2027-01-04', '2027-01-05']) // before Christmas
 })
 
-test('« Résumé de demain » is sent 5 minutes after the cutoff (15h05)', () => {
-  assert.deepEqual(summaryMoment(TUE, settings), { date: MON, time: '15:05' })
-  assert.deepEqual(summaryMoment(MON, settings), { date: LAST_FRI, time: '15:05' })
-  assert.deepEqual(summaryMoment(TUE, { ...settings, cutoffTime: '17:00' }), { date: MON, time: '17:05' })
+test('« Résumé du jour » is sent 5 minutes after the cutoff (15h05)', () => {
+  assert.deepEqual(nextSummary(at(LAST_FRI, '10:00'), settings), {
+    dates: [MON, TUE],
+    sentAt: { date: LAST_FRI, time: '15:05' },
+  })
+  // Still today's summary after it is sent.
+  assert.deepEqual(nextSummary(at(MON, '18:00'), settings).dates, [WED])
+  assert.deepEqual(nextSummary(at(MON, '10:00'), { ...settings, cutoffTime: '17:00' }).sentAt, { date: MON, time: '17:05' })
+})
+
+test('on a Thursday or a weekend, the preview shows the next summary', () => {
+  assert.deepEqual(nextSummary(at(THU, '10:00'), settings), {
+    dates: ['2026-11-23', '2026-11-24'],
+    sentAt: { date: FRI, time: '15:05' },
+  })
+  assert.deepEqual(nextSummary(at('2026-11-15', '10:00'), settings).dates, [WED]) // Sunday -> Monday's
+})
+
+// --- Who can book: Terminale only until the end of the Toussaint break -----
+
+test('until the end of the Toussaint break, only Terminale students can book', () => {
+  for (const date of ['2026-09-14', '2026-10-23', '2026-11-01']) {
+    assert.equal(levelBookingBlock('terminale', at(date, '10:00')), null, date)
+    assert.equal(levelBookingBlock('premiere', at(date, '10:00')), 'terminale-only', date)
+    assert.equal(levelBookingBlock('seconde', at(date, '10:00')), 'terminale-only', date)
+  }
+})
+
+test('after the Toussaint break, Première and Seconde can book too', () => {
+  assert.equal(levelBookingBlock('premiere', at('2026-11-02', '07:00')), null)
+  assert.equal(levelBookingBlock('seconde', at('2027-03-01', '10:00')), null)
+  assert.equal(openToAllLevelsFrom(at('2026-10-20', '10:00')), '2026-11-02')
 })
