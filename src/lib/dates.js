@@ -127,6 +127,15 @@ export const formatDayNumber = (dateStr) => String(toUtcDate(dateStr).getUTCDate
 export const formatLongDate = (dateStr) =>
   `${weekdayLong.format(toUtcDate(dateStr))} ${dayMonth.format(toUtcDate(dateStr))}`
 
+// Phones: "16 – 20 novembre", "30 novembre – 4 décembre" (fits one line
+// between the week arrows; the full title stays for screen readers).
+export function formatWeekRangeShort(mondayStr) {
+  const friday = addDays(mondayStr, 4)
+  const sameMonth = mondayStr.slice(0, 7) === friday.slice(0, 7)
+  const from = sameMonth ? formatDayNumber(mondayStr) : dayMonth.format(toUtcDate(mondayStr))
+  return `${from} – ${dayMonth.format(toUtcDate(friday))}`
+}
+
 // "Semaine du 26 au 30 octobre 2026" (month repeated when the week spans two months)
 export function formatWeekRange(mondayStr) {
   const friday = addDays(mondayStr, 4)

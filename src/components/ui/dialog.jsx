@@ -52,11 +52,14 @@ function DialogOverlay({
 //   (transform-origin = that button), and leaves the same way.
 // - Phone: a bottom sheet with a grabber; drag it down to close (useSheetDrag).
 //   `sheet={false}` keeps a dialog full-screen on phones (long lists).
+// `largeClose`: on phones the ✕ is 44px instead of 36px (the student side
+// and the « Démo » sheet; the counselor's dialogs keep the smaller one).
 function DialogContent({
   className,
   children,
   showCloseButton = true,
   sheet = true,
+  largeClose = false,
   ref,
   ...props
 }) {
@@ -119,7 +122,10 @@ function DialogContent({
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-1.5 right-1.5 size-11 rounded-full max-sm:top-3 max-sm:right-3 max-sm:size-9 max-sm:bg-muted md:size-8"
+              className={cn(
+                "absolute top-1.5 right-1.5 size-11 rounded-full max-sm:top-3 max-sm:right-3 max-sm:size-9 max-sm:bg-muted md:size-8",
+                largeClose && "max-sm:top-2 max-sm:right-2 max-sm:size-11"
+              )}
               size="icon-sm"
             >
               <XIcon

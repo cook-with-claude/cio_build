@@ -9,7 +9,8 @@
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
-- **Tests:** `npm test` (175 tests, Node's built-in test runner).
+- **Tests:** `npm test` (179 tests, Node's built-in test runner).
+- **Phone layout for students** (session 14): slim header with a « Démo » sheet, booking → week → day → slots first, rules folded, browser pull-to-refresh back. Computers and tablets unchanged. **Not committed yet** (in the working folder).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
 - **Apple-style feel** (session 13): springy motion, sliding selections, week changes with direction, phone bottom sheets you can pull down, day swipe on phones, glass header. Details: `docs/apple-design-experiment.md`. On `main` (live site).
 - **Dark mode** (session 10): « Thème » in the counselor's Réglages (Système / Clair / Sombre), applies to both sides for the demo. On `main` (live site).
@@ -43,6 +44,38 @@
 - EDT experiment: should 7:30–7:45 count as free when the first period is free? (Today: no, so a 7:30 slot is never « Compatible ».)
 - EDT experiment: tell her a « Compatible » slot may start up to 5 minutes before the student's class ends (e.g. 9:30–10:00 and the 9:35–10:05 recess): the student arrives up to 5 minutes late, never leaves class early. Check she's fine with it.
 - ~~EDT experiment: a timetable is data beyond the `rules.md` list~~ **Answered (2026-10-30): the school sees no privacy issue** (read in the browser, never uploaded), and **it may be stored with the student's account** in the database phase, so they don't import the PDF again at each login. Added to `rules.md` (rule 2).
+
+---
+
+## 2026-11-13 · Session 14: student view on phones
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** make the student side feel like a real phone app (375–430px): slots visible almost at once, booking with one thumb. Desktop and the counselor's view unchanged.
+
+**Done**
+- **Audit first** with `playwright-cli` emulating an iPhone 13 (390px) and 13 mini (375px): every student flow, screenshots of each state. First slot was 1.45 screens down; header 131px; an edge swipe changed the day; pull-to-refresh blocked.
+- **Pull-to-refresh:** the cause was our own `overscroll-behavior-y: none` (session 12). Now only on mouse/trackpad computers (`@media (pointer: fine)`); phones get the browser's own pull-to-refresh (and, on iPhone, the page bounce that goes with it). Nadim chose this knowing a pull resets the demo's clicks.
+- **Safe areas:** `viewport-fit=cover`, `px-safe` / `pt-safe` utilities (`index.css`), toasts above the home bar.
+- **Day swipe:** never starts within 24px of the screen edges (iPhone back/forward), `src/lib/gestures.js` (+3 tests).
+- **Phone header (both sides, 2A):** logo, title, « Démo » button (64px instead of 131px). The sheet holds Élève/Conseillère, the demo date and the level (`DemoSheet.jsx`).
+- **Student order on phones:** booking (or a notice) → week on one line (« 16 – 20 novembre », `formatWeekRangeShort`, +1 test) → day strip → slots → « Comment réserver ? » folded (`BookingRulesDisclosure.jsx`) → timetable → messages. Empty week: « Prochain créneau » full width under the week.
+- **Consistency:** same outlined buttons in the timetable and booking cards; the « compatibles » switch row is one 44px target; 44px ✕ on student dialogs (`largeClose` on `DialogContent`, the counselor's dialogs keep theirs).
+- **`web-design-guidelines` review** of the student files; fixed: touch-action on touch screens, scroll-padding under the sticky header, `name` on the « Autre » input, overscroll contained inside phone sheets, focus ring on the fold-out.
+- **Result:** first slot at 0.41 screens (390px) / 0.43 (375px); no tap target under 44px; no sideways scroll. Desktop (1280px), tablet (800px) and the counselor side compared pixel by pixel with the old code after each step: identical (see notes).
+- `PRODUCT.md` added (Impeccable's design-context file, approved by Nadim). Tests: 175 → 179. Lint now runs on this PC: 0 errors.
+
+**Decisions**
+- The phone layout switches at 768px, like the day strip (`src/lib/useIsPhone.js`). Tablets keep the desktop layout.
+- No bottom navigation bar: the student side is one screen with one task.
+- Kept the default iPhone tap flash: the only press feedback for selects, message rows and the fold-out.
+
+**Known issues / notes**
+- Not tested on a real phone yet: pull-to-refresh, the edge swipe and safe areas can't be emulated. Test on an iPhone and an Android.
+- Pixel comparisons have two known noise spots: the logo on a browser's first render, and the striped « Temps protégé » cell (two random renderings). One unexplained 1/255 shade difference on one 26px row of the timetable dialog's button edge (desktop); invisible.
+- Not fixed from the review (would change desktop): placeholder ending with « … », focus on the topic error, the segmented thumb animating width/height.
+- The edge-swipe rule, pull-to-refresh and touch-action also apply to the counselor's view on phones (same gesture code, whole page).
+- [PROPOSAL] A dot on « Démo » when the demo date is simulated (now hidden in the sheet on phones).
 
 ---
 

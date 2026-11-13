@@ -203,12 +203,28 @@
   html {
     @apply font-sans;
     }
-  /* No rubber-band bounce at the top or bottom of the page on phones: it
-     threw the last rows back out of view (Nadim, 2026-11-05). Also stops
-     pull-to-refresh, which would wipe the demo's clicks. */
-  html, body {
-    overscroll-behavior-y: none;
-    }
+  /* Phones and tablets (touch): no overscroll-behavior, so the browser's own
+     pull-to-refresh works (Nadim, 2026-11-13). On an iPhone it comes with
+     the page bounce; the room under the last row (App.jsx) keeps it in view.
+     Mouse/trackpad computers: no rubber-band bounce, as before (2026-11-05). */
+  @media (pointer: fine) {
+    html, body {
+      overscroll-behavior-y: none;
+      }
+  }
+  @media (pointer: coarse) {
+    /* Taps respond at once (no double-tap zoom wait); pinch-zoom still works. */
+    html {
+      touch-action: manipulation;
+      }
+  }
+  @media (max-width: 767.98px) {
+    /* Keyboard focus or "scroll into view" never lands under the sticky
+       phone header (64px + the notch area). */
+    html {
+      scroll-padding-top: calc(4.5rem + env(safe-area-inset-top));
+      }
+  }
 }
 /* How clickable things react, in one place (tune the numbers here).
    - press:   colours fade, and it sinks a little while pressed. For joined
@@ -274,6 +290,19 @@
       transition-timing-function: ease-out;
     }
   }
+}
+
+/* ---------- Phones: notch and home bar (safe areas) ---------- */
+/* env(safe-area-inset-*) is 0 on computers, so these equal the plain 1rem
+   side padding there. On an iPhone they keep content clear of the notch
+   (landscape) and the status bar / home bar. Needs viewport-fit=cover
+   (index.html). */
+@utility px-safe {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
 }
 
 /* ---------- Apple experiment: materials ---------- */

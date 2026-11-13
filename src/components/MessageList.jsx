@@ -8,7 +8,8 @@ import { formatLongDate, formatTime } from '@/lib/dates'
 // inbox): « Vos messages » for the student, « Vos notifications » for the
 // counselor. Hidden while empty.
 // messages: [{ id, subject, body, sentAt: { date, time } }]
-export default function MessageList({ title, icon: Icon, messages, to, dialogTitle }) {
+// `largeClose`: passed to the message window (student side).
+export default function MessageList({ title, icon: Icon, messages, to, dialogTitle, largeClose = false }) {
   const [shown, setShown] = useState(null)
   if (messages.length === 0) return null
 
@@ -46,7 +47,9 @@ export default function MessageList({ title, icon: Icon, messages, to, dialogTit
           ))}
         </ul>
       </CardContent>
-      {shown && <MessageDialog message={shown} to={to} title={dialogTitle} onClose={() => setShown(null)} />}
+      {shown && (
+        <MessageDialog message={shown} to={to} title={dialogTitle} largeClose={largeClose} onClose={() => setShown(null)} />
+      )}
     </Card>
   )
 }

@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react'
+import { startsAtScreenEdge } from '@/lib/gestures'
 import { animateSpring, haptic, project, rubberband, velocityTracker } from '@/lib/spring'
-
-const PHONE = '(max-width: 767.98px)'
+import { PHONE_QUERY as PHONE } from '@/lib/useIsPhone'
 
 // Phone: swipe the shown day left/right to go to the next/previous day.
 // - Touch and pen only (a mouse keeps clicking), phones only.
+// - Never from the screen's edges: there the swipe is the browser's own
+//   "back"/"forward" gesture (see gestures.js).
 // - Waits for 10px of mostly-horizontal movement, so taps and vertical
 //   scrolling are left alone; then follows the finger 1:1.
 // - Monday and Friday are soft edges: it rubber-bands instead of stopping.
@@ -39,6 +41,9 @@ export function useDaySwipe(ref, days, selectedDay, setSelectedDay) {
 
     const onDown = (e) => {
       if (e.pointerType === 'mouse' || !window.matchMedia(PHONE).matches) return
+      // The edges belong to the browser, even while a card is still settling
+      // (its last second is sub-pixel, so it looks still but is "moving").
+      if (startsAtScreenEdge(e.clientX, window.innerWidth)) return
       if (spring) {
         spring.stop()
         spring = null

@@ -33,7 +33,7 @@ class LoadErrorBoundary extends Component {
 function LoadFailedDialog({ onClose }) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent largeClose className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>L’import n’a pas pu s’ouvrir</DialogTitle>
           <DialogDescription>

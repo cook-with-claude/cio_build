@@ -50,7 +50,7 @@ export default function BookingDialog({ slot, student, settings, existing, level
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-md">
+      <DialogContent largeClose className="max-h-[90svh] overflow-y-auto max-md:overscroll-contain sm:max-w-md">
         {levelNotice && !done ? (
           <>
             <DialogHeader>
@@ -140,6 +140,7 @@ export default function BookingDialog({ slot, student, settings, existing, level
                   </Label>
                   <Input
                     id="topic-other"
+                    name="topicOther"
                     value={otherText}
                     maxLength={OTHER_TOPIC_MAX_LENGTH}
                     onChange={(e) => setOtherText(e.target.value)}

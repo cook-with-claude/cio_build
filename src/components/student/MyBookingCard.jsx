@@ -77,10 +77,53 @@ function LateCancelButton({ slot, onCancel }) {
   )
 }
 
+// The booking rules, in one place (computer: in this card; phone: folded
+// under the slots, see BookingRulesDisclosure, which shows its own icon).
+export function BookingRules({ settings, icon = true }) {
+  return (
+    <p className="flex gap-2 text-sm text-muted-foreground">
+      {icon && <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />}
+      <span>
+        Vous pouvez réserver jusqu’à {formatTime(settings.cutoffTime)}, deux jours avant le rendez-vous (le
+        vendredi pour un lundi ou un mardi), et jusqu’à {settings.bookingHorizonWeeks} semaines à l’avance.
+        Vous pouvez aussi toujours passer au bureau du CIO.
+      </span>
+    </p>
+  )
+}
+
 // Top of the student view: the student's next booking (with cancel), or how booking works.
 // `levelNotice` ({ title, body }): shown instead of the invitation to book
 // when the student's level can't book yet (Terminale only until the Toussaint).
-export default function MyBookingCard({ upcoming, settings, now, notice, levelNotice, onCancel, onShowReminder }) {
+// `phone`: without a booking, only the messages that matter now (cancelled,
+// level notice); nothing at all when there are none. The rules then sit
+// under the slots (StudentView).
+export default function MyBookingCard({ upcoming, settings, now, notice, levelNotice, onCancel, onShowReminder, phone = false }) {
+  if (!upcoming && phone) {
+    if (!notice && !levelNotice) return null
+    return (
+      <Card size="sm">
+        <CardContent className="flex flex-col gap-2">
+          {notice && (
+            <p role="status" className="flex items-center gap-2 font-medium">
+              <CalendarX className="size-4 text-muted-foreground" aria-hidden="true" />
+              {notice}
+            </p>
+          )}
+          {levelNotice && (
+            <div role="status" className="flex gap-3 rounded-md bg-primary/10 px-3 py-2">
+              <CalendarClock className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+              <div className="flex flex-col gap-1">
+                <p className="font-medium">{levelNotice.title}</p>
+                <p className="text-sm">{levelNotice.body}</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (!upcoming) {
     return (
       <Card size="sm">
@@ -105,14 +148,7 @@ export default function MyBookingCard({ upcoming, settings, now, notice, levelNo
               ci-dessous.
             </p>
           )}
-          <p className="flex gap-2 text-sm text-muted-foreground">
-            <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            <span>
-              Vous pouvez réserver jusqu’à {formatTime(settings.cutoffTime)}, deux jours avant le rendez-vous (le
-              vendredi pour un lundi ou un mardi), et jusqu’à {settings.bookingHorizonWeeks} semaines à l’avance.
-              Vous pouvez aussi toujours passer au bureau du CIO.
-            </span>
-          </p>
+          <BookingRules settings={settings} />
         </CardContent>
       </Card>
     )
@@ -155,9 +191,10 @@ export default function MyBookingCard({ upcoming, settings, now, notice, levelNo
           </div>
         </div>
 
+        {/* Phone: both actions in the same outlined style (computer unchanged). */}
         <div className="flex flex-col gap-2 sm:flex-row">
           {!pending && (
-            <Button variant="ghost" className="h-11 md:h-9" onClick={onShowReminder}>
+            <Button variant={phone ? 'outline' : 'ghost'} className="h-11 md:h-9" onClick={onShowReminder}>
               <BellRing aria-hidden="true" />
               Aperçu du rappel
             </Button>

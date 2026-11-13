@@ -4,6 +4,7 @@ import {
   addDays,
   formatTime,
   formatWeekRange,
+  formatWeekRangeShort,
   nextSchoolDay,
   nowInBeirut,
   previousSchoolDay,
@@ -38,6 +39,12 @@ test('times and weeks read the French way', () => {
   assert.equal(formatWeekRange('2026-11-02'), 'Semaine du 2 au 6 novembre 2026')
   assert.equal(formatWeekRange('2026-10-26'), 'Semaine du 26 au 30 octobre 2026')
   assert.equal(formatWeekRange('2026-11-30'), 'Semaine du 30 novembre au 4 décembre 2026')
+})
+
+test('the short week title (phones) drops « Semaine du » and the year', () => {
+  assert.equal(formatWeekRangeShort('2026-11-16'), '16 – 20 novembre')
+  assert.equal(formatWeekRangeShort('2026-11-30'), '30 novembre – 4 décembre')
+  assert.equal(formatWeekRangeShort('2026-12-28'), '28 décembre – 1 janvier')
 })
 
 test('the clock uses Beirut time, whatever the computer timezone', () => {

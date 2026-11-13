@@ -9,6 +9,7 @@ import { levelBookingBlock, reminderMoment, weekSlotMinutes } from '@/lib/rules'
 import { studentById, upcomingBookingFor } from '@/state/useDemoStore'
 import { dayHasAvailableSlot, studentCell, studentDayNote } from './availability'
 import BookingDialog from './BookingDialog'
+import BookingRulesDisclosure from './BookingRulesDisclosure'
 import MyBookingCard from './MyBookingCard'
 import StudentCell from './StudentCell'
 import TimetableCard from './TimetableCard'
@@ -23,7 +24,9 @@ const DAY_NOTES = {
 
 // In the demo there is no login: the student side acts as one fake student
 // (`studentId`, picked with « Niveau de l’élève (démo) »).
-export default function StudentView({ state, actions, weekStart, now, studentId }) {
+// `phone`: phone layout (see the order below). `weekNav`: on phones, the week
+// header (from App), placed under the student's booking.
+export default function StudentView({ state, actions, weekStart, now, studentId, phone = false, weekNav = null }) {
   const { settings } = state
   const student = studentById(studentId)
   // Première and Seconde can't book until the end of the Toussaint break:
@@ -48,68 +51,98 @@ export default function StudentView({ state, actions, weekStart, now, studentId 
     )
   }
 
+  const bookingCard = (
+    <MyBookingCard
+      upcoming={upcoming}
+      settings={settings}
+      now={now}
+      notice={notice}
+      levelNotice={levelNotice}
+      onCancel={cancel}
+      onShowReminder={() => setShowReminder(true)}
+      phone={phone}
+    />
+  )
+
+  const timetableCard = (
+    <TimetableCard
+      timetable={state.timetable}
+      weekStart={weekStart}
+      onImport={() => setTimetableMode('import')}
+      onManual={() => setTimetableMode('manual')}
+      onEdit={() => setTimetableMode('edit')}
+      onRemove={actions.clearTimetable}
+      onWeekType={actions.setWeekType}
+      onOnlyCompatible={actions.setOnlyCompatible}
+      phone={phone}
+    />
+  )
+
+  const messageList = (
+    <MessageList title="Vos messages" icon={Mail} messages={myMessages} to={student.email} dialogTitle="Message reçu" largeClose />
+  )
+
+  const weekView = (
+    <WeekView
+      key={weekStart}
+      weekStart={weekStart}
+      today={now.date}
+      slotMinutes={weekSlotMinutes(state.slots, weekStart, settings)}
+      // Only list what the student can act on; the day note explains empty days.
+      isTimeShown={(date, time) => studentCell(state, student.id, now, date, time).status !== 'unavailable'}
+      isDayOff={(date) => !isSchoolDay(date)}
+      hasDot={(date) => dayHasAvailableSlot(state, student.id, now, date)}
+      renderDayExtra={(date) => {
+        const note = studentDayNote(state, student.id, now, date)
+        if (!note) return null
+        const Icon = note === 'closed' ? Lock : CalendarX
+        return (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Icon className="size-3 shrink-0" aria-hidden="true" />
+            {DAY_NOTES[note]}
+          </span>
+        )
+      }}
+      renderCell={(date, time) => {
+        const cell = studentCell(state, student.id, now, date, time)
+        return (
+          <StudentCell
+            status={cell.status}
+            fits={cell.fits}
+            time={time}
+            dayLabel={formatLongDate(date)}
+            onBook={() => {
+              setNotice('')
+              setBookingSlot(cell.slot)
+            }}
+          />
+        )
+      }}
+    />
+  )
+
   return (
     // Fades in when switching to the student side.
     <div className="flex animate-in flex-col gap-4 duration-200 fade-in-0">
-      <MyBookingCard
-        upcoming={upcoming}
-        settings={settings}
-        now={now}
-        notice={notice}
-        levelNotice={levelNotice}
-        onCancel={cancel}
-        onShowReminder={() => setShowReminder(true)}
-      />
-
-      <TimetableCard
-        timetable={state.timetable}
-        weekStart={weekStart}
-        onImport={() => setTimetableMode('import')}
-        onManual={() => setTimetableMode('manual')}
-        onEdit={() => setTimetableMode('edit')}
-        onRemove={actions.clearTimetable}
-        onWeekType={actions.setWeekType}
-        onOnlyCompatible={actions.setOnlyCompatible}
-      />
-
-      <MessageList title="Vos messages" icon={Mail} messages={myMessages} to={student.email} dialogTitle="Message reçu" />
-
-      <WeekView
-        key={weekStart}
-        weekStart={weekStart}
-        today={now.date}
-        slotMinutes={weekSlotMinutes(state.slots, weekStart, settings)}
-        // Only list what the student can act on; the day note explains empty days.
-        isTimeShown={(date, time) => studentCell(state, student.id, now, date, time).status !== 'unavailable'}
-        isDayOff={(date) => !isSchoolDay(date)}
-        hasDot={(date) => dayHasAvailableSlot(state, student.id, now, date)}
-        renderDayExtra={(date) => {
-          const note = studentDayNote(state, student.id, now, date)
-          if (!note) return null
-          const Icon = note === 'closed' ? Lock : CalendarX
-          return (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Icon className="size-3 shrink-0" aria-hidden="true" />
-              {DAY_NOTES[note]}
-            </span>
-          )
-        }}
-        renderCell={(date, time) => {
-          const cell = studentCell(state, student.id, now, date, time)
-          return (
-            <StudentCell
-              status={cell.status}
-              fits={cell.fits}
-              time={time}
-              dayLabel={formatLongDate(date)}
-              onBook={() => {
-                setNotice('')
-                setBookingSlot(cell.slot)
-              }}
-            />
-          )
-        }}
-      />
+      {phone ? (
+        // Phone (one hand, between classes): their booking first, then the
+        // week, the day and its slots; everything else after, rules folded.
+        <>
+          {bookingCard}
+          {weekNav}
+          {weekView}
+          {!upcoming && <BookingRulesDisclosure settings={settings} />}
+          {timetableCard}
+          {messageList}
+        </>
+      ) : (
+        <>
+          {bookingCard}
+          {timetableCard}
+          {messageList}
+          {weekView}
+        </>
+      )}
 
       {bookingSlot && (
         <BookingDialog
@@ -137,6 +170,7 @@ export default function StudentView({ state, actions, weekStart, now, studentId 
 
       {showReminder && upcoming && (
         <MessageDialog
+          largeClose
           title="Aperçu du rappel"
           description={`Envoyé automatiquement le ${formatLongDate(reminderMoment(upcoming.slot).date)} à ${formatTime(reminderMoment(upcoming.slot).time)}, le matin du rendez-vous.`}
           message={reminderMessage({ student, slot: upcoming.slot, booking: upcoming.booking })}

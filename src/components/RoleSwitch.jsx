@@ -1,4 +1,5 @@
 import { GraduationCap, UserRound } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import SegmentedThumb from '@/components/SegmentedThumb'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
@@ -10,10 +11,12 @@ const ROLES = [
   { id: 'counselor', label: 'Conseillère', icon: UserRound },
 ]
 
-export default function RoleSwitch({ role, onChange }) {
+// `wide`: fills the width, two equal halves, 44px tall (phone « Démo » sheet,
+// which shows its own « Voir en tant que » label).
+export default function RoleSwitch({ role, onChange, wide = false }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="hidden text-sm text-muted-foreground sm:inline">Voir en tant que :</span>
+      {!wide && <span className="hidden text-sm text-muted-foreground sm:inline">Voir en tant que :</span>}
       <ToggleGroup
         type="single"
         spacing={1}
@@ -21,7 +24,10 @@ export default function RoleSwitch({ role, onChange }) {
         // Ignore clicks on the already-selected option (one role is always active).
         onValueChange={(value) => value && onChange(value)}
         aria-label="Voir en tant que"
-        className="relative rounded-xl bg-muted p-1 ring-1 ring-foreground/5"
+        className={cn(
+          'relative rounded-xl bg-muted p-1 ring-1 ring-foreground/5',
+          wide && 'grid w-full grid-cols-2 [&>button]:h-11',
+        )}
       >
         {/* Apple experiment: the blue selection slides from one option to the other. */}
         <SegmentedThumb value={role} className="rounded-lg bg-primary shadow-sm shadow-primary/30" />

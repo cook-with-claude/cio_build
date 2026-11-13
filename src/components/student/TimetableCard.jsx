@@ -10,7 +10,10 @@ import { otherWeekType, weekTypeOn } from '@/lib/timetable'
 // student view. Without one: how to add it. With one: the type of the week
 // on screen (Q1/Q2, which the student can correct) and the
 // « Seulement les créneaux compatibles » switch.
-export default function TimetableCard({ timetable, weekStart, onImport, onManual, onEdit, onRemove, onWeekType, onOnlyCompatible }) {
+// `phone`: the two buttons look alike (both outlined), full width, the
+// usual path (import) first; with a timetable, « Retirer » / « Modifier »
+// side by side. Computers keep their layout.
+export default function TimetableCard({ timetable, weekStart, onImport, onManual, onEdit, onRemove, onWeekType, onOnlyCompatible, phone = false }) {
   if (!timetable) {
     return (
       <Card size="sm">
@@ -28,15 +31,28 @@ export default function TimetableCard({ timetable, weekStart, onImport, onManual
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button variant="ghost" className="h-11 md:h-9" onClick={onManual}>
-              Saisir à la main
-            </Button>
-            <Button variant="outline" className="h-11 md:h-9" onClick={onImport}>
-              <FileUp aria-hidden="true" />
-              Importer le PDF Pronote
-            </Button>
-          </div>
+          {phone ? (
+            <div className="flex flex-col gap-2">
+              <Button variant="outline" className="h-11" onClick={onImport}>
+                <FileUp aria-hidden="true" />
+                Importer le PDF Pronote
+              </Button>
+              <Button variant="outline" className="h-11" onClick={onManual}>
+                <Pencil aria-hidden="true" />
+                Saisir à la main
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="ghost" className="h-11 md:h-9" onClick={onManual}>
+                Saisir à la main
+              </Button>
+              <Button variant="outline" className="h-11 md:h-9" onClick={onImport}>
+                <FileUp aria-hidden="true" />
+                Importer le PDF Pronote
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     )
@@ -71,8 +87,8 @@ export default function TimetableCard({ timetable, weekStart, onImport, onManual
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button variant="ghost" className="h-11 md:h-9" onClick={onRemove}>
+          <div className={phone ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-2 sm:flex-row'}>
+            <Button variant={phone ? 'outline' : 'ghost'} className="h-11 md:h-9" onClick={onRemove}>
               <Trash2 aria-hidden="true" />
               Retirer
             </Button>
@@ -91,10 +107,18 @@ export default function TimetableCard({ timetable, weekStart, onImport, onManual
             </span>
             <span>: vous n’avez pas cours pendant ce créneau.</span>
           </p>
-          <div className="flex min-h-11 items-center gap-2 md:min-h-0">
-            <Switch id="only-compatible" checked={timetable.onlyCompatible} onCheckedChange={onOnlyCompatible} />
-            <Label htmlFor="only-compatible">Seulement les créneaux compatibles</Label>
-          </div>
+          {phone ? (
+            // The whole 44px row is the tap target (the switch alone is 32×18).
+            <Label className="flex min-h-11 w-full cursor-pointer items-center gap-3">
+              <Switch checked={timetable.onlyCompatible} onCheckedChange={onOnlyCompatible} />
+              Seulement les créneaux compatibles
+            </Label>
+          ) : (
+            <div className="flex min-h-11 items-center gap-2 md:min-h-0">
+              <Switch id="only-compatible" checked={timetable.onlyCompatible} onCheckedChange={onOnlyCompatible} />
+              <Label htmlFor="only-compatible">Seulement les créneaux compatibles</Label>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

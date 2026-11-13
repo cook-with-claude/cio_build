@@ -16,14 +16,19 @@ const TIMES = Array.from({ length: 30 }, (_, i) => minutesToTime(7 * 60 + i * 30
 // Demo-only tool: pretend it is another day or time, to show the cutoff and
 // no-same-day rules live during the presentation. Not part of the real app.
 // `children`: other demo controls, shown at the end of the row.
-export default function DemoClock({ now, simulated, onChange, children }) {
+// `bare`: no dashed frame and always stacked (inside the phone « Démo » sheet).
+export default function DemoClock({ now, simulated, onChange, children, bare = false }) {
   // Keep the current time selectable even if it is not on a half hour.
   const times = TIMES.includes(now.time) ? TIMES : [...TIMES, now.time].sort()
 
   return (
     <section
       aria-label="Réglages de la démo"
-      className="flex flex-col gap-2 rounded-lg border border-dashed bg-muted/50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+      className={
+        bare
+          ? 'flex flex-col gap-3'
+          : 'flex flex-col gap-2 rounded-lg border border-dashed bg-muted/50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between'
+      }
     >
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <Clock className="size-4 text-muted-foreground" aria-hidden="true" />

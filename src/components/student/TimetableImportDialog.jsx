@@ -72,7 +72,7 @@ export default function TimetableImportDialog({ mode, initial, anchor, today, on
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent sheet={false} className="flex h-svh max-h-svh w-full max-w-full flex-col rounded-none sm:h-auto sm:max-h-[90svh] sm:max-w-xl sm:rounded-xl">
+      <DialogContent sheet={false} largeClose className="flex h-svh max-h-svh w-full max-w-full flex-col rounded-none sm:h-auto sm:max-h-[90svh] sm:max-w-xl sm:rounded-xl">
         {step === 'file' && (
           <>
             <DialogHeader>
@@ -82,7 +82,7 @@ export default function TimetableImportDialog({ mode, initial, anchor, today, on
               </DialogDescription>
             </DialogHeader>
 
-            <div className="-mx-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4">
+            <div className="-mx-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 max-md:overscroll-contain">
               <section aria-labelledby="edt-how" className="flex flex-col gap-2">
                 <h3 id="edt-how" className="text-sm font-medium">
                   Récupérer le PDF dans Pronote
@@ -157,7 +157,7 @@ export default function TimetableImportDialog({ mode, initial, anchor, today, on
               </DialogDescription>
             </DialogHeader>
 
-            <div className="-mx-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4">
+            <div className="-mx-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 max-md:overscroll-contain">
               {source === 'failed' && (
                 <p role="alert" className="flex gap-2 rounded-md bg-highlight/30 px-3 py-2 text-sm">
                   <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />

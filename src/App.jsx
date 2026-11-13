@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import DemoClock from '@/components/DemoClock'
 import DemoLevelSelect from '@/components/DemoLevelSelect'
+import DemoSheet from '@/components/DemoSheet'
 import Logo from '@/components/Logo'
 import RoleSwitch from '@/components/RoleSwitch'
 import WeekNav from '@/components/WeekNav'
@@ -16,6 +17,7 @@ import { nextAvailableSlot, studentWeekNote } from '@/components/student/availab
 import { DEMO_STUDENTS } from '@/data/mockData'
 import { cutoffSummary, upcomingAppointments, useDemoStore } from '@/state/useDemoStore'
 import { useTheme } from '@/state/useTheme'
+import { useIsPhone } from '@/lib/useIsPhone'
 import { addDays, formatLongDate, nowInBeirut, startOfWeek } from '@/lib/dates'
 
 export default function App() {
@@ -81,25 +83,79 @@ export default function App() {
     setDemoNow(next)
   }
 
+  // Phones get a slimmer layout (header, order of the student side); tablets
+  // and computers keep theirs unchanged.
+  const isPhone = useIsPhone()
+
+  // Demo-only controls: a dashed panel on computers, inside the « Démo »
+  // sheet on phones (`bare`).
+  const demoClock = (bare) => (
+    <DemoClock now={now} simulated={demoNow !== null} onChange={changeDemoNow} bare={bare}>
+      {role === 'student' && <DemoLevelSelect level={demoLevel} onChange={setDemoLevel} />}
+    </DemoClock>
+  )
+
+  // Student side on a phone: compact week header, placed by StudentView
+  // under the student's booking (their booking comes first on a phone).
+  const studentPhone = isPhone && role === 'student'
+  const weekNav = (
+    <WeekNav
+      compact={studentPhone}
+      weekStart={weekStart}
+      isCurrentWeek={weekStart === currentWeek}
+      note={
+        weekNote === 'none-compatible'
+          ? 'Aucun créneau compatible cette semaine'
+          : weekNote && 'Aucun créneau disponible cette semaine'
+      }
+      noteAction={
+        weekIsEmptyForStudent && nextSlot
+          ? {
+              label: `Prochain créneau : ${formatLongDate(nextSlot.date)}`,
+              onClick: () => goToWeek(startOfWeek(nextSlot.date)),
+            }
+          : null
+      }
+      onPrevious={() => goToWeek(addDays(weekStart, -7))}
+      onNext={() => goToWeek(addDays(weekStart, 7))}
+      onToday={() => goToWeek(currentWeek)}
+    />
+  )
+
   return (
     // A short delay, so tooltips don't flash while the mouse crosses the grid.
     <TooltipProvider delayDuration={300}>
       <div className="min-h-svh">
         {/* Apple experiment: a translucent material; the page scrolls under it.
             Once scrolled, a soft edge fade replaces a hard shadow. */}
-        <header className="glass-bar sticky top-0 z-20">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-[0.8rem] bg-card shadow-sm ring-1 ring-foreground/10">
-                <Logo className="size-7" />
+        <header className="glass-bar pt-safe sticky top-0 z-20">
+          {isPhone ? (
+            // Phone: one slim row; the demo-only controls wait behind « Démo ».
+            <div className="px-safe flex items-center gap-2.5 py-2">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-[0.7rem] bg-card shadow-sm ring-1 ring-foreground/10">
+                <Logo className="size-6" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-[1.05rem] leading-tight font-semibold tracking-[-0.015em]">Rendez-vous d’orientation</span>
-                <Badge variant="secondary" className="mt-0.5">Démo · données fictives</Badge>
-              </div>
+              <span className="min-w-0 flex-1 truncate text-base font-semibold tracking-[-0.015em]">
+                Rendez-vous d’orientation
+              </span>
+              <DemoSheet role={role} onRoleChange={setRole}>
+                {demoClock(true)}
+              </DemoSheet>
             </div>
-            <RoleSwitch role={role} onChange={setRole} />
-          </div>
+          ) : (
+            <div className="px-safe mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 py-3">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 items-center justify-center rounded-[0.8rem] bg-card shadow-sm ring-1 ring-foreground/10">
+                  <Logo className="size-7" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[1.05rem] leading-tight font-semibold tracking-[-0.015em]">Rendez-vous d’orientation</span>
+                  <Badge variant="secondary" className="mt-0.5">Démo · données fictives</Badge>
+                </div>
+              </div>
+              <RoleSwitch role={role} onChange={setRole} />
+            </div>
+          )}
           {/* The four CPF colours, as on the school website. */}
           <div className="grid h-1 grid-cols-4" aria-hidden="true">
             <div className="bg-cpf-blue" />
@@ -116,11 +172,11 @@ export default function App() {
           />
         </header>
 
-        {/* Extra room at the bottom, so the phone browser's bar never covers the last row. */}
-        <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 pt-5 pb-16 md:pb-8">
-          <DemoClock now={now} simulated={demoNow !== null} onChange={changeDemoNow}>
-            {role === 'student' && <DemoLevelSelect level={demoLevel} onChange={setDemoLevel} />}
-          </DemoClock>
+        {/* Extra room at the bottom, so the phone browser's bar (and the
+            bounce of pull-to-refresh) never hides the last row, plus the
+            iPhone home bar when there is one. */}
+        <main className="px-safe mx-auto flex max-w-6xl flex-col gap-4 pt-4 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pt-5 md:pb-8">
+          {!isPhone && demoClock(false)}
 
           {role === 'counselor' && (
             <CounselorShortcuts
@@ -130,26 +186,7 @@ export default function App() {
             />
           )}
 
-          <WeekNav
-            weekStart={weekStart}
-            isCurrentWeek={weekStart === currentWeek}
-            note={
-              weekNote === 'none-compatible'
-                ? 'Aucun créneau compatible cette semaine'
-                : weekNote && 'Aucun créneau disponible cette semaine'
-            }
-            noteAction={
-              weekIsEmptyForStudent && nextSlot
-                ? {
-                    label: `Prochain créneau : ${formatLongDate(nextSlot.date)}`,
-                    onClick: () => goToWeek(startOfWeek(nextSlot.date)),
-                  }
-                : null
-            }
-            onPrevious={() => goToWeek(addDays(weekStart, -7))}
-            onNext={() => goToWeek(addDays(weekStart, 7))}
-            onToday={() => goToWeek(currentWeek)}
-          />
+          {!studentPhone && weekNav}
 
           {role === 'counselor' ? (
             <CounselorView
@@ -164,10 +201,26 @@ export default function App() {
             />
           ) : (
             // Keyed by student, so switching level starts with a fresh screen.
-            <StudentView key={studentId} state={state} actions={actions} weekStart={weekStart} now={now} studentId={studentId} />
+            // On phones it places the week header itself (after the booking).
+            <StudentView
+              key={studentId}
+              state={state}
+              actions={actions}
+              weekStart={weekStart}
+              now={now}
+              studentId={studentId}
+              phone={isPhone}
+              weekNav={studentPhone ? weekNav : null}
+            />
           )}
         </main>
-        <Toaster position="bottom-center" containerAriaLabel="Notifications" theme={dark ? 'dark' : 'light'} />
+        <Toaster
+          position="bottom-center"
+          containerAriaLabel="Notifications"
+          theme={dark ? 'dark' : 'light'}
+          // Phones only (narrow screens): stay above the iPhone home bar.
+          mobileOffset={{ bottom: 'calc(16px + env(safe-area-inset-bottom))' }}
+        />
       </div>
     </TooltipProvider>
   )
