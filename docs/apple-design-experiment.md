@@ -1,8 +1,7 @@
 # Experiment: Apple-style feel (branch `experiment/apple-design`)
 
-**Status:** experiment only. Lives in its own branch and folder
-(`cio_build_apple-design`). Never pushed, never merged, never deployed.
-`main` and https://cio-cpf.vercel.app are untouched.
+**Status:** merged into `main` on 2026-11-13 at Nadim's request (live on
+https://cio-cpf.vercel.app). The experiment branch and folder were deleted.
 
 **Question:** how much does the `apple-design` skill (WWDC "Designing Fluid
 Interfaces" etc.) change how the demo feels?
@@ -89,7 +88,10 @@ Interfaces" etc.) change how the demo feels?
   parallax/background motion (§14), custom font (Poppins is still an open
   question for Nadim; system/Geist kept).
 
-## How to try it
-1. `cd ..\cio_build_apple-design`
-2. `npm run dev -- --port 5174`
-3. Open http://localhost:5174
+## Where things are
+- Spring maths, momentum projection, rubber band: `src/lib/spring.js`
+- Spring curves for CSS (`--ease-spring…`), glass header, dialog/sheet and
+  week-change animations: `src/index.css`
+- Phone sheet drag: `src/lib/useSheetDrag.js` (used in `ui/dialog.jsx`)
+- Phone day swipe: `src/lib/useDaySwipe.js` (used in `WeekView.jsx`)
+- Sliding selection: `src/components/SegmentedThumb.jsx`

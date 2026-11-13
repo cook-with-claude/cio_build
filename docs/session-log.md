@@ -4,13 +4,14 @@
 
 ---
 
-## Current state (updated 2026-11-05)
+## Current state (updated 2026-11-13)
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
-- **Tests:** `npm test` (160 tests, Node's built-in test runner).
+- **Tests:** `npm test` (175 tests, Node's built-in test runner).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
+- **Apple-style feel** (session 13): springy motion, sliding selections, week changes with direction, phone bottom sheets you can pull down, day swipe on phones, glass header. Details: `docs/apple-design-experiment.md`. On `main` (live site).
 - **Dark mode** (session 10): « Thème » in the counselor's Réglages (Système / Clair / Sombre), applies to both sides for the demo. On `main` (live site).
 - **Online demo:** https://cio-cpf.vercel.app (Vercel, free plan, public link). **Connected to GitHub** (session 6): every push to `main` updates the site by itself. `vercel deploy --prod` still works for a manual redeploy.
 - **Repo:** https://github.com/cook-with-claude/cio_build (public). Khaled (`smoky0y`) has been invited with write access, but has not accepted yet.
@@ -42,6 +43,28 @@
 - EDT experiment: should 7:30–7:45 count as free when the first period is free? (Today: no, so a 7:30 slot is never « Compatible ».)
 - EDT experiment: tell her a « Compatible » slot may start up to 5 minutes before the student's class ends (e.g. 9:30–10:00 and the 9:35–10:05 recess): the student arrives up to 5 minutes late, never leaves class early. Check she's fine with it.
 - ~~EDT experiment: a timetable is data beyond the `rules.md` list~~ **Answered (2026-10-30): the school sees no privacy issue** (read in the browser, never uploaded), and **it may be stored with the student's account** in the database phase, so they don't import the PDF again at each login. Added to `rules.md` (rule 2).
+
+---
+
+## 2026-11-13 · Session 13: Apple-style feel (experiment, then merged)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** try the `apple-design` skill (Apple's WWDC design talks, for the web) on the demo's look and feel, in a separate branch so the live demo stays safe; then decide.
+
+**Done**
+- Built in a separate folder and branch (`experiment/apple-design`), checked in Chrome (computer and phone sizes, light/dark, reduce motion, every gesture), then **merged into `main` and pushed at Nadim's request**. Branch and folder deleted.
+- **No new library:** the springs are our own small file, `src/lib/spring.js` (+7 tests). Tests: 167 → 174 passing (plus 1 skipped).
+- **Changes:** presses react instantly and settle on a spring; Élève/Conseillère, the counselor's tool picker and the phone day picker have a selection that slides; week arrows bring the new week in from the side pressed; dialogs grow out of the button that opened them; on phones, dialogs are bottom sheets you can pull down to close (a quick flick is enough); on phones, swipe left/right to change day (stretches at Monday/Friday); counselor slots give a small bounce when changed; booking confirmation check pops in; frosted-glass header; slightly softer corners and tighter big titles. No rule, text or data changed.
+- Full plan, review and file map: `docs/apple-design-experiment.md`.
+
+**Decisions**
+- Kept inside the "no new library" rule: no Motion/Framer Motion.
+- Sound effects not added; vibration only when a booking is made or a swipe lands on a new day (Android phones; iPhones ignore it).
+
+**Known issues / notes**
+- The phone gestures (sheet drag, day swipe) were tested with simulated touches in Chrome: **check them on a real phone** before the presentation.
+- The week-change slide uses View Transitions: Chrome, Edge and Safari 18+ show it; other browsers just switch weeks.
 
 ---
 
