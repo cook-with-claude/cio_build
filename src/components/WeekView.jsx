@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useDaySwipe } from '@/lib/useDaySwipe'
 import { CalendarOff, Utensils } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import SegmentedThumb from '@/components/SegmentedThumb'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   dayOffLabel,
@@ -55,9 +57,14 @@ export default function WeekView({
       (days.includes(today) ? today : days[0]),
   )
 
+  // Apple experiment: on phones, swipe the day card left/right to change day.
+  const gridRef = useRef(null)
+  useDaySwipe(gridRef, days, selectedDay, setSelectedDay)
+
   return (
-    // Fades in when the week changes (the parent re-creates it, see above).
-    <section className="flex animate-in flex-col gap-3 duration-200 ease-snappy fade-in-0 slide-in-from-bottom-1">
+    // The week's arrival is animated by App (View Transitions, from the side
+    // of the arrow pressed); this only fades in when nothing else does.
+    <section className="flex flex-col gap-3">
       {/* Phone only: pick one day. */}
       <ToggleGroup
         type="single"
@@ -66,13 +73,14 @@ export default function WeekView({
         // Ignore clicks on the already-selected day (one day is always shown).
         onValueChange={(value) => value && setSelectedDay(value)}
         aria-label="Jour affiché"
-        className="grid w-full grid-cols-5 rounded-lg bg-muted p-1 md:hidden"
+        className="relative grid w-full grid-cols-5 rounded-xl bg-muted p-1 md:hidden"
       >
+        <SegmentedThumb value={selectedDay} className="rounded-lg bg-background shadow-sm ring-1 ring-foreground/5" />
         {days.map((date) => (
           <ToggleGroupItem
             key={date}
             value={date}
-            className="h-auto flex-col gap-0 py-1.5 data-[state=on]:bg-background data-[state=on]:text-primary data-[state=on]:shadow-sm"
+            className="relative z-10 h-auto flex-col gap-0 rounded-lg py-1.5 hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-primary"
           >
             <span className="text-xs font-normal text-muted-foreground">{formatWeekdayShort(date)}</span>
             <span
@@ -97,7 +105,11 @@ export default function WeekView({
       {/* With `alignRows`, on a computer each day spans two shared rows
           (header, then times) via subgrid: all five headers take the tallest
           one's height, so the time rows line up across the week. */}
-      <div className={cn('grid gap-3 md:grid-cols-5 md:gap-2', alignRows && 'md:gap-y-0')}>
+      <div
+        ref={gridRef}
+        style={{ viewTransitionName: 'week-grid' }}
+        className={cn('grid gap-3 max-md:touch-pan-y md:grid-cols-5 md:gap-2', alignRows && 'md:gap-y-0')}
+      >
         {days.map((date) => (
           <Card
             key={date}

@@ -1,4 +1,5 @@
 import { GraduationCap, UserRound } from 'lucide-react'
+import SegmentedThumb from '@/components/SegmentedThumb'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 // Demo-only replacement for a login: lets the presenter flip between
@@ -15,19 +16,20 @@ export default function RoleSwitch({ role, onChange }) {
       <span className="hidden text-sm text-muted-foreground sm:inline">Voir en tant que :</span>
       <ToggleGroup
         type="single"
-        variant="outline"
-        spacing={0}
+        spacing={1}
         value={role}
         // Ignore clicks on the already-selected option (one role is always active).
         onValueChange={(value) => value && onChange(value)}
         aria-label="Voir en tant que"
-        className="rounded-lg bg-background"
+        className="relative rounded-xl bg-muted p-1 ring-1 ring-foreground/5"
       >
+        {/* Apple experiment: the blue selection slides from one option to the other. */}
+        <SegmentedThumb value={role} className="rounded-lg bg-primary shadow-sm shadow-primary/30" />
         {ROLES.map(({ id, label, icon: Icon }) => (
           <ToggleGroupItem
             key={id}
             value={id}
-            className="h-11 gap-1.5 px-3 md:h-10 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="relative z-10 h-10 gap-1.5 rounded-lg px-3 transition-colors duration-300 hover:bg-transparent hover:text-foreground md:h-9 data-[state=on]:bg-transparent data-[state=on]:text-primary-foreground data-[state=on]:hover:text-primary-foreground"
           >
             <Icon aria-hidden="true" />
             {label}

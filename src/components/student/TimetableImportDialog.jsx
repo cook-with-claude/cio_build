@@ -72,7 +72,7 @@ export default function TimetableImportDialog({ mode, initial, anchor, today, on
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-svh max-h-svh w-full max-w-full flex-col rounded-none sm:h-auto sm:max-h-[90svh] sm:max-w-xl sm:rounded-xl">
+      <DialogContent sheet={false} className="flex h-svh max-h-svh w-full max-w-full flex-col rounded-none sm:h-auto sm:max-h-[90svh] sm:max-w-xl sm:rounded-xl">
         {step === 'file' && (
           <>
             <DialogHeader>

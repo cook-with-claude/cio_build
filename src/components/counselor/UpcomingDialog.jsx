@@ -25,7 +25,7 @@ export default function UpcomingDialog({ appointments, today, onOpen, onClose })
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="flex h-svh max-h-svh w-full max-w-full flex-col rounded-none sm:h-[85svh] sm:max-w-3xl sm:rounded-xl">
+      <DialogContent sheet={false} className="flex h-svh max-h-svh w-full max-w-full flex-col rounded-none sm:h-[85svh] sm:max-w-3xl sm:rounded-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarCheck className="size-4" aria-hidden="true" />

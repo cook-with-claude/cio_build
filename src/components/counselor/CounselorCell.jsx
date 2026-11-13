@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatTime } from '@/lib/dates'
 import { bookingTopic } from '@/lib/topics'
+import { usePulseOnChange } from '@/lib/usePulseOnChange'
 
 // What one time cell shows on the counselor side, and the one-click action on it.
 // status: "closed" | "open" | "protected" | "booked" | "requested"
@@ -54,6 +55,7 @@ export default function CounselorCell({
   onToggle,
   onOpenBooking,
 }) {
+  const pulseRef = usePulseOnChange(status)
   const look = LOOK[status]
   const Icon = look.icon
   const hasBooking = status === 'booked' || status === 'requested'
@@ -62,6 +64,7 @@ export default function CounselorCell({
     const topic = bookingTopic(booking)
     return (
       <button
+        ref={pulseRef}
         type="button"
         onClick={onOpenBooking}
         aria-label={`${dayLabel}, ${formatTime(time)} : ${look.label}, ${student.name}, ${student.className}${topic ? `, ${topic}` : ''}. Voir le détail.`}
@@ -90,6 +93,7 @@ export default function CounselorCell({
 
   const cell = (
     <button
+      ref={pulseRef}
       type="button"
       disabled={disabled}
       onClick={onToggle}

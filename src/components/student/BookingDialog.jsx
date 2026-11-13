@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { haptic } from '@/lib/spring'
 import { CalendarClock, CircleAlert, CircleCheck, Hourglass, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,6 +44,7 @@ export default function BookingDialog({ slot, student, settings, existing, level
     }
     const choice = { topic, topicOther: isOther ? otherText.trim() : null }
     onConfirm(choice)
+    haptic(12) // a commit moment: the booking is made
     setDone({ ...choice, status: approval ? 'pending' : 'confirmed' })
   }
 
@@ -79,7 +81,7 @@ export default function BookingDialog({ slot, student, settings, existing, level
         ) : done ? (
           <>
             <DialogHeader>
-              <div className="mb-1 flex size-10 items-center justify-center rounded-full bg-success/10 text-success-foreground">
+              <div className="animate-pop mb-1 flex size-12 items-center justify-center rounded-full bg-success/15 text-success-foreground ring-4 ring-success/10">
                 {done.status === 'pending' ? <Hourglass aria-hidden="true" /> : <CircleCheck aria-hidden="true" />}
               </div>
               <DialogTitle>{done.status === 'pending' ? 'Demande envoyée' : 'Rendez-vous confirmé'}</DialogTitle>

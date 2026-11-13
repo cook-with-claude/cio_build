@@ -1,6 +1,7 @@
 import { CircleCheck, Copy, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import SegmentedThumb from '@/components/SegmentedThumb'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import SettingsSheet from './SettingsSheet'
 
@@ -29,17 +30,18 @@ export default function CounselorToolbar({
           <span className="text-sm font-medium whitespace-nowrap">Un clic sur un créneau :</span>
           <ToggleGroup
             type="single"
-            variant="outline"
-            spacing={0}
+            spacing={1}
             value={tool}
             onValueChange={(value) => value && onToolChange(value)}
             aria-label="Action d’un clic sur un créneau"
+            className="relative rounded-xl bg-muted p-1 ring-1 ring-foreground/5"
           >
+            <SegmentedThumb value={tool} className="rounded-lg bg-primary shadow-sm shadow-primary/30" />
             {TOOLS.map(({ id, label, icon: Icon }) => (
               <ToggleGroupItem
                 key={id}
                 value={id}
-                className="h-11 gap-1.5 px-3 md:h-10 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                className="relative z-10 h-10 gap-1.5 rounded-lg px-3 transition-colors duration-300 hover:bg-transparent hover:text-foreground md:h-9 data-[state=on]:bg-transparent data-[state=on]:text-primary-foreground data-[state=on]:hover:text-primary-foreground"
               >
                 <Icon aria-hidden="true" />
                 {label}

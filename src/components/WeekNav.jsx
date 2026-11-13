@@ -8,12 +8,15 @@ import { formatWeekRange } from '@/lib/dates'
 export default function WeekNav({ weekStart, isCurrentWeek, note, noteAction, onPrevious, onNext, onToday }) {
   return (
     <nav aria-label="Navigation par semaine" className="flex items-center justify-between gap-3">
-      <Button variant="outline" size="icon-lg" className="size-11 rounded-full" onClick={onPrevious} aria-label="Semaine précédente">
+      <Button variant="outline" size="icon-lg" className="size-11 rounded-full shadow-sm" onClick={onPrevious} aria-label="Semaine précédente">
         <ChevronLeft />
       </Button>
 
       <div className="flex min-w-0 flex-col items-center gap-1 text-center">
-        <h2 className="text-base font-semibold tracking-tight text-balance sm:text-lg">
+        <h2
+          style={{ viewTransitionName: 'week-title' }}
+          className="text-lg font-semibold text-balance sm:text-2xl"
+        >
           {formatWeekRange(weekStart)}
         </h2>
         {note && (
@@ -42,7 +45,7 @@ export default function WeekNav({ weekStart, isCurrentWeek, note, noteAction, on
         </Button>
       </div>
 
-      <Button variant="outline" size="icon-lg" className="size-11 rounded-full" onClick={onNext} aria-label="Semaine suivante">
+      <Button variant="outline" size="icon-lg" className="size-11 rounded-full shadow-sm" onClick={onNext} aria-label="Semaine suivante">
         <ChevronRight />
       </Button>
     </nav>

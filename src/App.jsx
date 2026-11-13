@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Toaster } from '@/components/ui/sonner'
@@ -58,6 +59,21 @@ export default function App() {
     actions.declineExpiredRequests({ date: nowDate, time: nowTime })
   }, [actions, nowDate, nowTime])
 
+  // Apple experiment: a week change slides in from the side of the arrow
+  // pressed and the old week leaves the other way (spatial consistency).
+  // View Transitions are built into the browser; without them, it just switches.
+  function goToWeek(target) {
+    if (target === weekStart) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!document.startViewTransition || reduce) {
+      setWeekStart(target)
+      return
+    }
+    document.documentElement.dataset.weekDir = target > weekStart ? 'next' : 'previous'
+    const transition = document.startViewTransition(() => flushSync(() => setWeekStart(target)))
+    transition.finished.finally(() => delete document.documentElement.dataset.weekDir)
+  }
+
   // If the screen shows "this week", keep showing it when the demo date moves.
   function changeDemoNow(next) {
     const target = next ?? nowInBeirut()
@@ -69,19 +85,16 @@ export default function App() {
     // A short delay, so tooltips don't flash while the mouse crosses the grid.
     <TooltipProvider delayDuration={300}>
       <div className="min-h-svh">
-        <header
-          className={cn(
-            'sticky top-0 z-20 bg-background/90 backdrop-blur transition-shadow duration-200',
-            scrolled && 'shadow-md shadow-foreground/5',
-          )}
-        >
+        {/* Apple experiment: a translucent material; the page scrolls under it.
+            Once scrolled, a soft edge fade replaces a hard shadow. */}
+        <header className="glass-bar sticky top-0 z-20">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-card shadow-sm ring-1 ring-foreground/10">
+              <div className="flex size-10 items-center justify-center rounded-[0.8rem] bg-card shadow-sm ring-1 ring-foreground/10">
                 <Logo className="size-7" />
               </div>
               <div className="flex flex-col">
-                <span className="leading-tight font-semibold">Rendez-vous d’orientation</span>
+                <span className="text-[1.05rem] leading-tight font-semibold tracking-[-0.015em]">Rendez-vous d’orientation</span>
                 <Badge variant="secondary" className="mt-0.5">Démo · données fictives</Badge>
               </div>
             </div>
@@ -94,6 +107,13 @@ export default function App() {
             <div className="bg-cpf-green" />
             <div className="bg-cpf-yellow" />
           </div>
+          <div
+            aria-hidden="true"
+            className={cn(
+              'pointer-events-none absolute inset-x-0 top-full h-4 bg-gradient-to-b from-foreground/[0.06] to-transparent opacity-0 transition-opacity duration-300',
+              scrolled && 'opacity-100',
+            )}
+          />
         </header>
 
         {/* Extra room at the bottom, so the phone browser's bar never covers the last row. */}
@@ -122,13 +142,13 @@ export default function App() {
               weekIsEmptyForStudent && nextSlot
                 ? {
                     label: `Prochain créneau : ${formatLongDate(nextSlot.date)}`,
-                    onClick: () => setWeekStart(startOfWeek(nextSlot.date)),
+                    onClick: () => goToWeek(startOfWeek(nextSlot.date)),
                   }
                 : null
             }
-            onPrevious={() => setWeekStart(addDays(weekStart, -7))}
-            onNext={() => setWeekStart(addDays(weekStart, 7))}
-            onToday={() => setWeekStart(currentWeek)}
+            onPrevious={() => goToWeek(addDays(weekStart, -7))}
+            onNext={() => goToWeek(addDays(weekStart, 7))}
+            onToday={() => goToWeek(currentWeek)}
           />
 
           {role === 'counselor' ? (

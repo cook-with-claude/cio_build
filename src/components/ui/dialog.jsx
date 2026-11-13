@@ -4,6 +4,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
+import { useSheetDrag } from "@/lib/useSheetDrag"
 
 function Dialog({
   ...props
@@ -37,7 +38,8 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-200 ease-snappy data-closed:duration-150 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        // Dim to focus (a modal task): a deeper scrim than before, with a soft blur.
+        "scrim fixed inset-0 isolate z-50 bg-black/25 supports-backdrop-filter:backdrop-blur-[2px] dark:bg-black/50",
         className
       )}
       {...props}
@@ -45,29 +47,79 @@ function DialogOverlay({
   )
 }
 
+// Apple experiment:
+// - Computer: the dialog materializes from the button that opened it
+//   (transform-origin = that button), and leaves the same way.
+// - Phone: a bottom sheet with a grabber; drag it down to close (useSheetDrag).
+//   `sheet={false}` keeps a dialog full-screen on phones (long lists).
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  sheet = true,
+  ref,
   ...props
 }) {
+  // The content appears a moment after this component (Radix portal), so
+  // keep the element in state: the drag hook attaches once it exists.
+  const [node, setNode] = React.useState(null)
+  const closeRef = React.useRef(null)
+  const setRefs = React.useCallback(
+    (el) => {
+      // Anchor the scale to the trigger (still focused at this point).
+      if (el && window.matchMedia("(min-width: 640px)").matches) {
+        const trigger = document.activeElement
+        if (trigger && trigger !== document.body && !el.contains(trigger)) {
+          const t = trigger.getBoundingClientRect()
+          const c = el.getBoundingClientRect()
+          const x = Math.min(Math.max(t.left + t.width / 2 - c.left, -c.width), c.width * 2)
+          const y = Math.min(Math.max(t.top + t.height / 2 - c.top, -c.height), c.height * 2)
+          el.style.transformOrigin = `${x}px ${y}px`
+        }
+      }
+      setNode(el)
+      if (typeof ref === "function") ref(el)
+      else if (ref) ref.current = el
+    },
+    [ref]
+  )
+
+  const dismiss = React.useCallback(() => closeRef.current?.click(), [])
+  useSheetDrag(node, dismiss, sheet)
+
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
+        ref={setRefs}
         data-slot="dialog-content"
+        data-sheet={sheet ? "" : undefined}
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-200 ease-snappy data-closed:duration-150 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "material-dialog fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-popover p-4 text-sm text-popover-foreground shadow-2xl shadow-black/20 ring-1 ring-foreground/10 outline-none sm:max-w-sm",
+          // Phone: pinned to the bottom edge, full width, rounded top only.
+          sheet &&
+            "sheet-dialog max-sm:top-auto max-sm:bottom-0 max-sm:left-0 max-sm:max-w-full max-sm:translate-none max-sm:rounded-b-none max-sm:rounded-t-3xl max-sm:pt-7 max-sm:pb-[max(1rem,env(safe-area-inset-bottom))]",
           className
         )}
         {...props}
       >
+        {sheet && (
+          // The grabber: says "this can be pulled down". Phone only.
+          <div
+            data-sheet-handle
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 flex h-7 cursor-grab touch-none items-center justify-center sm:hidden"
+          >
+            <span className="h-1.5 w-10 rounded-full bg-foreground/20" />
+          </div>
+        )}
         {children}
+        <DialogPrimitive.Close ref={closeRef} className="hidden" tabIndex={-1} aria-hidden="true" />
         {showCloseButton && (
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-1.5 right-1.5 size-11 md:size-8"
+              className="absolute top-1.5 right-1.5 size-11 rounded-full max-sm:top-3 max-sm:right-3 max-sm:size-9 max-sm:bg-muted md:size-8"
               size="icon-sm"
             >
               <XIcon
@@ -88,7 +140,7 @@ function DialogHeader({
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("flex flex-col gap-2 max-sm:touch-none max-sm:select-none max-sm:pr-10", className)}
       {...props}
     />
   )
@@ -104,7 +156,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-2xl border-t bg-muted/50 p-4 max-sm:rounded-none max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end",
         className
       )}
       {...props}
@@ -127,7 +179,7 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "font-heading text-base leading-none font-medium",
+        "font-heading text-lg leading-tight font-semibold text-balance",
         className
       )}
       {...props}
