@@ -28,10 +28,12 @@
 4. Then the next phase: Supabase (database + CPF Google sign-in), hosted on Vercel. Not before her feedback.
 5. EDT import: try it with a few classmates' PDFs (other classes may use another layout) and show it to the conseillère.
 6. [PROPOSAL] The bell times now live in two places (`BOOKING_WINDOWS` in `src/lib/rules.js`, `PERIODS` in `src/lib/timetable.js`). Make one use the other.
+7. Phone layout (session 14): try it on an Android phone and a second iPhone (pull-to-refresh, edge swipe, notch area), then show it to the conseillère on a phone.
 
 ## Open questions
 
 - [PROPOSAL] Switch to the Poppins font (used on the CPF website)?
+- [PROPOSAL] A small dot on « Démo » (phones) when the demo date is simulated, since the date is now hidden in the sheet? Nadim to decide.
 - Ask her: keep « Fermer aussi ce créneau aux autres élèves » (ticked by default) when she cancels a booking?
 - Check against the paper calendar: last day of school assumed 30 June 2027; Mon 23 Nov 2026 is a normal school day (Independence Day falls on Sunday 22); the winter break starts Sat 13 Feb 2027.
 - Lunar holidays (Fitr, Adha, Hégire, Achoura) may move by a day once announced: correct them in `schoolCalendar.js` when that happens.
