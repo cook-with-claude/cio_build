@@ -10,7 +10,7 @@
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
 - **Run it:** `npm install` (first time only), then `npm run dev`, then open http://localhost:5173
 - **Tests:** `npm test` (179 tests, Node's built-in test runner).
-- **Phone layout for students** (session 14): slim header with a « Démo » sheet, booking → week → day → slots first, rules folded, browser pull-to-refresh back. Computers and tablets unchanged. **Not committed yet** (in the working folder).
+- **Phone layout for students** (session 14): slim header with a « Démo » sheet, booking → week → day → slots first, rules folded, browser pull-to-refresh back. Computers and tablets unchanged. Live since 13 November (branch `mobile-student-view`, merged).
 - **School calendar:** `src/data/schoolCalendar.js` holds 2026-2027. **Every summer, Nadim sends the new CPF calendar and it is added there** (instructions at the top of the file).
 - **Apple-style feel** (session 13): springy motion, sliding selections, week changes with direction, phone bottom sheets you can pull down, day swipe on phones, glass header. Details: `docs/apple-design-experiment.md`. On `main` (live site).
 - **Dark mode** (session 10): « Thème » in the counselor's Réglages (Système / Clair / Sombre), applies to both sides for the demo. On `main` (live site).
@@ -64,6 +64,7 @@
 - **`web-design-guidelines` review** of the student files; fixed: touch-action on touch screens, scroll-padding under the sticky header, `name` on the « Autre » input, overscroll contained inside phone sheets, focus ring on the fold-out.
 - **Result:** first slot at 0.41 screens (390px) / 0.43 (375px); no tap target under 44px; no sideways scroll. Desktop (1280px), tablet (800px) and the counselor side compared pixel by pixel with the old code after each step: identical (see notes).
 - `PRODUCT.md` added (Impeccable's design-context file, approved by Nadim). Tests: 175 → 179. Lint now runs on this PC: 0 errors.
+- **Tested on Nadim's phone** via a Vercel test site for the branch (opened with a temporary secret bypass link, deleted after the merge). Before merging, the live site and the test site were compared, both as built by Vercel: 19 desktop/tablet screens pixel-identical (only the known logo noise and the 1/255 row) and the same results for every action (booking, « Autre », cancelling, the « déjà un rendez-vous » block, keyboard, Échap, counselor view). Phone flows re-checked at 375 and 390px with taps. Merged into `main` at Nadim's request.
 
 **Decisions**
 - The phone layout switches at 768px, like the day strip (`src/lib/useIsPhone.js`). Tablets keep the desktop layout.
@@ -71,7 +72,7 @@
 - Kept the default iPhone tap flash: the only press feedback for selects, message rows and the fold-out.
 
 **Known issues / notes**
-- Not tested on a real phone yet: pull-to-refresh, the edge swipe and safe areas can't be emulated. Test on an iPhone and an Android.
+- Tried on Nadim's phone (liked it). Still worth a check on an Android and a second iPhone: pull-to-refresh, the edge swipe and safe areas can't be emulated.
 - Pixel comparisons have two known noise spots: the logo on a browser's first render, and the striped « Temps protégé » cell (two random renderings). One unexplained 1/255 shade difference on one 26px row of the timetable dialog's button edge (desktop); invisible.
 - Not fixed from the review (would change desktop): placeholder ending with « … », focus on the topic error, the segmented thumb animating width/height.
 - The edge-swipe rule, pull-to-refresh and touch-action also apply to the counselor's view on phones (same gesture code, whole page).
