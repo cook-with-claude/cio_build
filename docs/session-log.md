@@ -4,7 +4,9 @@
 
 ---
 
-## Current state (updated 2026-11-13)
+## Current state (updated 2026-11-15)
+
+- **UI/UX reference frozen** (session 15): git tag `demo-final` marks the demo as it is on phone and laptop. The live version must match it. Browse it at https://github.com/cook-with-claude/cio_build/tree/demo-final
 
 - **The clickable demo with fake data is done** and has had a first round of Nadim's own feedback (session 2). It is ready to show to the conseillère.
 - **Look and feel polished** (session 4): hover/press effects, soft fades, CPF-coloured logo and favicon. The "feel" settings live at the top of `src/index.css`.
@@ -46,6 +48,27 @@
 - EDT experiment: should 7:30–7:45 count as free when the first period is free? (Today: no, so a 7:30 slot is never « Compatible ».)
 - EDT experiment: tell her a « Compatible » slot may start up to 5 minutes before the student's class ends (e.g. 9:30–10:00 and the 9:35–10:05 recess): the student arrives up to 5 minutes late, never leaves class early. Check she's fine with it.
 - ~~EDT experiment: a timetable is data beyond the `rules.md` list~~ **Answered (2026-10-30): the school sees no privacy issue** (read in the browser, never uploaded), and **it may be stored with the student's account** in the database phase, so they don't import the PDF again at each login. Added to `rules.md` (rule 2).
+
+---
+
+## 2026-11-15 · Session 15: `demo-final` tag (UI/UX reference)
+
+**Who:** Nadim + Claude Code
+
+**Goal of the session:** freeze the current demo as an exact reference before building the real (live) version, whose rule is to keep the phone and laptop UI/UX exactly as it is.
+
+**Done**
+- Checked `main` first: everything committed and pushed, in sync with GitHub. Only two untracked items, not part of the app: `.claude/skills/` (the `web-design-guidelines` helper) and `skills-lock.json`. Nadim chose to tag anyway and leave them as they are.
+- Created the annotated tag **`demo-final`** on `main` at `4e4e5f4` ("Docs: session 14 next steps and open question"), message: "Demo UI/UX reference before the live version". Pushed to GitHub and checked there.
+- No code changed, committed or deleted.
+
+**Decisions**
+- `demo-final` is the UI/UX reference for the live version. A tag never moves: new work on `main` doesn't change it.
+
+**Known issues / notes**
+- How to see it later: browse https://github.com/cook-with-claude/cio_build/tree/demo-final, or run it in a separate folder: `git clone --branch demo-final https://github.com/cook-with-claude/cio_build.git cio_demo_final`, then `npm install` and `npm run dev` inside it.
+- `git fetch` warned "Permission denied" while cleaning up three old worktree records (`cio-trial`, `cio_build_apple-design`, `vite-trial`), probably OneDrive locking files. Harmless; can be tidied later.
+- Still untracked: `.claude/` and `skills-lock.json`. Decide whether to commit them or add them to `.gitignore`.
 
 ---
 
